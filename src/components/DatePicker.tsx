@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { useState } from 'react';
+import { useState, Dispatch, SetStateAction } from 'react';
 
 // How many days before today's date should appear in the picker
 const DAYS_BEFORE_TODAY: number = 7;
@@ -9,7 +9,12 @@ const TODAY: Date = new Date();
 // Initial key value
 export const INITIAL_DATE_PICKER_KEY: string = formatPickerOptionKey(TODAY);
 
-export default function DatePicker() {
+interface IProps {
+  selectedDateKey: string,
+  setSelectedDateKey: Dispatch<SetStateAction<string>>,
+}
+
+export default function DatePicker(props: IProps) {
   const [pickerListVisible, setPickerListVisible] = useState<boolean>(false);
   const [pickerOptions, setPickerOptions] = useState<Map<string, PickerOption>>(createPickerOptions());
 
@@ -19,9 +24,6 @@ export default function DatePicker() {
   const pickerKeys = Array.from(pickerOptions.keys());
   const pickerValues = Array.from(pickerOptions.values());
 
-  // Set the picker to todays date
-  const [currentlySelectedKey, setCurrentlySelectedKey] = useState<string>(INITIAL_DATE_PICKER_KEY);
-
   function togglePickerListVisibility() {
     setPickerListVisible(prev => !prev);
   }
@@ -30,7 +32,7 @@ export default function DatePicker() {
     pickerOptions.forEach((v, k) => {
       if (k === selectedKey) {
         v.isSelected = true;
-        setCurrentlySelectedKey(selectedKey);
+        props.setSelectedDateKey(selectedKey);
       } else {
         v.isSelected = false;
       }
@@ -78,7 +80,7 @@ export default function DatePicker() {
         <div className="relative basis-4/6">
           <button onClick={togglePickerListVisibility} className="bg-white flex rounded-lg w-full items-center justify-center hover:bg-gray-700 hover:bg-opacity-25 hover:text-gray-100">
             <Image className="float-left" width="30" height="30" src="calendar.svg" alt="Precise date picker" />
-            <span className="font-bold mt-1 pl-2">{pickerOptions.get(currentlySelectedKey)!.displayName}</span>
+            <span className="font-bold mt-1 pl-2">{pickerOptions.get(props.selectedDateKey)!.displayName}</span>
           </button >
           <ul className={`${pickerListVisible ? "visible" : "invisible"} absolute mt-1 w-full text-center rounded-lg bg-white`}>
             {Array.from(pickerOptions).map(([key, pickerOption]) => {
@@ -138,7 +140,7 @@ function createPickerOptions(): Map<string, PickerOption> {
 
   // calculate one option for today
   dateOptions.set(
-    formatPickerOptionKey(TODAY),
+    INITIAL_DATE_PICKER_KEY,
     { displayName: "Today", isSelected: true }
   )
 
