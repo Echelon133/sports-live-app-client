@@ -7,10 +7,11 @@ export type Competition = {
   logoUrl: string
 }
 
-export type CompetitionGroupedMatches = Map<string, CompactMatchInfo[]>
+export type CompetitionIdGroupedMatches = Map<string, CompactMatchInfo[]>
+export type CompetitionGroupedMatches = Map<Competition, CompactMatchInfo[]>
 
-export namespace CompetitionGroupedMatches {
-  export function fromJSON(json: any): CompetitionGroupedMatches {
+export namespace CompetitionIdGroupedMatches {
+  export function fromJSON(json: any): CompetitionIdGroupedMatches {
     // custom reviver needed to correctly parse the format of dates 
     // received from the backend
     return new Map(Object.entries(JSON.parse(json, customUtcDateReviver)));
