@@ -23,11 +23,12 @@ export default function GroupedMatchInfo(props: IProps) {
         <div className="mt-2 basis-full">
           <div className="bg-rose-300 shadow-sm shadow-black">
             <div className="p-3 pl-10">
-              {competitionLogoUrl ?
-                <Image className="float-left mr-2" width="20" height="20" src={competitionLogoUrl} alt={props.competitionInfo.name} />
-                :
-                <Image className="float-left mr-2" width="20" height="20" src="placeholder-competition-logo.svg" alt={props.competitionInfo.name} />
-              }
+              <Image
+                className="float-left mr-2"
+                width="20"
+                height="20"
+                src={competitionLogoUrl ? competitionLogoUrl : "placeholder-competition-logo.svg"}
+                alt={props.competitionInfo.name} />
               <a className="font-extrabold hover:underline" href="#">{props.competitionInfo.name}</a>
               <span className="font-extralight text-sm text-gray-500 ml-2">({props.competitionInfo.season})</span>
               <button onClick={toggleMatchListVisibility} className="font-light text-sm flex float-right">

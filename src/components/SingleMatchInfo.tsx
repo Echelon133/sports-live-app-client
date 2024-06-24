@@ -18,11 +18,12 @@ export default function SingleMatchInfo(props: IProps) {
       <div className="basis-10/12 flex flex-col">
         <div className="flex">
           <div className="basis-10/12">
-            {homeCrestUrl ?
-              <Image className="float-left" width="20" height="20" src={homeCrestUrl} alt="Home team crest" />
-              :
-              <Image className="float-left" width="20" height="20" src="placeholder-club-logo.svg" alt="Home team crest" />
-            }
+            <Image
+              className="float-left"
+              width="18"
+              height="18"
+              src={homeCrestUrl ? homeCrestUrl : "placeholder-club-logo.svg"}
+              alt="Home team crest" />
             <span className="font-mono ml-2">{props.matchInfo.homeTeam?.name}</span>
           </div>
           <div className="basis-2/12">
@@ -32,11 +33,12 @@ export default function SingleMatchInfo(props: IProps) {
         </div>
         <div className="flex">
           <div className="basis-10/12">
-            {awayCrestUrl ?
-              <Image className="float-left" width="20" height="20" src={awayCrestUrl} alt="Away team crest" />
-              :
-              <Image className="float-left" width="20" height="20" src="placeholder-club-logo.svg" alt="Away team crest" />
-            }
+            <Image
+              className="float-left"
+              width="18"
+              height="18"
+              src={awayCrestUrl ? awayCrestUrl : "placeholder-club-logo.svg"}
+              alt="Away team crest" />
             <span className="font-mono ml-2">{props.matchInfo.awayTeam?.name}</span>
           </div>
           <div className="basis-2/12">
