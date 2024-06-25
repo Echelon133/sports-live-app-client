@@ -21,14 +21,39 @@ export default function Home() {
       utcOffset: UTC_OFFSET,
     });
 
-    fetchGroupedMatches(httpParams);
+    fetchGroupedMatches(httpParams)
+      .then((competitionGroupedMatches) => setCompetitionGroupedMatches(competitionGroupedMatches))
+      .catch(() => setCompetitionGroupedMatches(new Map()));
   }, [selectedDateKey]);
 
-  function fetchGroupedMatches(httpParams: URLSearchParams) {
+
+  return (
+    <main>
+      <DatePicker selectedDateKey={selectedDateKey} setSelectedDateKey={setSelectedDateKey} />
+      {competitionGroupedMatches.size > 0 ?
+        <div className="mt-8 h-full">
+          {
+            Array.from(competitionGroupedMatches).map(([competitionInfo, matches]) => {
+              return <GroupedMatchInfo competitionInfo={competitionInfo} matches={matches} />
+            })
+          }
+        </div>
+        :
+        <div className="mt-8 py-40 bg-rose-300 text-center">
+          <span className="font-mono text-2xl font-extrabold">No matches available</span>
+        </div>
+      }
+    </main>
+  );
+}
+
+async function fetchGroupedMatches(httpParams: URLSearchParams): Promise<CompetitionGroupedMatches> {
+  return new Promise(async (resolve, reject) => {
     const matchesUrl = `${publicRuntimeConfig.MATCHES_BASE_URL}?${httpParams.toString()}`;
-    fetch(matchesUrl)
+    await fetch(matchesUrl)
       .then((res) => res.text())
-      .then((data) => {
+      .catch(() => reject(Error("fetching matches failed")))
+      .then(async (data) => {
         // rebuild request's body into our custom type
         const d: CompetitionIdGroupedMatches = CompetitionIdGroupedMatches.fromJSON(data);
 
@@ -54,29 +79,9 @@ export default function Home() {
             arr.forEach((pair) => {
               competitionGroupedMatches.set(pair.competition, pair.matches);
             })
-            return competitionGroupedMatches;
-          }).then((competitionGroupedMatches) => {
-            setCompetitionGroupedMatches(competitionGroupedMatches);
+            resolve(competitionGroupedMatches);
           });
-      });
-  }
-
-  return (
-    <main>
-      <DatePicker selectedDateKey={selectedDateKey} setSelectedDateKey={setSelectedDateKey} />
-      {competitionGroupedMatches.size > 0 ?
-        <div className="mt-8 h-full">
-          {
-            Array.from(competitionGroupedMatches).map(([competitionInfo, matches]) => {
-              return <GroupedMatchInfo competitionInfo={competitionInfo} matches={matches} />
-            })
-          }
-        </div>
-        :
-        <div className="mt-8 py-40 bg-rose-300 text-center">
-          <span className="font-mono text-2xl font-extrabold">No matches available</span>
-        </div>
-      }
-    </main>
-  );
+      })
+      .catch(() => reject(Error("fetching information about competitions failed")))
+  });
 }
