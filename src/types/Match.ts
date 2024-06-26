@@ -1,13 +1,13 @@
 export enum MatchStatus {
-  NOT_STARTED = "NOT_STARTED",
-  FIRST_HALF = "FIRST_HALF",
-  HALF_TIME = "HALF_TIME",
-  SECOND_HALF = "SECONF_HALF",
-  FINISHED = "FINISHED",
-  EXTRA_TIME = "EXTRA_TIME",
-  PENALTIES = "PENALTIES",
-  POSTPONED = "POSTPONED",
-  ABANDONED = "ABANDONED",
+  NOT_STARTED = "Not started",
+  FIRST_HALF = "First Half",
+  HALF_TIME = "Half Time",
+  SECOND_HALF = "Second Half",
+  FINISHED = "Finished",
+  EXTRA_TIME = "Extra Time",
+  PENALTIES = "Penalties",
+  POSTPONED = "Postponed",
+  ABANDONED = "Abandoned",
 }
 
 export enum MatchResult {
@@ -28,6 +28,17 @@ export type Score = {
   awayGoals: number,
 }
 
+export type VenueInfo = {
+  id: string,
+  name: string,
+  capacity: number | null,
+}
+
+export type RefereeInfo = {
+  id: string,
+  name: string,
+}
+
 export type CompactTeamInfoOrNull = CompactTeamInfo | null;
 
 export type CompactMatchInfo = {
@@ -41,6 +52,19 @@ export type CompactMatchInfo = {
   halfTimeScoreInfo: Score,
   scoreInfo: Score,
   penaltiesInfo: Score
+}
+
+export type FullMatchInfo = CompactMatchInfo & {
+  venue: VenueInfo | null,
+  referee: RefereeInfo | null,
+}
+
+export namespace FullMatchInfo {
+  export function fromJSON(json: any): FullMatchInfo {
+    // custom reviver needed to correctly parse the format of dates 
+    // received from the backend
+    return JSON.parse(json, customUtcDateReviver);
+  }
 }
 
 export function customUtcDateReviver(key: any, value: any): any {

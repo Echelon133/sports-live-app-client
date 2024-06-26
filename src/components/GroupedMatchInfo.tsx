@@ -3,6 +3,7 @@ import Image from 'next/image'
 import SingleMatchInfo from './SingleMatchInfo';
 import { CompactMatchInfo } from '@/types/Match';
 import { Competition } from '@/types/Competition';
+import Link from 'next/link';
 
 interface IProps {
   competitionInfo: Competition,
@@ -54,7 +55,7 @@ export default function GroupedMatchInfo(props: IProps) {
           </div>
           <div className={`${matchListVisible ? "" : "hidden"} `} >
             {props.matches.map(m => {
-              return <SingleMatchInfo matchInfo={m} />
+              return <Link href={`/match/${encodeURIComponent(m.id)}`}> <SingleMatchInfo matchInfo={m} /></Link>
             })}
           </div>
         </div>
