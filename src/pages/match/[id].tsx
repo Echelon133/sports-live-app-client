@@ -4,19 +4,19 @@ import getConfig from "next/config";
 import { useEffect, useState } from "react";
 import { FullMatchInfo, MatchStatus } from "@/types/Match";
 import { Competition } from "@/types/Competition";
+import MatchEventsSummary from "@/components/MatchEventsSummary";
 
 const { publicRuntimeConfig } = getConfig();
 
 type AllMatchInfo = {
   match: FullMatchInfo,
-  competition: Competition
+  competition: Competition,
 }
 
 export default function Match() {
   const router = useRouter();
-  const [allMatchInformation, setAllMatchInformation] = useState<AllMatchInfo | undefined>(undefined);
 
-  const matchId = router.query.id;
+  const [allMatchInformation, setAllMatchInformation] = useState<AllMatchInfo | undefined>(undefined);
   const matchInformation = allMatchInformation?.match;
   const competitionLogoUrl = allMatchInformation?.competition.logoUrl;
   const homeCrestUrl = matchInformation?.homeTeam?.crestUrl;
@@ -26,7 +26,7 @@ export default function Match() {
   const matchStatus = formatMatchStatus(matchInformation?.status);
 
   useEffect(() => {
-    if (matchId === undefined) {
+    if (router.query.id === undefined) {
       return;
     }
     const matchUrl = `${publicRuntimeConfig.MATCHES_BASE_URL}/${router.query.id}`;
@@ -35,13 +35,14 @@ export default function Match() {
         const competitionUrl = `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${matchInfo.competitionId}`;
         await fetch(competitionUrl)
           .then((res) => res.json())
-          .then((data) => {
+          .then(async (data) => {
             const competition: Competition = data;
             setAllMatchInformation({ match: matchInfo, competition: competition });
           });
       })
       .catch(() => setAllMatchInformation(undefined));
-  }, [matchId]);
+  }, [router.query.id]);
+
 
   return (
     <div className="flex flex-row bg-rose-200 items-center justify-center">
@@ -101,6 +102,7 @@ export default function Match() {
             </div>
           </div>
         </div>
+        <MatchEventsSummary matchId={router.query.id?.toString()} homeTeamId={matchInformation?.homeTeam?.id} />
       </div>
     </div>
   )
