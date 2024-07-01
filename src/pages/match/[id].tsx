@@ -40,7 +40,13 @@ export default function Match() {
             setAllMatchInformation({ match: matchInfo, competition: competition });
           });
       })
-      .catch(() => setAllMatchInformation(undefined));
+      .catch((error) => {
+        if (error.message === "404") {
+          router.push("/404")
+        } else {
+          setAllMatchInformation(undefined)
+        }
+      });
   }, [router.query.id]);
 
 
@@ -138,13 +144,17 @@ export default function Match() {
 async function fetchFullMatchInfo(matchUrl: string): Promise<FullMatchInfo> {
   return new Promise(async (resolve, reject) => {
     await fetch(matchUrl)
+      .then((res) => {
+        if (res.status !== 200) {
+          reject(Error(res.status.toString()))
+        }
+        return res
+      })
       .then((res) => res.text())
-      .catch(() => reject(Error("fetching match failed")))
       .then(async (data) => {
         const d: FullMatchInfo = FullMatchInfo.fromJSON(data);
         resolve(d);
       })
-      .catch(() => reject(Error("deserialization of the match failed")));
   });
 }
 
