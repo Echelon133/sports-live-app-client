@@ -84,6 +84,33 @@ export default function Match() {
               <div className="basis-full">
                 <span className="font-extrabold text-sm">{matchStatus}</span>
               </div>
+              <div className="flex basis-full items-center justify-center pt-5">
+                <Image
+                  className="pr-2"
+                  width="30"
+                  height="30"
+                  src="../../whistle.svg"
+                  alt="Referee"
+                  title="Referee" />
+                <span className="font-extrabold text-xs">{matchInformation?.referee?.name}</span>
+              </div>
+              {matchInformation?.venue &&
+                <div className="flex basis-full items-center justify-center">
+                  <Image
+                    className="pr-2"
+                    width="30"
+                    height="30"
+                    src="../../stadium.svg"
+                    alt="Stadium"
+                    title="Stadium" />
+                  <div className="">
+                    <span className="font-extrabold text-xs">{matchInformation.venue.name}</span>
+                    {matchInformation.venue.capacity &&
+                      <span className="font-extrabold text-xs"> (capacity {matchInformation.venue.capacity})</span>
+                    }
+                  </div>
+                </div>
+              }
             </div>
             <div className="basis-1/3 bg-yellow-100">
               <div className="flex flex-col items-start">
