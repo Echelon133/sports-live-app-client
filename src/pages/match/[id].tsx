@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { FullMatchInfo, MatchStatus } from "@/types/Match";
 import { Competition } from "@/types/Competition";
 import MatchEventsSummary from "@/components/MatchEventsSummary";
+import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
+import MatchLineupListing from "@/components/MatchLineupListing";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -16,7 +18,21 @@ type AllMatchInfo = {
 export default function Match() {
   const router = useRouter();
 
+  // setup the filter menu with two options: SUMMARY and LINEUPS 
+  const DEFAULT_MATCH_FILTER: FilterOptionKey = "summary";
+  const matchFilterOptions: Map<FilterOptionKey, FilterOption> = new Map([
+    [DEFAULT_MATCH_FILTER, { displayName: "SUMMARY", isSelected: true }],
+    ["lineups", { displayName: "LINEUPS", isSelected: false }],
+  ]);
+  const [selectedMatchInfoOption, setSelectedMatchInfoOption] = useState<string>(DEFAULT_MATCH_FILTER);
+  const filterMenuInfo: FilterMenuInfo = {
+    options: matchFilterOptions,
+    currentlySelected: selectedMatchInfoOption,
+    setCurrentlySelected: setSelectedMatchInfoOption
+  };
+
   const [allMatchInformation, setAllMatchInformation] = useState<AllMatchInfo | undefined>(undefined);
+
   const matchInformation = allMatchInformation?.match;
   const competitionLogoUrl = allMatchInformation?.competition.logoUrl;
   const homeCrestUrl = matchInformation?.homeTeam?.crestUrl;
@@ -135,7 +151,13 @@ export default function Match() {
             </div>
           </div>
         </div>
-        <MatchEventsSummary matchId={router.query.id?.toString()} homeTeamId={matchInformation?.homeTeam?.id} />
+        <FilterMenu filter={filterMenuInfo} />
+        {selectedMatchInfoOption === "summary" &&
+          <MatchEventsSummary matchId={router.query.id?.toString()} homeTeamId={matchInformation?.homeTeam?.id} />
+        }
+        {selectedMatchInfoOption === "lineups" &&
+          <MatchLineupListing matchId={router.query.id?.toString()} />
+        }
       </div>
     </div>
   )
