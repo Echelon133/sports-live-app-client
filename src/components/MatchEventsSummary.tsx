@@ -59,7 +59,7 @@ function matchEventsRender(matchEvent: { event: MatchEvents.MatchEvent, homeTeam
 }
 
 function StatusEventBox(props: { event: MatchEvents.StatusEvent }) {
-  const statusText = MatchStatus[props.event.targetStatus];
+  const statusText = MatchStatus.format(props.event.targetStatus);
   const currentScore = `${props.event.mainScore.homeGoals}:${props.event.mainScore.awayGoals}`;
   return (
     <>
