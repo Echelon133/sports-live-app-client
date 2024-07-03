@@ -39,7 +39,7 @@ export default function Match() {
   const awayCrestUrl = matchInformation?.awayTeam?.crestUrl;
   const fullTimeScore = `${matchInformation?.scoreInfo.homeGoals}:${matchInformation?.scoreInfo.awayGoals}`;
   const matchDate = formatMatchDate(matchInformation?.startTimeUTC);
-  const matchStatus = formatMatchStatus(matchInformation?.status);
+  const matchStatus = MatchStatus.format(matchInformation?.status);
 
   useEffect(() => {
     if (router.query.id === undefined) {
@@ -191,9 +191,4 @@ function formatMatchDate(d?: Date): string {
     minute: "2-digit",
   }
   return d.toLocaleDateString(undefined, options);
-}
-
-function formatMatchStatus(status?: MatchStatus): string {
-  if (status === undefined) return "";
-  return MatchStatus[status];
 }

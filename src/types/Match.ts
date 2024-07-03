@@ -1,13 +1,32 @@
 export enum MatchStatus {
-  NOT_STARTED = "Not started",
-  FIRST_HALF = "First Half",
-  HALF_TIME = "Half Time",
-  SECOND_HALF = "Second Half",
-  FINISHED = "Finished",
-  EXTRA_TIME = "Extra Time",
-  PENALTIES = "Penalties",
-  POSTPONED = "Postponed",
-  ABANDONED = "Abandoned",
+  NOT_STARTED = "NOT_STARTED",
+  FIRST_HALF = "FIRST_HALF",
+  HALF_TIME = "HALF_TIME",
+  SECOND_HALF = "SECOND_HALF",
+  FINISHED = "FINISHED",
+  EXTRA_TIME = "EXTRA_TIME",
+  PENALTIES = "PENALTIES",
+  POSTPONED = "POSTPONED",
+  ABANDONED = "ABANDONED",
+}
+
+export namespace MatchStatus {
+  const stringMapping: Map<MatchStatus, string> = new Map([
+    [MatchStatus.NOT_STARTED, "Not started"],
+    [MatchStatus.FIRST_HALF, "First Half"],
+    [MatchStatus.HALF_TIME, "Half Time"],
+    [MatchStatus.SECOND_HALF, "Second Half"],
+    [MatchStatus.FINISHED, "Finished"],
+    [MatchStatus.EXTRA_TIME, "Extra Time"],
+    [MatchStatus.PENALTIES, "Penalties"],
+    [MatchStatus.POSTPONED, "Postponed"],
+    [MatchStatus.ABANDONED, "Abandoned"],
+  ]);
+
+  export function format(status: MatchStatus | undefined): string | undefined {
+    if (status === undefined) return ""
+    return stringMapping.get(status);
+  }
 }
 
 export enum MatchResult {
