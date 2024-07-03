@@ -2,7 +2,7 @@ import { useRouter } from "next/router"
 import Image from 'next/image'
 import getConfig from "next/config";
 import { useEffect, useState } from "react";
-import { FullMatchInfo, MatchStatus } from "@/types/Match";
+import { FullMatchInfo, MatchStatus, Score } from "@/types/Match";
 import { Competition } from "@/types/Competition";
 import MatchEventsSummary from "@/components/MatchEventsSummary";
 import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
@@ -13,6 +13,17 @@ const { publicRuntimeConfig } = getConfig();
 type AllMatchInfo = {
   match: FullMatchInfo,
   competition: Competition,
+}
+
+export type UpdateableMatchInfo = {
+  fullTimeScore: {
+    value: Score,
+    highlight: boolean
+  },
+  status: {
+    value: MatchStatus,
+    highlight: boolean
+  },
 }
 
 export default function Match() {
@@ -33,13 +44,24 @@ export default function Match() {
 
   const [allMatchInformation, setAllMatchInformation] = useState<AllMatchInfo | undefined>(undefined);
 
+  // match info which can change as the match progresses (in case new match events are received
+  // via socket.io AFTER the initial render of the page)
+  const [updateableMatchInfo, setUpdateableMatchInfo] = useState<UpdateableMatchInfo>({
+    fullTimeScore: {
+      value: { homeGoals: 0, awayGoals: 0 },
+      highlight: false
+    },
+    status: {
+      value: MatchStatus.NOT_STARTED,
+      highlight: false
+    }
+  });
+
   const matchInformation = allMatchInformation?.match;
   const competitionLogoUrl = allMatchInformation?.competition.logoUrl;
   const homeCrestUrl = matchInformation?.homeTeam?.crestUrl;
   const awayCrestUrl = matchInformation?.awayTeam?.crestUrl;
-  const fullTimeScore = `${matchInformation?.scoreInfo.homeGoals}:${matchInformation?.scoreInfo.awayGoals}`;
   const matchDate = formatMatchDate(matchInformation?.startTimeUTC);
-  const matchStatus = MatchStatus.format(matchInformation?.status);
 
   useEffect(() => {
     if (router.query.id === undefined) {
@@ -54,6 +76,16 @@ export default function Match() {
           .then(async (data) => {
             const competition: Competition = data;
             setAllMatchInformation({ match: matchInfo, competition: competition });
+            setUpdateableMatchInfo({
+              fullTimeScore: {
+                value: matchInfo.scoreInfo,
+                highlight: false
+              },
+              status: {
+                value: matchInfo.status,
+                highlight: false
+              }
+            });
           });
       })
       .catch((error) => {
@@ -101,10 +133,14 @@ export default function Match() {
             </div>
             <div className="flex flex-col basis-1/3 bg-red-100 text-center">
               <div className="basis-full pt-5">
-                <span className="text-5xl">{fullTimeScore}</span>
+                <span className={`text-5xl ${updateableMatchInfo.fullTimeScore.highlight ? "text-red-500" : ""}`}>
+                  {Score.format(updateableMatchInfo.fullTimeScore.value)}
+                </span>
               </div>
               <div className="basis-full">
-                <span className="font-extrabold text-sm">{matchStatus}</span>
+                <span className={`font-extrabold text-sm ${updateableMatchInfo.status.highlight ? "text-red-500" : ""}`}>
+                  {MatchStatus.format(updateableMatchInfo.status.value)}
+                </span>
               </div>
               <div className="flex basis-full items-center justify-center pt-5">
                 <Image
@@ -153,7 +189,11 @@ export default function Match() {
         </div>
         <FilterMenu filter={filterMenuInfo} />
         {selectedMatchInfoOption === "summary" &&
-          <MatchEventsSummary matchId={router.query.id?.toString()} homeTeamId={matchInformation?.homeTeam?.id} />
+          <MatchEventsSummary
+            matchId={router.query.id?.toString()}
+            homeTeamId={allMatchInformation?.match.homeTeam?.id}
+            matchFinished={allMatchInformation?.match.status === MatchStatus.FINISHED}
+            setUpdateableMatchInfo={setUpdateableMatchInfo} />
         }
         {selectedMatchInfoOption === "lineups" &&
           <MatchLineupListing matchId={router.query.id?.toString()} />

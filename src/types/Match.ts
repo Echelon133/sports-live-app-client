@@ -47,6 +47,13 @@ export type Score = {
   awayGoals: number,
 }
 
+export namespace Score {
+  export function format(score: Score | undefined): string {
+    if (score === undefined) return ""
+    return `${score.homeGoals}:${score.awayGoals}`;
+  }
+}
+
 export type VenueInfo = {
   id: string,
   name: string,
