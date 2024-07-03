@@ -12,18 +12,15 @@ export enum PlayerPosition {
 }
 
 export namespace PlayerPosition {
-  export function format(position: PlayerPosition | undefined): string {
+  const stringMapping: Map<PlayerPosition, string> = new Map([
+    [PlayerPosition.GOALKEEPER, "GK"],
+    [PlayerPosition.DEFENDER, "DEF"],
+    [PlayerPosition.MIDFIELDER, "MID"],
+    [PlayerPosition.FORWARD, "FWD"]
+  ]);
+  export function format(position: PlayerPosition | undefined): string | undefined {
     if (position === undefined) return ""
-    switch (position) {
-      case PlayerPosition.GOALKEEPER:
-        return "GK"
-      case PlayerPosition.DEFENDER:
-        return "DEF"
-      case PlayerPosition.MIDFIELDER:
-        return "MID"
-      case PlayerPosition.FORWARD:
-        return "FWD"
-    }
+    return stringMapping.get(position);
   }
 }
 
