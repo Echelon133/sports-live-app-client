@@ -1,11 +1,8 @@
 import { CompactMatchInfo, MatchStatus } from '@/types/Match';
 import Image from 'next/image'
 
-type IProps = {
-  matchInfo: CompactMatchInfo
-}
 
-export default function SingleMatchInfo(props: IProps) {
+export default function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
   const matchInfo: string = evaluateMatchInfo(props.matchInfo.status, props.matchInfo.startTimeUTC);
   const homeCrestUrl: string | undefined = props.matchInfo.homeTeam?.crestUrl;
   const awayCrestUrl: string | undefined = props.matchInfo.awayTeam?.crestUrl;

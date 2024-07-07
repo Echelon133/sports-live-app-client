@@ -5,12 +5,11 @@ import { CompactMatchInfo } from '@/types/Match';
 import { Competition } from '@/types/Competition';
 import Link from 'next/link';
 
-interface IProps {
-  competitionInfo: Competition,
-  matches: CompactMatchInfo[],
-}
 
-export default function GroupedMatchInfo(props: IProps) {
+export default function GroupedMatchInfo(props: {
+  competitionInfo: Competition,
+  matches: CompactMatchInfo[]
+}) {
   const [matchListVisible, setMatchListVisible] = useState<boolean>(true);
   const competitionLogoUrl = props.competitionInfo.logoUrl;
 

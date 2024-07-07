@@ -9,12 +9,11 @@ const TODAY: Date = new Date();
 // Initial key value
 export const INITIAL_DATE_PICKER_KEY: string = formatPickerOptionKey(TODAY);
 
-interface IProps {
-  selectedDateKey: string,
-  setSelectedDateKey: Dispatch<SetStateAction<string>>,
-}
 
-export default function DatePicker(props: IProps) {
+export default function DatePicker(props: {
+  selectedDateKey: string,
+  setSelectedDateKey: Dispatch<SetStateAction<string>>
+}) {
   const [pickerListVisible, setPickerListVisible] = useState<boolean>(false);
   const [pickerOptions, setPickerOptions] = useState<Map<string, PickerOption>>(createPickerOptions);
 
