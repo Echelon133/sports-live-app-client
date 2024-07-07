@@ -16,7 +16,7 @@ interface IProps {
 
 export default function DatePicker(props: IProps) {
   const [pickerListVisible, setPickerListVisible] = useState<boolean>(false);
-  const [pickerOptions, setPickerOptions] = useState<Map<string, PickerOption>>(createPickerOptions());
+  const [pickerOptions, setPickerOptions] = useState<Map<string, PickerOption>>(createPickerOptions);
 
   // Avoid creating multiple copies of keys/values arrays by reusing arrays created here. 
   // They can be safely used as long as pickerOptions are initialized
@@ -29,15 +29,19 @@ export default function DatePicker(props: IProps) {
   }
 
   function pickOptionByKey(selectedKey: string) {
-    pickerOptions.forEach((v, k) => {
-      if (k === selectedKey) {
-        v.isSelected = true;
-        props.setSelectedDateKey(selectedKey);
-      } else {
-        v.isSelected = false;
-      }
+    setPickerOptions((prev) => {
+      const updatedMap = new Map(prev);
+      updatedMap.forEach((v, k) => {
+        if (k === selectedKey) {
+          v.isSelected = true;
+        } else {
+          v.isSelected = false;
+        }
+      });
+      return updatedMap;
     });
 
+    props.setSelectedDateKey(selectedKey);
     setPickerListVisible(false);
   }
 

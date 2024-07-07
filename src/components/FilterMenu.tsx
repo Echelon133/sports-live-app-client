@@ -17,14 +17,19 @@ export default function FilterMenu(props: { filter: FilterMenuInfo }) {
   const [options, setOptions] = useState<Map<FilterOptionKey, FilterOption>>(props.filter.options);
 
   function pickFilterOption(key: string) {
-    options.forEach((v, k) => {
-      if (k === key) {
-        v.isSelected = true;
-        props.filter.setCurrentlySelected(key);
-      } else {
-        v.isSelected = false;
-      }
+    setOptions((prev) => {
+      const updatedMap = new Map(prev);
+      updatedMap.forEach((v, k) => {
+        if (k === key) {
+          v.isSelected = true;
+        } else {
+          v.isSelected = false;
+        }
+      });
+      return updatedMap;
     });
+
+    props.filter.setCurrentlySelected(key);
   }
 
   return (

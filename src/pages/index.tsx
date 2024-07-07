@@ -22,8 +22,7 @@ export default function Home() {
     });
 
     fetchGroupedMatches(httpParams)
-      .then((competitionGroupedMatches) => setCompetitionGroupedMatches(competitionGroupedMatches))
-      .catch(() => setCompetitionGroupedMatches(new Map()));
+      .then((competitionGroupedMatches) => setCompetitionGroupedMatches(competitionGroupedMatches));
   }, [selectedDateKey]);
 
 

@@ -4,19 +4,19 @@ import getConfig from "next/config";
 
 const { publicRuntimeConfig } = getConfig();
 
+const INITIAL_LINEUP = {
+  home: {
+    startingPlayers: [],
+    substitutePlayers: [],
+  },
+  away: {
+    startingPlayers: [],
+    substitutePlayers: []
+  }
+};
+
 export default function MatchLineupListing(props: { matchId: string | undefined }) {
-  const [lineup, setLineup] = useState<Lineup>(
-    {
-      home: {
-        startingPlayers: [],
-        substitutePlayers: [],
-      },
-      away: {
-        startingPlayers: [],
-        substitutePlayers: []
-      }
-    }
-  );
+  const [lineup, setLineup] = useState<Lineup>(INITIAL_LINEUP);
 
   useEffect(() => {
     if (props.matchId == undefined) {
@@ -31,7 +31,6 @@ export default function MatchLineupListing(props: { matchId: string | undefined 
         setLineup(d);
       });
   }, [props.matchId])
-
 
   return (
     <>

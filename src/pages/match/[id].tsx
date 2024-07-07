@@ -26,6 +26,17 @@ export type UpdateableMatchInfo = {
   },
 }
 
+const INITIAL_MATCH_INFO = {
+  fullTimeScore: {
+    value: { homeGoals: 0, awayGoals: 0 },
+    highlight: false
+  },
+  status: {
+    value: MatchStatus.NOT_STARTED,
+    highlight: false
+  }
+};
+
 export default function Match() {
   const router = useRouter();
 
@@ -46,16 +57,7 @@ export default function Match() {
 
   // match info which can change as the match progresses (in case new match events are received
   // via socket.io AFTER the initial render of the page)
-  const [updateableMatchInfo, setUpdateableMatchInfo] = useState<UpdateableMatchInfo>({
-    fullTimeScore: {
-      value: { homeGoals: 0, awayGoals: 0 },
-      highlight: false
-    },
-    status: {
-      value: MatchStatus.NOT_STARTED,
-      highlight: false
-    }
-  });
+  const [updateableMatchInfo, setUpdateableMatchInfo] = useState<UpdateableMatchInfo>(INITIAL_MATCH_INFO);
 
   const matchInformation = allMatchInformation?.match;
   const competitionLogoUrl = allMatchInformation?.competition.logoUrl;
