@@ -16,6 +16,7 @@ const INITIAL_LINEUP = {
 };
 
 export default function MatchLineupListing(props: { matchId: string | undefined }) {
+  const [lineupContentLoaded, setLineupContentLoaded] = useState<boolean>(false);
   const [lineup, setLineup] = useState<Lineup>(INITIAL_LINEUP);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function MatchLineupListing(props: { matchId: string | undefined 
       .then((data) => {
         const d: Lineup = data;
         setLineup(d);
+        setLineupContentLoaded(true);
       });
   }, [props.matchId])
 
@@ -36,13 +38,58 @@ export default function MatchLineupListing(props: { matchId: string | undefined 
     <>
       <div className="mt-5 bg-rose-500">
         <span className="pl-8 font-extrabold">Lineups</span>
+        {lineupContentLoaded ?
+          <LineupContent lineup={lineup} />
+          :
+          <LineupContentSkeleton />
+        }
       </div>
+    </>
+  )
+}
+
+function LineupContent(props: { lineup: Lineup }) {
+  return (
+    <>
       <NamedLineup
         title="Starting Players"
-        players={zipPlayers(lineup.home.startingPlayers, lineup.away.startingPlayers)} />
+        players={zipPlayers(props.lineup.home.startingPlayers, props.lineup.away.startingPlayers)} />
       <NamedLineup
         title="Substitute Players"
-        players={zipPlayers(lineup.home.substitutePlayers, lineup.away.substitutePlayers)} />
+        players={zipPlayers(props.lineup.home.substitutePlayers, props.lineup.away.substitutePlayers)} />
+    </>
+  )
+}
+
+function LineupContentSkeleton() {
+  return (
+    <>
+      {["Starting Players", "Substitute Players"].map((title, i) => {
+        return (
+          <>
+            <div
+              key={i}
+              className="animate-pulse flex flex-row bg-rose-300 h-8 pt-2 shadow-sm shadow-black mb-2">
+              <span className="pl-10 float-left text-sm">{title}</span>
+            </div>
+            <div className="flex flex-row">
+              <table className="basis-full table-auto mx-8 mb-10">
+                <tbody>
+                  {[...Array(8)].map((_e, j) => {
+                    return (
+                      <div
+                        key={j}
+                        className="animate-pulse odd:bg-rose-300 even:bg-rose-200">
+                        <div className="h-6"></div>
+                      </div>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )
+      })}
     </>
   )
 }

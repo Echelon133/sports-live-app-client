@@ -16,6 +16,7 @@ export default function MatchEventsSummary(props: {
   matchFinished: boolean,
   setUpdateableMatchInfo: Dispatch<SetStateAction<UpdateableMatchInfo>>,
 }) {
+  const [matchEventsContentLoaded, setMatchEventsContentLoaded] = useState<boolean>(false);
   const [matchEvents, setMatchEvents] = useState<MatchEvents.MatchEvent[]>([]);
 
   // fetch past match events
@@ -30,6 +31,7 @@ export default function MatchEventsSummary(props: {
       .then((data) => {
         const matchEvents: MatchEvents.MatchEvent[] = data;
         setMatchEvents(matchEvents);
+        setMatchEventsContentLoaded(true);
       });
 
   }, [props.matchId])
@@ -153,9 +155,46 @@ export default function MatchEventsSummary(props: {
       <div className="mt-5 bg-rose-500">
         <span className="pl-8 font-extrabold">Summary</span>
       </div>
+      {matchEventsContentLoaded ?
+        <MatchEventsSummaryContent matchEvents={matchEvents} homeTeamId={props.homeTeamId} />
+        :
+        <MatchEventsSummaryContentSkeleton />
+      }
+    </>
+  )
+}
+
+function MatchEventsSummaryContent(props: { matchEvents: MatchEvents.MatchEvent[], homeTeamId: string | undefined }) {
+  return (
+    <>
       <div className="">
-        {matchEvents.map((e) => matchEventsRender({ event: e, homeTeamId: props.homeTeamId }))}
+        {props.matchEvents.map((e) => matchEventsRender({ event: e, homeTeamId: props.homeTeamId }))}
       </div>
+    </>
+  )
+}
+
+function MatchEventsSummaryContentSkeleton() {
+  return (
+    <>
+      {[...Array(3)].map((_e, i) => {
+        return (
+          <>
+            <div key={i} className="animate-pulse flex flex-row bg-rose-300 h-8 pt-2 shadow-sm shadow-black mb-2">
+              <div className="basis-full"></div>
+            </div>
+            {[...Array(3)].map((_e, j) => {
+              return (
+                <>
+                  <div className="animate-pulse flex flex-col odd:bg-rose-200 even:bg-rose-100 p-8 mb-2">
+                    <div className="basis-full"></div>
+                  </div>
+                </>
+              )
+            })}
+          </>
+        )
+      })}
     </>
   )
 }

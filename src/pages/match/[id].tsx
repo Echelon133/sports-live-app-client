@@ -38,6 +38,8 @@ const INITIAL_MATCH_INFO = {
 };
 
 export default function Match() {
+  const [matchInfoContentLoaded, setMatchInfoContentLoaded] = useState<boolean>(false);
+
   const router = useRouter();
 
   // setup the filter menu with two options: SUMMARY and LINEUPS 
@@ -58,12 +60,6 @@ export default function Match() {
   // match info which can change as the match progresses (in case new match events are received
   // via socket.io AFTER the initial render of the page)
   const [updateableMatchInfo, setUpdateableMatchInfo] = useState<UpdateableMatchInfo>(INITIAL_MATCH_INFO);
-
-  const matchInformation = allMatchInformation?.match;
-  const competitionLogoUrl = allMatchInformation?.competition.logoUrl;
-  const homeCrestUrl = matchInformation?.homeTeam?.crestUrl;
-  const awayCrestUrl = matchInformation?.awayTeam?.crestUrl;
-  const matchDate = formatMatchDate(matchInformation?.startTimeUTC);
 
   useEffect(() => {
     if (router.query.id === undefined) {
@@ -88,6 +84,7 @@ export default function Match() {
                 highlight: false
               }
             });
+            setMatchInfoContentLoaded(true);
           });
       })
       .catch((error) => {
@@ -103,92 +100,13 @@ export default function Match() {
   return (
     <div className="flex flex-row bg-rose-200 items-center justify-center">
       <div className="mt-10 basis-full">
-        <div className="pl-4 bg-rose-500 py-3">
-          <Image
-            className="float-left mr-2"
-            width="20"
-            height="20"
-            src={competitionLogoUrl ? competitionLogoUrl : "../../placeholder-competition-logo.svg"}
-            alt="Competition name" />
-          <a className="font-extrabold hover:underline" href="#">{allMatchInformation?.competition.name}</a>
-          <span className="font-extralight text-sm text-gray-500 ml-2">({allMatchInformation?.competition.season})</span>
-        </div>
-        <div className="flex flex-col bs-rose-200">
-          <div className="basis-full mt-8 text-center">
-            <span className="font-mono text-sm">{matchDate}</span>
-          </div>
-          <div className="flex flex-row basis-full">
-            <div className="basis-1/3 bg-yellow-100">
-              <div className="flex flex-col items-end">
-                <div className="basis-full">
-                  <Image
-                    className="h-24 w-24"
-                    width="100"
-                    height="100"
-                    src={homeCrestUrl ? homeCrestUrl : "../../placeholder-club-logo.svg"}
-                    alt="Home team crest" />
-                </div>
-                <div className="basis-full">
-                  <span className="font-extrabold">{matchInformation?.homeTeam?.name}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col basis-1/3 bg-red-100 text-center">
-              <div className="basis-full pt-5">
-                <span className={`text-5xl ${updateableMatchInfo.fullTimeScore.highlight ? "text-red-500" : ""}`}>
-                  {Score.format(updateableMatchInfo.fullTimeScore.value)}
-                </span>
-              </div>
-              <div className="basis-full">
-                <span className={`font-extrabold text-sm ${updateableMatchInfo.status.highlight ? "text-red-500" : ""}`}>
-                  {MatchStatus.format(updateableMatchInfo.status.value)}
-                </span>
-              </div>
-              <div className="flex basis-full items-center justify-center pt-5">
-                <Image
-                  className="pr-2"
-                  width="30"
-                  height="30"
-                  src="../../whistle.svg"
-                  alt="Referee"
-                  title="Referee" />
-                <span className="font-extrabold text-xs">{matchInformation?.referee?.name}</span>
-              </div>
-              {matchInformation?.venue &&
-                <div className="flex basis-full items-center justify-center">
-                  <Image
-                    className="pr-2"
-                    width="30"
-                    height="30"
-                    src="../../stadium.svg"
-                    alt="Stadium"
-                    title="Stadium" />
-                  <div className="">
-                    <span className="font-extrabold text-xs">{matchInformation.venue.name}</span>
-                    {matchInformation.venue.capacity &&
-                      <span className="font-extrabold text-xs"> (capacity {matchInformation.venue.capacity})</span>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
-            <div className="basis-1/3 bg-yellow-100">
-              <div className="flex flex-col items-start">
-                <div className="basis-full">
-                  <Image
-                    className="h-24 w-24"
-                    width="100"
-                    height="100"
-                    src={awayCrestUrl ? awayCrestUrl : "../../placeholder-club-logo.svg"}
-                    alt="Away team crest" />
-                </div>
-                <div className="basis-full">
-                  <span className="font-extrabold">{matchInformation?.awayTeam?.name}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {matchInfoContentLoaded ?
+          <MatchInfoContent
+            allMatchInformation={allMatchInformation}
+            updateableMatchInfo={updateableMatchInfo} />
+          :
+          <MatchInfoContentSkeleton />
+        }
         <FilterMenu filter={filterMenuInfo} />
         {selectedMatchInfoOption === "summary" &&
           <MatchEventsSummary
@@ -202,6 +120,133 @@ export default function Match() {
         }
       </div>
     </div>
+  )
+}
+
+function MatchInfoContent(props: {
+  allMatchInformation: AllMatchInfo | undefined,
+  updateableMatchInfo: UpdateableMatchInfo,
+}) {
+  const matchInformation = props.allMatchInformation?.match;
+  const competitionLogoUrl = props.allMatchInformation?.competition.logoUrl;
+  const homeCrestUrl = matchInformation?.homeTeam?.crestUrl;
+  const awayCrestUrl = matchInformation?.awayTeam?.crestUrl;
+  const matchDate = formatMatchDate(matchInformation?.startTimeUTC);
+
+  return (
+    <>
+      <div className="pl-4 bg-rose-500 py-3">
+        <Image
+          className="float-left mr-2"
+          width="20"
+          height="20"
+          src={competitionLogoUrl ? competitionLogoUrl : "../../placeholder-competition-logo.svg"}
+          alt="Competition name" />
+        <a className="font-extrabold hover:underline" href="#">{props.allMatchInformation?.competition.name}</a>
+        <span className="font-extralight text-sm text-gray-500 ml-2">({props.allMatchInformation?.competition.season})</span>
+      </div>
+      <div className="flex flex-col bs-rose-200">
+        <div className="basis-full mt-8 text-center">
+          <span className="font-mono text-sm">{matchDate}</span>
+        </div>
+        <div className="flex flex-row basis-full">
+          <div className="basis-1/3 bg-yellow-100">
+            <div className="flex flex-col items-end">
+              <div className="basis-full">
+                <Image
+                  className="h-24 w-24"
+                  width="100"
+                  height="100"
+                  src={homeCrestUrl ? homeCrestUrl : "../../placeholder-club-logo.svg"}
+                  alt="Home team crest" />
+              </div>
+              <div className="basis-full">
+                <span className="font-extrabold">{matchInformation?.homeTeam?.name}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col basis-1/3 bg-red-100 text-center">
+            <div className="basis-full pt-5">
+              <span className={`text-5xl ${props.updateableMatchInfo.fullTimeScore.highlight ? "text-red-500" : ""}`}>
+                {Score.format(props.updateableMatchInfo.fullTimeScore.value)}
+              </span>
+            </div>
+            <div className="basis-full">
+              <span className={`font-extrabold text-sm ${props.updateableMatchInfo.status.highlight ? "text-red-500" : ""}`}>
+                {MatchStatus.format(props.updateableMatchInfo.status.value)}
+              </span>
+            </div>
+            <div className="flex basis-full items-center justify-center pt-5">
+              <Image
+                className="pr-2"
+                width="30"
+                height="30"
+                src="../../whistle.svg"
+                alt="Referee"
+                title="Referee" />
+              <span className="font-extrabold text-xs">{matchInformation?.referee?.name}</span>
+            </div>
+            {matchInformation?.venue &&
+              <div className="flex basis-full items-center justify-center">
+                <Image
+                  className="pr-2"
+                  width="30"
+                  height="30"
+                  src="../../stadium.svg"
+                  alt="Stadium"
+                  title="Stadium" />
+                <div className="">
+                  <span className="font-extrabold text-xs">{matchInformation.venue.name}</span>
+                  {matchInformation.venue.capacity &&
+                    <span className="font-extrabold text-xs"> (capacity {matchInformation.venue.capacity})</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+          <div className="basis-1/3 bg-yellow-100">
+            <div className="flex flex-col items-start">
+              <div className="basis-full">
+                <Image
+                  className="h-24 w-24"
+                  width="100"
+                  height="100"
+                  src={awayCrestUrl ? awayCrestUrl : "../../placeholder-club-logo.svg"}
+                  alt="Away team crest" />
+              </div>
+              <div className="basis-full">
+                <span className="font-extrabold">{matchInformation?.awayTeam?.name}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function MatchInfoContentSkeleton() {
+  return (
+    <>
+      <div className="animate-pulse h-12 bg-rose-500">
+      </div>
+      <div className="flex flex-col bs-rose-200">
+        <div className="basis-full mt-8"></div>
+        <div className="flex flex-row basis-full h-52">
+          <div className="animate-pulse basis-1/3 bg-yellow-100">
+            <div className="h-36 w-36"></div>
+          </div>
+          <div className="flex flex-col basis-1/3 bg-red-100 text-center">
+            <div className="basis-full pt-5">
+              <span className="animate-pulse text-5xl">-</span>
+            </div>
+          </div>
+          <div className="animate-pulse basis-1/3 bg-yellow-100">
+            <div className="h-36 w-36"></div>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 
