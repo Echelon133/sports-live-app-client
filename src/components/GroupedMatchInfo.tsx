@@ -29,7 +29,9 @@ export default function GroupedMatchInfo(props: {
                 height="20"
                 src={competitionLogoUrl ? competitionLogoUrl : "placeholder-competition-logo.svg"}
                 alt={props.competitionInfo.name} />
-              <a className="font-extrabold hover:underline" href="#">{props.competitionInfo.name}</a>
+              <Link href={`/competition/${props.competitionInfo.id}`}>
+                <span className="font-extrabold hover:underline">{props.competitionInfo.name}</span>
+              </Link>
               <span className="font-extralight text-sm text-gray-500 ml-2">({props.competitionInfo.season})</span>
               <button onClick={toggleMatchListVisibility} className="font-light text-sm flex float-right">
                 {matchListVisible ?
@@ -37,7 +39,7 @@ export default function GroupedMatchInfo(props: {
                     className="float-left"
                     width="30"
                     height="30"
-                    src="chevron-up.svg"
+                    src="/chevron-up.svg"
                     title="Hide all grouped"
                     alt="Hide all grouped" />
                   :
@@ -45,7 +47,7 @@ export default function GroupedMatchInfo(props: {
                     className="float-left"
                     width="30"
                     height="30"
-                    src="chevron-down.svg"
+                    src="/chevron-down.svg"
                     title="Show all grouped"
                     alt="Show all grouped" />
                 }
@@ -53,6 +55,11 @@ export default function GroupedMatchInfo(props: {
             </div>
           </div>
           <div className={`${matchListVisible ? "" : "hidden"} `} >
+            {props.matches.length === 0 &&
+              <div className="flex flex-row bg-rose-100 h-14 shadow-sm shadow-gray-400 items-center justify-center">
+                <span className="font-extrabold text-xl">No matches</span>
+              </div>
+            }
             {props.matches.map(m => {
               return <Link href={`/match/${encodeURIComponent(m.id)}`}> <SingleMatchInfo matchInfo={m} /></Link>
             })}

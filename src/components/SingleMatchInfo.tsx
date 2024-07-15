@@ -6,11 +6,18 @@ export default function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) 
   const matchInfo: string = evaluateMatchInfo(props.matchInfo.status, props.matchInfo.startTimeUTC);
   const homeCrestUrl: string | undefined = props.matchInfo.homeTeam?.crestUrl;
   const awayCrestUrl: string | undefined = props.matchInfo.awayTeam?.crestUrl;
+  const displayMatchDate = props.matchInfo.status === MatchStatus.NOT_STARTED ||
+    props.matchInfo.status === MatchStatus.FINISHED;
 
   return (
     <div className="mb-1 flex flex-row bg-rose-100 h-14 shadow-sm shadow-gray-400 items-center justify-center hover:bg-rose-200 hover:cursor-pointer">
       <div className="basis-2/12 text-center">
-        <span className={`${matchInfo === "Live" ? "text-red-500" : ""} text-sm`}>{matchInfo}</span>
+        <div className="flex flex-col">
+          <span className={`${matchInfo === "Live" ? "text-red-500" : ""} text-sm`}>{matchInfo}</span>
+          {displayMatchDate &&
+            <span className="text-gray-700 text-xs">{formatFinishedMatchDate(props.matchInfo.startTimeUTC)}</span>
+          }
+        </div>
       </div>
       <div className="basis-10/12 flex flex-col">
         <div className="flex">
@@ -75,4 +82,14 @@ function evaluateMatchInfo(status: MatchStatus, startTimeUTC: Date): string {
       break;
   }
   return matchInfo;
+}
+
+function formatFinishedMatchDate(d: Date): string {
+  if (d === undefined) return ""
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }
+  return d.toLocaleDateString(undefined, options);
 }

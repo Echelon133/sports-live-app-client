@@ -15,6 +15,20 @@ const config: Config = {
       },
     },
   },
+  // all colors which are applied to elements dynamically should
+  // be placed here so that they are always preloaded, otherwise
+  // tailwindcss might not load them
+  safelist: [
+    'bg-blue-900',
+    'bg-blue-600',
+    'bg-yellow-500',
+    'bg-purple-500',
+    'bg-rose-500',
+    'bg-rose-900',
+    'bg-gray-500',
+    'bg-green-500',
+    'bg-red-500',
+  ],
   plugins: [],
 };
 export default config;
