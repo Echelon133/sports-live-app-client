@@ -107,7 +107,9 @@ export default function Match() {
           :
           <MatchInfoContentSkeleton />
         }
-        <FilterMenu filter={filterMenuInfo} />
+        <div className="ml-10 mt-5">
+          <FilterMenu filter={filterMenuInfo} />
+        </div>
         {selectedMatchInfoOption === "summary" &&
           <MatchEventsSummary
             matchId={router.query.id?.toString()}
