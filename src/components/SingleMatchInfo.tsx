@@ -60,7 +60,8 @@ function evaluateMatchInfo(status: MatchStatus, startTimeUTC: Date): string {
   let matchInfo = "";
   switch (status) {
     case MatchStatus.NOT_STARTED:
-      matchInfo = startTimeUTC.toISOString().substring(11, 16);
+      // convert UTC to local time
+      matchInfo = startTimeUTC.toTimeString().substring(0, 5);
       break;
     case MatchStatus.FIRST_HALF:
     case MatchStatus.SECOND_HALF:
