@@ -7,6 +7,7 @@ import { Competition } from "@/types/Competition";
 import MatchEventsSummary from "@/components/MatchEventsSummary";
 import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import MatchLineupListing from "@/components/MatchLineupListing";
+import Link from "next/link";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -100,7 +101,7 @@ export default function Match() {
   return (
     <div className="flex flex-row bg-rose-200 items-center justify-center">
       <div className="mt-10 basis-full">
-        {matchInfoContentLoaded ?
+        {matchInfoContentLoaded && (allMatchInformation !== undefined) ?
           <MatchInfoContent
             allMatchInformation={allMatchInformation}
             updateableMatchInfo={updateableMatchInfo} />
@@ -126,7 +127,7 @@ export default function Match() {
 }
 
 function MatchInfoContent(props: {
-  allMatchInformation: AllMatchInfo | undefined,
+  allMatchInformation: AllMatchInfo,
   updateableMatchInfo: UpdateableMatchInfo,
 }) {
   const matchInformation = props.allMatchInformation?.match;
@@ -144,7 +145,9 @@ function MatchInfoContent(props: {
           height="20"
           src={competitionLogoUrl ? competitionLogoUrl : "../../placeholder-competition-logo.svg"}
           alt="Competition name" />
-        <a className="font-extrabold hover:underline" href="#">{props.allMatchInformation?.competition.name}</a>
+        <Link href={`/competition/${props.allMatchInformation.competition.id}`}>
+          <span className="font-extrabold hover:underline">{props.allMatchInformation?.competition.name}</span>
+        </Link>
         <span className="font-extralight text-sm text-gray-500 ml-2">({props.allMatchInformation?.competition.season})</span>
       </div>
       <div className="flex flex-col bs-rose-200">
