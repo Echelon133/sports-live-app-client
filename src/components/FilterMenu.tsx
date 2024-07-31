@@ -39,6 +39,7 @@ export default function FilterMenu(props: { filter: FilterMenuInfo }) {
           return <button
             className={`px-4 py-1 mx-1 ${filterOption.isSelected ? "bg-red-500" : "bg-gray-300 hover:bg-gray-500"} font-mono font-extrabold text-white rounded-xl`}
             onClick={() => pickFilterOption(key)}
+            key={key}
           >{filterOption.displayName}</button>
         })}
       </div>
