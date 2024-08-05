@@ -100,3 +100,12 @@ export namespace TeamFormEntries {
   }
 }
 
+export type PlayerStatsEntry = {
+  playerId: string,
+  teamId: string,
+  name: string,
+  goals: number,
+  assists: number,
+  yellowCards: number,
+  redCards: number,
+}

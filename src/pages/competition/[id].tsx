@@ -2,7 +2,7 @@ import { useRouter } from "next/router"
 import Image from 'next/image'
 import getConfig from "next/config";
 import { useEffect, useRef, useState } from "react";
-import { Competition, CompetitionGroupEntry, CompetitionIdGroupedMatches, CompetitionStandings, LegendEntry, LegendSentiment, TeamFormEntries, TeamFormEntry } from "@/types/Competition";
+import { Competition, CompetitionGroupEntry, CompetitionIdGroupedMatches, CompetitionStandings, LegendEntry, LegendSentiment, PlayerStatsEntry, TeamFormEntries, TeamFormEntry, TeamStanding } from "@/types/Competition";
 import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { CompactMatchInfo } from "@/types/Match";
@@ -252,8 +252,23 @@ function FixturesSummary(props: { competition: Competition | undefined }) {
 
 function StandingsSummary(props: { competition: Competition | undefined }) {
   const [standingsContentLoaded, setStandingsContentLoaded] = useState<boolean>(true);
+  const [teamInfoCache, setTeamInfoCache] = useState<Map<string, TeamStanding>>(new Map());
   const [competitionStandings, setCompetitionStandings] =
     useState<CompetitionStandings | undefined>(undefined);
+
+  // setup the filter with two options: Standings, Top Scorers
+  const DEFAULT_STANDINGS_FILTER: FilterOptionKey = "standings";
+  const standingsFilterOptions: Map<FilterOptionKey, FilterOption> = new Map([
+    [DEFAULT_STANDINGS_FILTER, { displayName: "STANDINGS", isSelected: true }],
+    ["top-scorers", { displayName: "TOP SCORERS", isSelected: false }],
+  ]);
+  const [selectedStandingsInfoOption, setSelectedStandingsInfoOption] =
+    useState<string>(DEFAULT_STANDINGS_FILTER);
+  const filterMenuInfo: FilterMenuInfo = {
+    options: standingsFilterOptions,
+    currentlySelected: selectedStandingsInfoOption,
+    setCurrentlySelected: setSelectedStandingsInfoOption
+  };
 
   useEffect(() => {
     if (props.competition === undefined) {
@@ -266,6 +281,18 @@ function StandingsSummary(props: { competition: Competition | undefined }) {
       .then((res) => res.json())
       .then((data) => {
         const d: CompetitionStandings = data;
+
+        // create a mapping between teamIds and team names/crests to 
+        // potentially reuse that information in the TOP SCORERS
+        // tab
+        const teamCache: Map<string, TeamStanding> = new Map();
+        for (let group of d.groups) {
+          for (let team of group.teams) {
+            teamCache.set(team.teamId, team);
+          }
+        }
+
+        setTeamInfoCache(teamCache);
         setCompetitionStandings(d);
         setStandingsContentLoaded(true);
       });
@@ -274,17 +301,33 @@ function StandingsSummary(props: { competition: Competition | undefined }) {
 
   return (
     <>
-      {standingsContentLoaded && (props.competition !== undefined) ?
+      <div className="ml-12 mb-6">
+        <FilterMenu filter={filterMenuInfo} />
+      </div>
+      {selectedStandingsInfoOption === "standings" &&
         <>
-          <div className="">
-            {competitionStandings?.groups.map((group) => <CompetitionGroupBox competitionId={props.competition!.id} group={group} legendEntries={competitionStandings.legend} />)}
-          </div>
-          <div className="">
-            {competitionStandings?.legend.map((legend) => <LegendExplanationBox legend={legend} />)}
-          </div>
+          {standingsContentLoaded && (props.competition !== undefined) ?
+            <>
+              <div className="">
+                {competitionStandings?.groups.map((group) =>
+                  <CompetitionGroupBox
+                    competitionId={props.competition!.id}
+                    group={group}
+                    legendEntries={competitionStandings.legend}
+                  />
+                )}
+              </div>
+              <div className="">
+                {competitionStandings?.legend.map((legend) => <LegendExplanationBox legend={legend} />)}
+              </div>
+            </>
+            :
+            <SummarySkeleton />
+          }
         </>
-        :
-        <SummarySkeleton />
+      }
+      {selectedStandingsInfoOption === "top-scorers" &&
+        <TopScorersListing competitionId={props.competition!.id} teamInfoCache={teamInfoCache} />
       }
     </>
   )
@@ -418,6 +461,138 @@ function FormEntriesBox(props: { formEntries: TeamFormEntry[] }) {
           </>
         )
       })}
+    </>
+  )
+}
+
+function TopScorersListing(props: {
+  competitionId: string,
+  teamInfoCache: Map<string, TeamStanding>,
+}) {
+  const [playerStats, setPlayerStats] = useState<PlayerStatsEntry[]>([]);
+  const pageNumber = useRef(0);
+
+  // two players are ex-aequo if their goals and assists are identical, therefore
+  // we need to calculate player's position by checking the previous player's stats
+  type PlayerGoalsAssists = { goals: number, assists: number, position: number };
+  const prevPlayerStat = useRef<PlayerGoalsAssists>({ goals: 0, assists: 0, position: 0 });
+
+  function fetchTopScorersPage(competitionId: string, page: number) {
+    const httpParams = new URLSearchParams({
+      page: page.toString(),
+    });
+
+    const topScorersUrl =
+      `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${competitionId}/player-stats?${httpParams.toString()}`;
+
+    fetch(topScorersUrl)
+      .then((res) => res.json())
+      .then((data) => {
+        const d: PlayerStatsEntry[] = data.content;
+        // clear data which is needed to calculate positions, since
+        // updating player stats rerenders the entire table and calculations
+        // have to start from 0
+        prevPlayerStat.current = { goals: 0, assists: 0, position: 0 };
+        setPlayerStats((prev) => [...prev, ...d]);
+      });
+  }
+
+  function fetchMoreTopScorers(competitionId: string) {
+    pageNumber.current += 1;
+    fetchTopScorersPage(competitionId, pageNumber.current);
+  }
+
+  useEffect(() => {
+    fetchTopScorersPage(props.competitionId, pageNumber.current);
+  }, [props.competitionId])
+
+  return (
+    <>
+      {playerStats.length === 0 ?
+        <>
+          <div className="flex flex-row bg-rose-100 h-14 shadow-sm shadow-gray-400 items-center justify-center">
+            <span className="font-extrabold text-xl">No stats</span>
+          </div>
+        </>
+        :
+        <>
+          <div className="flex flex-row bg-rose-200 items-center justify-center">
+            <div className="mt-2 basis-full">
+              <div className="bg-rose-300 shadow-sm shadow-gray-400 mb-2">
+                <div className="p-3 pl-10">
+                  <span className="font-extrabold">Top Scorers</span>
+                </div>
+              </div>
+              <table className="basis-full w-full table-auto mb-10">
+                <tr className="text-center font-extralight text-sm">
+                  <th>#</th>
+                  <th>Player</th>
+                  <th>Team</th>
+                  <th className="px-4" title="Goals">G</th>
+                  <th className="px-4" title="Assists">A</th>
+                  <th className="px-4" title="Yellow Cards">
+                    <div className="flex justify-center">
+                      <div className="h-4 w-3 bg-yellow-500"></div>
+                    </div>
+                  </th>
+                  <th className="px-4" title="Red Cards">
+                    <div className="flex justify-center">
+                      <div className="h-4 w-3 bg-red-600"></div>
+                    </div>
+                  </th>
+                </tr>
+                {playerStats.map((stat, _i) => {
+                  let playerPosition: number = prevPlayerStat.current.position;
+                  if (
+                    (stat.goals !== prevPlayerStat.current.goals) ||
+                    (stat.assists !== prevPlayerStat.current.assists)
+                  ) {
+                    playerPosition += 1;
+                    prevPlayerStat.current.position = playerPosition;
+                    prevPlayerStat.current.goals = stat.goals;
+                    prevPlayerStat.current.assists = stat.assists;
+                  }
+
+                  const cachedTeamInfo = props.teamInfoCache.get(stat.teamId);
+                  const teamName = cachedTeamInfo?.teamName;
+                  const teamCrestUrl = cachedTeamInfo?.crestUrl;
+                  return (
+                    <tr
+                      key={stat.playerId}
+                      className="odd:bg-rose-300 even:bg-rose-200 text-center"
+                    >
+                      <td className="p-1">{playerPosition}</td>
+                      <td className="font-extralight text-sm">{stat.name}</td>
+                      <td className="font-extralight text-sm">
+                        <div className="flex justify-left items-center">
+                          <Image
+                            width="22"
+                            height="22"
+                            src={teamCrestUrl ? teamCrestUrl : "placeholder-club-logo.svg"}
+                            alt={teamName ? teamName : ""} />
+                          <span className="pl-2 hover:underline">{teamName}</span>
+                        </div>
+                      </td>
+                      <td>{stat.goals}</td>
+                      <td>{stat.assists}</td>
+                      <td>{stat.yellowCards}</td>
+                      <td className="py-1">{stat.redCards}</td>
+                    </tr>
+                  )
+                })}
+              </table>
+              {playerStats.length !== 0 &&
+                <div className="flex bg-rose-300 py-2 my-1">
+                  <button
+                    className="basis-full font-extrabold text-sm hover:underline"
+                    onClick={() => fetchMoreTopScorers(props.competitionId)}
+                  >Load More...</button>
+                </div>
+              }
+            </div>
+          </div>
+        </>
+      }
     </>
   )
 }
