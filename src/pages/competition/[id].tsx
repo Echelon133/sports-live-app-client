@@ -338,6 +338,23 @@ function CompetitionGroupBox(props: {
   group: CompetitionGroupEntry,
   legendEntries: LegendEntry[]
 }) {
+
+  const sortedTeams: TeamStanding[] = [...props.group.teams];
+  sortedTeams.sort((a, b) => {
+    const pointDiff: number = a.points - b.points;
+    if (pointDiff !== 0) {
+      // flip the sign to sort by the points descending
+      return -pointDiff;
+    } else {
+      // points were equal, so sort by comparing the GD
+      const aGoalDifference = a.goalsScored - a.goalsConceded;
+      const bGoalDifference = b.goalsScored - b.goalsConceded;
+      const gdDiff = aGoalDifference - bGoalDifference;
+      // flip the sign to sort by the goal difference descending
+      return -gdDiff;
+    }
+  })
+
   return (
     <>
       <div className="flex flex-row bg-rose-200 items-center justify-center">
@@ -360,7 +377,7 @@ function CompetitionGroupBox(props: {
               <th className="pr-4">PTS</th>
               <th>FORM</th>
             </tr>
-            {props.group.teams.map((team, i) => {
+            {sortedTeams.map((team, i) => {
               const index = i + 1;
               const positionColor = LegendSentiment.positionToColor(props.legendEntries, index);
               return (
