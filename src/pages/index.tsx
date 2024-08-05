@@ -3,7 +3,7 @@ import getConfig from "next/config";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { INITIAL_DATE_PICKER_KEY } from "@/components/DatePicker";
 import { useEffect, useState } from "react";
-import { Competition, CompetitionGroupedMatches, CompetitionIdGroupedMatches } from "@/types/Competition";
+import { CompetitionInfo, CompetitionGroupedMatches, CompetitionIdGroupedMatches } from "@/types/Competition";
 import { CompactMatchInfo } from "@/types/Match";
 
 const { publicRuntimeConfig } = getConfig();
@@ -99,7 +99,7 @@ async function fetchGroupedMatches(httpParams: URLSearchParams): Promise<Competi
         // rebuild request's body into our custom type
         const d: CompetitionIdGroupedMatches = CompetitionIdGroupedMatches.fromJSON(data);
 
-        type CompetitionMatchesEntry = { competition: Competition, matches: CompactMatchInfo[] };
+        type CompetitionMatchesEntry = { competition: CompetitionInfo, matches: CompactMatchInfo[] };
         // Asynchronously fetch information about every competition by that competition's id.
         // The initial request only gives us the id of the competition, which means that the rest
         // of the information needs to be fetched manually.

@@ -2,7 +2,7 @@ import { useRouter } from "next/router"
 import Image from 'next/image'
 import getConfig from "next/config";
 import { useEffect, useRef, useState } from "react";
-import { Competition, CompetitionGroupEntry, CompetitionIdGroupedMatches, CompetitionStandings, LegendEntry, LegendSentiment, PlayerStatsEntry, TeamFormEntries, TeamFormEntry, TeamStanding } from "@/types/Competition";
+import { CompetitionInfo, CompetitionGroupEntry, CompetitionIdGroupedMatches, CompetitionStandings, LegendEntry, LegendSentiment, PlayerStatsEntry, TeamFormEntries, TeamFormEntry, TeamStanding } from "@/types/Competition";
 import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { CompactMatchInfo } from "@/types/Match";
@@ -10,12 +10,12 @@ import Link from "next/link";
 
 const { publicRuntimeConfig } = getConfig();
 
-export default function CompetitionPage() {
+export default function Competition() {
   const router = useRouter();
 
   const [competitionInfoContentLoaded, setCompetitionInfoContentLoaded] = useState<boolean>(false);
   const [competitionInformation, setCompetitionInformation] =
-    useState<Competition | undefined>(undefined);
+    useState<CompetitionInfo | undefined>(undefined);
 
   // setup the filter with three options: Results, Fixtures, Standings
   const DEFAULT_COMPETITION_FILTER: FilterOptionKey = "results";
@@ -42,7 +42,7 @@ export default function CompetitionPage() {
     fetch(competitionUrl)
       .then((res) => res.json())
       .then((data) => {
-        const d: Competition = data;
+        const d: CompetitionInfo = data;
         setCompetitionInformation(d);
         setCompetitionInfoContentLoaded(true);
       });
@@ -78,7 +78,7 @@ export default function CompetitionPage() {
   )
 }
 
-function CompetitionInfoContent(props: { competition: Competition | undefined }) {
+function CompetitionInfoContent(props: { competition: CompetitionInfo | undefined }) {
   const competitionLogoUrl = props.competition?.logoUrl;
 
   return (
@@ -122,7 +122,7 @@ function CompetitionInfoContentSkeleton() {
   )
 }
 
-function ResultsSummary(props: { competition: Competition | undefined }) {
+function ResultsSummary(props: { competition: CompetitionInfo | undefined }) {
   const [resultsContentLoaded, setResultsContentLoaded] = useState<boolean>(false);
   const [matches, setMatches] = useState<CompactMatchInfo[]>([]);
   const pageNumber = useRef<number>(0);
@@ -186,7 +186,7 @@ function ResultsSummary(props: { competition: Competition | undefined }) {
   )
 }
 
-function FixturesSummary(props: { competition: Competition | undefined }) {
+function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
   const [fixturesContentLoaded, setFixturesContentLoaded] = useState<boolean>(false);
   const [matches, setMatches] = useState<CompactMatchInfo[]>([]);
   const pageNumber = useRef<number>(0);
@@ -250,7 +250,7 @@ function FixturesSummary(props: { competition: Competition | undefined }) {
   )
 }
 
-function StandingsSummary(props: { competition: Competition | undefined }) {
+function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
   const [standingsContentLoaded, setStandingsContentLoaded] = useState<boolean>(true);
   const [teamInfoCache, setTeamInfoCache] = useState<Map<string, TeamStanding>>(new Map());
   const [competitionStandings, setCompetitionStandings] =

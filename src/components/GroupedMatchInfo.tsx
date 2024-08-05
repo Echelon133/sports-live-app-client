@@ -2,12 +2,12 @@ import { useState } from 'react';
 import Image from 'next/image'
 import SingleMatchInfo from './SingleMatchInfo';
 import { CompactMatchInfo } from '@/types/Match';
-import { Competition } from '@/types/Competition';
+import { CompetitionInfo } from '@/types/Competition';
 import Link from 'next/link';
 
 
 export default function GroupedMatchInfo(props: {
-  competitionInfo: Competition,
+  competitionInfo: CompetitionInfo,
   matches: CompactMatchInfo[]
 }) {
   const [matchListVisible, setMatchListVisible] = useState<boolean>(true);

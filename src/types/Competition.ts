@@ -1,6 +1,6 @@
 import { CompactMatchInfo, CompactTeamInfoOrNull, MatchResult, Score, customUtcDateReviver } from "./Match"
 
-export type Competition = {
+export type CompetitionInfo = {
   id: string,
   name: string,
   season: string,
@@ -8,7 +8,7 @@ export type Competition = {
 }
 
 export type CompetitionIdGroupedMatches = Map<string, CompactMatchInfo[]>
-export type CompetitionGroupedMatches = Map<Competition, CompactMatchInfo[]>
+export type CompetitionGroupedMatches = Map<CompetitionInfo, CompactMatchInfo[]>
 
 export namespace CompetitionIdGroupedMatches {
   export function fromJSON(json: any): CompetitionIdGroupedMatches {

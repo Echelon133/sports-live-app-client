@@ -3,7 +3,7 @@ import Image from 'next/image'
 import getConfig from "next/config";
 import { useEffect, useState } from "react";
 import { FullMatchInfo, MatchStatus, Score } from "@/types/Match";
-import { Competition } from "@/types/Competition";
+import { CompetitionInfo } from "@/types/Competition";
 import MatchEventsSummary from "@/components/MatchEventsSummary";
 import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import MatchLineupListing from "@/components/MatchLineupListing";
@@ -13,7 +13,7 @@ const { publicRuntimeConfig } = getConfig();
 
 type AllMatchInfo = {
   match: FullMatchInfo,
-  competition: Competition,
+  competition: CompetitionInfo,
 }
 
 export type UpdateableMatchInfo = {
@@ -73,7 +73,7 @@ export default function Match() {
         await fetch(competitionUrl)
           .then((res) => res.json())
           .then(async (data) => {
-            const competition: Competition = data;
+            const competition: CompetitionInfo = data;
             setAllMatchInformation({ match: matchInfo, competition: competition });
             setUpdateableMatchInfo({
               fullTimeScore: {
