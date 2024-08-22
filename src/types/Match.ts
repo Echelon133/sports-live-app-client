@@ -80,6 +80,14 @@ export type CompactMatchInfo = {
   penaltiesInfo: Score
 }
 
+export namespace CompactMatchInfo {
+  export function fromJSON(json: any): CompactMatchInfo[] {
+    // custom reviver needed to correctly parse the format of dates 
+    // received from the backend
+    return JSON.parse(json, customUtcDateReviver);
+  }
+}
+
 export type FullMatchInfo = CompactMatchInfo & {
   venue: VenueInfo | null,
   referee: RefereeInfo | null,
