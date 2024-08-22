@@ -391,7 +391,9 @@ function CompetitionGroupBox(props: {
                         height="22"
                         src={team.crestUrl ? team.crestUrl : "placeholder-club-logo.svg"}
                         alt={team.teamName} />
-                      <span className="pl-2 hover:underline">{team.teamName}</span>
+                      <Link href={`/team/${team.teamId}`}>
+                        <span className="pl-2 hover:underline">{team.teamName}</span>
+                      </Link>
                     </div>
                   </td>
                   <td className="pr-4">{team.matchesPlayed}</td>

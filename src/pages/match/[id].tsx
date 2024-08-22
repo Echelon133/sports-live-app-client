@@ -166,7 +166,9 @@ function MatchInfoContent(props: {
                   alt="Home team crest" />
               </div>
               <div className="basis-full">
-                <span className="font-extrabold">{matchInformation?.homeTeam?.name}</span>
+                <Link href={`/team/${matchInformation.homeTeam?.id}`}>
+                  <span className="font-extrabold hover:underline">{matchInformation?.homeTeam?.name}</span>
+                </Link>
               </div>
             </div>
           </div>
@@ -220,7 +222,9 @@ function MatchInfoContent(props: {
                   alt="Away team crest" />
               </div>
               <div className="basis-full">
-                <span className="font-extrabold">{matchInformation?.awayTeam?.name}</span>
+                <Link href={`/team/${matchInformation.awayTeam?.id}`}>
+                  <span className="font-extrabold hover:underline">{matchInformation?.awayTeam?.name}</span>
+                </Link>
               </div>
             </div>
           </div>
