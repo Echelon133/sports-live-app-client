@@ -1,13 +1,14 @@
 import { useRouter } from "next/router";
 import Image from 'next/image'
 import { useEffect, useRef, useState } from "react";
-import { FullTeamInfo } from "@/types/Team";
+import { CountryInfo, FullTeamInfo } from "@/types/Team";
 import getConfig from "next/config";
 import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
 import { CompetitionInfo } from "@/types/Competition";
 import { CompactMatchInfo } from "@/types/Match";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
+import { TeamPlayer } from "@/types/Lineup";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -69,7 +70,7 @@ export default function Team() {
             <FixturesSummary team={teamInformation} />
           }
           {selectedTeamInfoOption === "players" &&
-            <h1>Players</h1>
+            <TeamPlayersListing teamId={teamInformation?.id} />
           }
         </div>
       </div>
@@ -178,7 +179,6 @@ function ResultsSummary(props: { team: FullTeamInfo | undefined }) {
     </>
   )
 }
-
 
 function FixturesSummary(props: { team: FullTeamInfo | undefined }) {
   const [fixturesContentLoaded, setFixturesContentLoaded] = useState<boolean>(false);
@@ -333,4 +333,102 @@ async function fetchGroupedTeamMatches(
           })
       })
   });
+}
+
+function TeamPlayersListing(props: { teamId: string | undefined }) {
+  const [playersContentLoaded, setPlayersContentLoaded] = useState<boolean>(false);
+  const [players, setPlayers] = useState<TeamPlayer[]>([]);
+
+  useEffect(() => {
+    if (props.teamId === undefined) {
+      return;
+    }
+
+    const playersUrl = `${publicRuntimeConfig.TEAMS_BASE_URL}/${props.teamId}/players`;
+    fetch(playersUrl)
+      .then((res) => res.json())
+      .then((data) => {
+        const d: TeamPlayer[] = data;
+        setPlayers(d);
+        setPlayersContentLoaded(true);
+      });
+
+  }, [props.teamId])
+
+  return (
+    <>
+      {playersContentLoaded ?
+        <TeamPlayersContent players={players} />
+        :
+        <TeamPlayersContentSkeleton />
+      }
+    </>
+  )
+}
+
+function TeamPlayersContent(props: { players: TeamPlayer[] }) {
+  const sortedPlayers: TeamPlayer[] = props.players;
+  sortedPlayers.sort((a, b) => a.number - b.number)
+
+  return (
+    <>
+      <div className="flex flex-row bg-rose-300 h-8 pt-2 shadow-sm shadow-black mb-2">
+        <div className="">
+          <span className="pl-10 float-left text-sm">Players</span>
+        </div>
+      </div>
+      <table className="basis-full w-full table-auto mb-10">
+        <thead>
+          <tr className="text-center font-extralight text-sm">
+            <th>#</th>
+            <th>Name</th>
+            <th>Country</th>
+            <th>Position</th>
+            <th>Date of Birth</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedPlayers.map((player, i) => {
+            const dateOfBirth = player.player.dateOfBirth;
+            const formattedDateOfBirth = `${dateOfBirth[0]}-${dateOfBirth[1]}-${dateOfBirth[2]}`;
+            return (
+              <tr key={i} className="odd:bg-rose-300 even:bg-rose-200 text-center">
+                <td>{player.number}</td>
+                <td>{player.player.name}</td>
+                <td><span title={player.countryCode}>{CountryInfo.countryCodeToFlagEmoji(player.countryCode)}</span></td>
+                <td>{player.position}</td>
+                <td>{formattedDateOfBirth}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </>
+  )
+}
+
+function TeamPlayersContentSkeleton() {
+  return (
+    <>
+      <div
+        className="animate-pulse flex flex-row bg-rose-300 h-8 pt-2 shadow-sm shadow-black mb-2">
+        <span className="pl-10 float-left text-sm">Players</span>
+      </div>
+      <div className="flex flex-row">
+        <div className="basis-full table-auto mx-8 mb-10">
+          <div>
+            {[...Array(18)].map((_e, j) => {
+              return (
+                <div
+                  key={j}
+                  className="animate-pulse odd:bg-rose-300 even:bg-rose-200">
+                  <div className="h-6"></div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </>
+  )
 }
