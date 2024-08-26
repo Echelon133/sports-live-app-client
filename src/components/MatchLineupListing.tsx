@@ -1,6 +1,7 @@
 import { Lineup, PlayerPosition, TeamPlayer } from "@/types/Lineup"
 import { useEffect, useState } from "react"
 import getConfig from "next/config";
+import { CountryInfo } from "@/types/Team";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -135,13 +136,13 @@ function LineupTable(props: { players: ZippedPlayers[] }) {
             <>
               <tr className="odd:bg-rose-300 even:bg-rose-200">
                 <td className="font-mono font-extrabold">{e.homePlayer?.number}</td>
-                <td>{countryCodeToFlagEmoji(e.homePlayer?.countryCode)}</td>
+                <td>{CountryInfo.countryCodeToFlagEmoji(e.homePlayer?.countryCode)}</td>
                 <td className="text-xs text-gray-500">{PlayerPosition.format(e.homePlayer?.position)}</td>
                 <td>{e.homePlayer?.player.name}</td>
                 <td></td>
                 <td className="float-right pr-2">{e.awayPlayer?.player.name}</td>
                 <td className="text-xs text-gray-500">{PlayerPosition.format(e.awayPlayer?.position)}</td>
-                <td>{countryCodeToFlagEmoji(e.awayPlayer?.countryCode)}</td>
+                <td>{CountryInfo.countryCodeToFlagEmoji(e.awayPlayer?.countryCode)}</td>
                 <td className="font-mono font-extrabold">{e.awayPlayer?.number}</td>
               </tr>
             </>
@@ -150,17 +151,4 @@ function LineupTable(props: { players: ZippedPlayers[] }) {
       </tbody>
     </table>
   )
-}
-
-function countryCodeToFlagEmoji(countryCode: string | undefined): string {
-  if (countryCode === undefined) return ""
-  if (countryCode.length != 2) return ""
-
-  const regionalIndicatorSymbolA = 0x1f1e6;
-  const upperCaseA = regionalIndicatorSymbolA - 0x41;
-  const codePoints = countryCode
-    .toUpperCase()
-    .split('')
-    .map((c) => c.codePointAt() + upperCaseA);
-  return String.fromCodePoint(...codePoints)
 }
