@@ -1,7 +1,7 @@
 import { useRouter } from "next/router"
 import Image from 'next/image'
 import getConfig from "next/config";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { CompetitionInfo, CompetitionGroupEntry, CompetitionIdGroupedMatches, CompetitionStandings, LegendEntry, LegendSentiment, PlayerStatsEntry, TeamFormEntries, TeamFormEntry, TeamStanding } from "@/types/Competition";
 import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
@@ -339,6 +339,8 @@ function CompetitionGroupBox(props: {
   group: CompetitionGroupEntry,
   legendEntries: LegendEntry[]
 }) {
+  // ids of teams whose rows should be highlighted when the client hovers over a form entry
+  const [highlightedTeamsIds, setHighlightedTeamsIds] = useState<string[]>([]);
 
   const sortedTeams: TeamStanding[] = [...props.group.teams];
   sortedTeams.sort((a, b) => {
@@ -381,8 +383,16 @@ function CompetitionGroupBox(props: {
             {sortedTeams.map((team, i) => {
               const index = i + 1;
               const positionColor = LegendSentiment.positionToColor(props.legendEntries, index);
+
+              // if highlightedTeamsIds contains this team's id, the user hovered
+              // over a form entry of a match in which this team had played, 
+              // therefore we should highlight this team's entry in the table
+              const highlightDependendStyles =
+                highlightedTeamsIds.includes(team.teamId) ?
+                  "odd:bg-red-500 even:bg-red-500 text-white" : "odd:bg-rose-300 even:bg-rose-200 ";
+
               return (
-                <tr className="odd:bg-rose-300 even:bg-rose-200 text-center">
+                <tr className={`${highlightDependendStyles} text-center`}>
                   <td><span className={`${positionColor} rounded-lg p-1 text-white`}>{index}.</span></td>
                   <td className="font-extralight text-sm">
                     <div className="flex items-center">
@@ -404,7 +414,13 @@ function CompetitionGroupBox(props: {
                   <td className="pr-4">{team.goalsScored}:{team.goalsConceded}</td>
                   <td className="pr-4">{team.goalsScored - team.goalsConceded}</td>
                   <td className="pr-4">{team.points}</td>
-                  <td className="py-1"><FormBox teamId={team.teamId} competitionId={props.competitionId} /></td>
+                  <td className="py-1">
+                    <FormBox
+                      teamId={team.teamId}
+                      competitionId={props.competitionId}
+                      setHighlightedTeamsIds={setHighlightedTeamsIds}
+                    />
+                  </td>
                 </tr>
               )
             })}
@@ -427,7 +443,11 @@ function LegendExplanationBox(props: { legend: LegendEntry }) {
   )
 }
 
-function FormBox(props: { teamId: string, competitionId: string }) {
+function FormBox(props: {
+  teamId: string,
+  competitionId: string,
+  setHighlightedTeamsIds: Dispatch<SetStateAction<string[]>>
+}) {
   const [teamForm, setTeamForm] = useState<TeamFormEntry[]>([]);
   const [formContentLoaded, setFormContentLoaded] = useState<boolean>(false);
 
@@ -451,7 +471,10 @@ function FormBox(props: { teamId: string, competitionId: string }) {
     <>
       {formContentLoaded && (teamForm.length > 0) ?
         <div className="flex">
-          <FormEntriesBox formEntries={teamForm} />
+          <FormEntriesBox
+            formEntries={teamForm}
+            setHighlightedTeamsIds={props.setHighlightedTeamsIds}
+          />
         </div>
         :
         <span>-</span>

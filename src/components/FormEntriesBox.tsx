@@ -1,19 +1,25 @@
 import { TeamFormEntry } from "@/types/Competition";
 import { formatMatchDate } from "@/types/Match";
 import Link from "next/link";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
-export function FormEntriesBox(props: { formEntries: TeamFormEntry[] }) {
+export function FormEntriesBox(props: {
+  formEntries: TeamFormEntry[],
+  setHighlightedTeamsIds: Dispatch<SetStateAction<string[]>> | undefined
+}) {
   return (
     <>
       {props.formEntries.map((entry) => {
-        return <FormEntry entry={entry} />
+        return <FormEntry entry={entry} setHighlightedTeamsIds={props.setHighlightedTeamsIds} />
       })}
     </>
   )
 }
 
-function FormEntry(props: { entry: TeamFormEntry }) {
+function FormEntry(props: {
+  entry: TeamFormEntry,
+  setHighlightedTeamsIds: Dispatch<SetStateAction<string[]>> | undefined,
+}) {
   const [detailsVisible, setDetailsVisible] = useState<boolean>(false);
 
   const entry = props.entry;
@@ -26,13 +32,29 @@ function FormEntry(props: { entry: TeamFormEntry }) {
   const score = `${entry.matchDetails.scoreInfo.homeGoals}:${entry.matchDetails.scoreInfo.awayGoals}`;
   const teams = `${entry.matchDetails.homeTeam?.name} vs ${entry.matchDetails.awayTeam?.name}`;
 
+  function entryMouseOver() {
+    setDetailsVisible(true)
+    if (props.setHighlightedTeamsIds !== undefined) {
+      const homeTeamId = props.entry.matchDetails.homeTeam!.id;
+      const awayTeamId = props.entry.matchDetails.awayTeam!.id;
+      props.setHighlightedTeamsIds([homeTeamId, awayTeamId])
+    }
+  }
+
+  function entryMouseLeave() {
+    setDetailsVisible(false)
+    if (props.setHighlightedTeamsIds !== undefined) {
+      props.setHighlightedTeamsIds([])
+    }
+  }
+
   return (
     <>
       <div className="flex">
         <div
           className="basis-full pl-1"
-          onMouseOver={() => setDetailsVisible(true)}
-          onMouseLeave={() => setDetailsVisible(false)}
+          onMouseOver={() => entryMouseOver()}
+          onMouseLeave={() => entryMouseLeave()}
         >
           <Link key={props.entry.matchDetails.id} href={`/match/${encodeURIComponent(props.entry.matchDetails.id)}`}>
             <span
