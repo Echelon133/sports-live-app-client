@@ -7,6 +7,7 @@ import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/com
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { CompactMatchInfo } from "@/types/Match";
 import Link from "next/link";
+import { FormEntriesBox } from "@/components/FormEntriesBox";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -444,7 +445,7 @@ function FormBox(props: { teamId: string, competitionId: string }) {
         setTeamForm(d);
         setFormContentLoaded(true);
       });
-  })
+  }, [props.teamId, props.competitionId])
 
   return (
     <>
@@ -453,33 +454,6 @@ function FormBox(props: { teamId: string, competitionId: string }) {
         :
         <span>-</span>
       }
-    </>
-  )
-}
-
-function FormEntriesBox(props: { formEntries: TeamFormEntry[] }) {
-  return (
-    <>
-      {props.formEntries.map((entry) => {
-        let color = "bg-gray-500";
-        if (entry.form === "W") {
-          color = "bg-green-500";
-        } else if (entry.form === "L") {
-          color = "bg-red-500";
-        }
-        const score = `${entry.matchDetails.scoreInfo.homeGoals}:${entry.matchDetails.scoreInfo.awayGoals}`;
-        const desc = `${entry.matchDetails.homeTeam?.name} ${score} ${entry.matchDetails.awayTeam?.name}`;
-        return (
-          <>
-            <Link href={`/match/${encodeURIComponent(entry.matchDetails.id)}`}>
-              <span
-                className={`${color} px-2 py-1 rounded-lg hover:underline hover:cursor-pointer`}
-                title={desc}
-              >{entry.form}</span>
-            </Link>
-          </>
-        )
-      })}
     </>
   )
 }

@@ -5,10 +5,11 @@ import { CountryInfo, FullTeamInfo } from "@/types/Team";
 import getConfig from "next/config";
 import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
-import { CompetitionInfo } from "@/types/Competition";
+import { CompetitionInfo, TeamFormEntries, TeamFormEntry } from "@/types/Competition";
 import { CompactMatchInfo } from "@/types/Match";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { TeamPlayer } from "@/types/Lineup";
+import { FormEntriesBox } from "@/components/FormEntriesBox";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -87,12 +88,21 @@ function TeamInfoContent(props: { team: FullTeamInfo | undefined }) {
     <>
       <div className="flex flex-row">
         <div className="basis-1/3">
-          <Image
-            className="bg-white p-2 rounded-xl float-right"
-            width="120"
-            height="120"
-            src={teamCrestUrl ? teamCrestUrl : "../../placeholder-club-logo.svg"}
-            alt={teamName !== undefined ? teamName : ""} />
+          <div className="flex flex-col items-end">
+            <div className="basis-full">
+              <Image
+                className="bg-white p-2 rounded-xl"
+                width="125"
+                height="125"
+                src={teamCrestUrl ? teamCrestUrl : "../../placeholder-club-logo.svg"}
+                alt={teamName !== undefined ? teamName : ""} />
+            </div>
+            <div className="basis-full mt-2 w-[125px]">
+              <div className="flex justify-center">
+                <TeamGeneralForm teamId={props.team!.id} />
+              </div>
+            </div>
+          </div>
         </div>
         <div className="basis-2/3 mt-6 pl-16">
           <p className="font-extrabold text-4xl">{props.team?.name}</p>
@@ -122,6 +132,32 @@ function TeamInfoContentSkeleton() {
           <div className="animate-pulse bg-gray-300 mt-2 h-6 w-full"></div>
         </div>
       </div>
+    </>
+  )
+}
+
+function TeamGeneralForm(props: { teamId: string }) {
+  const [teamForm, setTeamForm] = useState<TeamFormEntry[]>([]);
+  const [formContentLoaded, setFormContentLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    const formUrl =
+      `${publicRuntimeConfig.TEAMS_BASE_URL}/${props.teamId}/form`;
+
+    fetch(formUrl)
+      .then((res) => res.text())
+      .then((data) => {
+        const d: TeamFormEntry[] = TeamFormEntries.fromJSON(data);
+        setTeamForm(d);
+        setFormContentLoaded(true);
+      });
+  }, [props.teamId])
+
+  return (
+    <>
+      {formContentLoaded &&
+        <FormEntriesBox formEntries={teamForm} />
+      }
     </>
   )
 }
