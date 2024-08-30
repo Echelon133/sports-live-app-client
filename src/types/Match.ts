@@ -123,3 +123,14 @@ export function customUtcDateReviver(key: any, value: any): any {
   return value;
 }
 
+export function formatMatchDate(d?: Date): string {
+  if (d === undefined) return "";
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }
+  return d.toLocaleDateString(undefined, options);
+}

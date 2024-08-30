@@ -450,7 +450,9 @@ function FormBox(props: { teamId: string, competitionId: string }) {
   return (
     <>
       {formContentLoaded && (teamForm.length > 0) ?
-        <FormEntriesBox formEntries={teamForm} />
+        <div className="flex">
+          <FormEntriesBox formEntries={teamForm} />
+        </div>
         :
         <span>-</span>
       }
