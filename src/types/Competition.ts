@@ -59,13 +59,16 @@ export namespace LegendSentiment {
     return stringMapping.get(sentiment);
   }
 
-  export function positionToColor(legendEntries: LegendEntry[], position: number): string | undefined {
+  // create a mapping where every position described in legend entries points to a color which 
+  // represents that position
+  export function createPositionToColorMap(legendEntries: LegendEntry[]): Map<number, string> {
+    let m = new Map();
     for (const legend of legendEntries) {
-      if (legend.positions.includes(position)) {
-        return LegendSentiment.toColor(legend.sentiment);
+      for (const position of legend.positions) {
+        m.set(position, LegendSentiment.toColor(legend.sentiment));
       }
     }
-    return ""
+    return m;
   }
 }
 

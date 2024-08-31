@@ -358,6 +358,9 @@ function CompetitionGroupBox(props: {
     }
   })
 
+  const positionToColor: Map<number, string> =
+    LegendSentiment.createPositionToColorMap(props.legendEntries);
+
   return (
     <>
       <div className="flex flex-row bg-rose-200 items-center justify-center">
@@ -382,7 +385,7 @@ function CompetitionGroupBox(props: {
             </tr>
             {sortedTeams.map((team, i) => {
               const index = i + 1;
-              const positionColor = LegendSentiment.positionToColor(props.legendEntries, index);
+              const positionColor = positionToColor.get(index);
 
               // if highlightedTeamsIds contains this team's id, the user hovered
               // over a form entry of a match in which this team had played, 
