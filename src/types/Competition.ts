@@ -47,12 +47,12 @@ export enum LegendSentiment {
 
 export namespace LegendSentiment {
   const stringMapping: Map<LegendSentiment, string> = new Map([
-    [LegendSentiment.POSITIVE_A, "bg-blue-900"],
-    [LegendSentiment.POSITIVE_B, "bg-blue-600"],
-    [LegendSentiment.POSITIVE_C, "bg-yellow-500"],
-    [LegendSentiment.POSITIVE_D, "bg-purple-500"],
-    [LegendSentiment.NEGATIVE_A, "bg-rose-500"],
-    [LegendSentiment.NEGATIVE_B, "bg-rose-900"],
+    [LegendSentiment.POSITIVE_A, "bg-positive-a"],
+    [LegendSentiment.POSITIVE_B, "bg-positive-b"],
+    [LegendSentiment.POSITIVE_C, "bg-positive-c"],
+    [LegendSentiment.POSITIVE_D, "bg-positive-d"],
+    [LegendSentiment.NEGATIVE_A, "bg-negative-a"],
+    [LegendSentiment.NEGATIVE_B, "bg-negative-b"],
   ]);
   export function toColor(sentiment: LegendSentiment | undefined): string | undefined {
     if (sentiment === undefined) return ""

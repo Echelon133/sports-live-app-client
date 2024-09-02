@@ -18,9 +18,9 @@ export default function GroupedMatchInfo(props: {
 
   return (
     <>
-      <div className="flex flex-row bg-rose-200 items-center justify-center">
+      <div className="flex flex-row bg-c1 items-center justify-center">
         <div className="mt-2 basis-full">
-          <div className="bg-rose-300 shadow-sm shadow-black">
+          <div className="bg-c2 shadow-sm shadow-black">
             <div className="p-3 pl-10">
               <Image
                 className="float-left mr-2"
@@ -29,9 +29,9 @@ export default function GroupedMatchInfo(props: {
                 src={competitionLogoUrl ? competitionLogoUrl : "placeholder-competition-logo.svg"}
                 alt={props.competitionInfo.name} />
               <Link href={`/competition/${props.competitionInfo.id}`}>
-                <span className="font-extrabold hover:underline">{props.competitionInfo.name}</span>
+                <span className="font-extrabold hover:underline text-c4">{props.competitionInfo.name}</span>
               </Link>
-              <span className="font-extralight text-sm text-gray-500 ml-2">({props.competitionInfo.season})</span>
+              <span className="font-extralight text-sm text-c3 ml-2">({props.competitionInfo.season})</span>
               <button onClick={toggleMatchListVisibility} className="font-light text-sm flex float-right">
                 {matchListVisible ?
                   <Image
@@ -55,8 +55,8 @@ export default function GroupedMatchInfo(props: {
           </div>
           <div className={`${matchListVisible ? "" : "hidden"} `} >
             {props.matches.length === 0 &&
-              <div className="flex flex-row bg-rose-100 h-14 shadow-sm shadow-gray-400 items-center justify-center">
-                <span className="font-extrabold text-xl">No matches</span>
+              <div className="flex flex-row h-14 shadow-sm shadow-gray items-center justify-center">
+                <span className="font-extrabold text-xl text-c4">No matches</span>
               </div>
             }
             {props.matches.map(m => {
@@ -77,12 +77,12 @@ function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
     props.matchInfo.status === MatchStatus.FINISHED;
 
   return (
-    <div className="mb-1 flex flex-row bg-rose-100 h-14 shadow-sm shadow-gray-400 items-center justify-center hover:bg-rose-200 hover:cursor-pointer">
+    <div className="mb-1 flex flex-row bg-c1 h-14 shadow-sm shadow-c0 items-center justify-center hover:bg-c0 hover:cursor-pointer">
       <div className="basis-2/12 text-center">
         <div className="flex flex-col">
-          <span className={`${matchInfo === "Live" ? "text-red-500" : ""} text-sm`}>{matchInfo}</span>
+          <span className={`${matchInfo === "Live" ? "text-red" : ""} text-sm`}>{matchInfo}</span>
           {displayMatchDate &&
-            <span className="text-gray-700 text-xs">{formatFinishedMatchDate(props.matchInfo.startTimeUTC)}</span>
+            <span className="text-gray text-xs">{formatFinishedMatchDate(props.matchInfo.startTimeUTC)}</span>
           }
         </div>
       </div>
@@ -98,8 +98,8 @@ function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
             <span className="font-mono ml-2">{props.matchInfo.homeTeam?.name}</span>
           </div>
           <div className="basis-2/12">
-            <span title="Score at fulltime" className="font-extrabold">{props.matchInfo.scoreInfo.homeGoals}</span>
-            <span title="Score at halftime" className="ml-5 text-gray-500 font-extralight">{props.matchInfo.halfTimeScoreInfo.homeGoals}</span>
+            <span title="Score at fulltime" className="font-extrabold text-c4">{props.matchInfo.scoreInfo.homeGoals}</span>
+            <span title="Score at halftime" className="ml-5 text-gray font-extralight">{props.matchInfo.halfTimeScoreInfo.homeGoals}</span>
           </div>
         </div>
         <div className="flex">
@@ -113,8 +113,8 @@ function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
             <span className="font-mono ml-2">{props.matchInfo.awayTeam?.name}</span>
           </div>
           <div className="basis-2/12">
-            <span title="Score at fulltime" className="font-extrabold">{props.matchInfo.scoreInfo.awayGoals}</span>
-            <span title="Score at halftime" className="ml-5 text-gray-500 font-extralight">{props.matchInfo.halfTimeScoreInfo.awayGoals}</span>
+            <span title="Score at fulltime" className="font-extrabold text-c4">{props.matchInfo.scoreInfo.awayGoals}</span>
+            <span title="Score at halftime" className="ml-5 text-gray font-extralight">{props.matchInfo.halfTimeScoreInfo.awayGoals}</span>
           </div>
         </div>
       </div>

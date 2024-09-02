@@ -51,7 +51,7 @@ export default function Team() {
 
 
   return (
-    <div className="flex flex-row bg-rose-200 items-center justify-center">
+    <div className="flex flex-row items-center justify-center">
       <div className="mt-32 basis-full">
         {teamInfoContentLoaded ?
           <TeamInfoContent team={teamInformation} />
@@ -105,9 +105,9 @@ function TeamInfoContent(props: { team: FullTeamInfo | undefined }) {
           </div>
         </div>
         <div className="basis-2/3 mt-6 pl-16">
-          <p className="font-extrabold text-4xl">{props.team?.name}</p>
+          <p className="font-extrabold text-4xl text-c4">{props.team?.name}</p>
           {coachName !== undefined &&
-            <p className="font-extralight text-xl pt-6">Coach: {coachName}</p>
+            <p className="font-extralight text-xl pt-6 text-c3">Coach: {coachName}</p>
           }
         </div>
       </div>
@@ -128,8 +128,8 @@ function TeamInfoContentSkeleton() {
             alt="Team name" />
         </div>
         <div className="basis-2/3 mt-6 pl-16">
-          <div className="animate-pulse bg-gray-300 h-12 w-full"></div>
-          <div className="animate-pulse bg-gray-300 mt-2 h-6 w-full"></div>
+          <div className="animate-pulse bg-c4 h-12 w-full"></div>
+          <div className="animate-pulse bg-c3 mt-2 h-6 w-full"></div>
         </div>
       </div>
     </>
@@ -156,7 +156,7 @@ function TeamGeneralForm(props: { teamId: string }) {
   return (
     <>
       {formContentLoaded &&
-        <FormEntriesBox formEntries={teamForm} />
+        <FormEntriesBox formEntries={teamForm} setHighlightedTeamsIds={undefined} />
       }
     </>
   )
@@ -201,9 +201,9 @@ function ResultsSummary(props: { team: FullTeamInfo | undefined }) {
         <>
           <GroupedTeamMatchesContent competitionGroupedTeamMatches={groupedTeamMatches} />
           {groupedTeamMatches.length !== 0 &&
-            <div className="flex bg-rose-300 py-2 my-3">
+            <div className="flex py-2 my-3">
               <button
-                className="basis-full font-extrabold text-sm hover:underline"
+                className="text-c4 basis-full font-extrabold text-sm hover:underline"
                 onClick={() => fetchMoreResults(props.team!.id)}
               >Load More...</button>
             </div>
@@ -255,9 +255,9 @@ function FixturesSummary(props: { team: FullTeamInfo | undefined }) {
         <>
           <GroupedTeamMatchesContent competitionGroupedTeamMatches={groupedTeamMatches} />
           {groupedTeamMatches.length !== 0 &&
-            <div className="flex bg-rose-300 py-2 my-3">
+            <div className="flex py-2 my-3">
               <button
-                className="basis-full font-extrabold text-sm hover:underline"
+                className="text-c4 basis-full font-extrabold text-sm hover:underline"
                 onClick={() => fetchMoreFixtures(props.team!.id)}
               >Load More...</button>
             </div>
@@ -284,8 +284,8 @@ function GroupedTeamMatchesContent(props: { competitionGroupedTeamMatches: Compe
           }
         </div>
         :
-        < div className="mt-8 py-40 bg-rose-300 text-center">
-          <span className="font-mono text-2xl font-extrabold">No matches available</span>
+        < div className="mt-8 py-40 text-center">
+          <span className="font-mono text-2xl font-extrabold text-c4">No matches available</span>
         </div >
       }
     </>
@@ -408,14 +408,14 @@ function TeamPlayersContent(props: { players: TeamPlayer[] }) {
 
   return (
     <>
-      <div className="flex flex-row bg-rose-300 h-8 pt-2 shadow-sm shadow-black mb-2">
+      <div className="bg-c1 flex flex-row h-8 pt-2 shadow-sm shadow-black mb-2">
         <div className="">
-          <span className="pl-10 float-left text-sm">Players</span>
+          <span className="pl-10 float-left text-sm text-c4">Players</span>
         </div>
       </div>
       <table className="basis-full w-full table-auto mb-10">
         <thead>
-          <tr className="text-center font-extralight text-sm">
+          <tr className="text-center font-extralight text-sm text-c3">
             <th>#</th>
             <th>Name</th>
             <th>Country</th>
@@ -428,10 +428,14 @@ function TeamPlayersContent(props: { players: TeamPlayer[] }) {
             const dateOfBirth = player.player.dateOfBirth;
             const formattedDateOfBirth = `${dateOfBirth[0]}-${dateOfBirth[1]}-${dateOfBirth[2]}`;
             return (
-              <tr key={i} className="odd:bg-rose-300 even:bg-rose-200 text-center">
+              <tr key={i} className="odd:bg-c1 even:bg-c0 text-center">
                 <td>{player.number}</td>
                 <td>{player.player.name}</td>
-                <td><span title={player.countryCode}>{CountryInfo.countryCodeToFlagEmoji(player.countryCode)}</span></td>
+                <td>
+                  <span title={player.countryCode}>
+                    {CountryInfo.countryCodeToFlagEmoji(player.countryCode)}
+                  </span>
+                </td>
                 <td>{player.position}</td>
                 <td>{formattedDateOfBirth}</td>
               </tr>
@@ -447,8 +451,8 @@ function TeamPlayersContentSkeleton() {
   return (
     <>
       <div
-        className="animate-pulse flex flex-row bg-rose-300 h-8 pt-2 shadow-sm shadow-black mb-2">
-        <span className="pl-10 float-left text-sm">Players</span>
+        className="bg-c1 animate-pulse flex flex-row h-8 pt-2 shadow-sm shadow-black mb-2">
+        <span className="pl-10 float-left text-sm text-c4">Players</span>
       </div>
       <div className="flex flex-row">
         <div className="basis-full table-auto mx-8 mb-10">
@@ -457,7 +461,7 @@ function TeamPlayersContentSkeleton() {
               return (
                 <div
                   key={j}
-                  className="animate-pulse odd:bg-rose-300 even:bg-rose-200">
+                  className="animate-pulse odd:bg-c1 even:bg-c0">
                   <div className="h-6"></div>
                 </div>
               )

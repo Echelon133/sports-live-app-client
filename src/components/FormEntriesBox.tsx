@@ -23,11 +23,11 @@ function FormEntry(props: {
   const [detailsVisible, setDetailsVisible] = useState<boolean>(false);
 
   const entry = props.entry;
-  let color = "bg-gray-500";
+  let color = "bg-gray";
   if (entry.form === "W") {
-    color = "bg-green-500";
+    color = "bg-green";
   } else if (entry.form === "L") {
-    color = "bg-red-500";
+    color = "bg-red";
   }
   const score = `${entry.matchDetails.scoreInfo.homeGoals}:${entry.matchDetails.scoreInfo.awayGoals}`;
   const teams = `${entry.matchDetails.homeTeam?.name} vs ${entry.matchDetails.awayTeam?.name}`;
@@ -64,7 +64,7 @@ function FormEntry(props: {
           </Link>
         </div>
         <div className="relative basis-full">
-          <div className={`absolute top-7 right-0 z-50 text-center text-white rounded-lg bg-rose-500 ${detailsVisible ? "" : "hidden"} `}>
+          <div className={`absolute top-9 right-0 z-50 text-center text-black rounded-lg bg-c3 ${detailsVisible ? "" : "hidden"} `}>
             <div className="flex flex-col">
               <div className="basis-full px-2 py-2">
                 <p>

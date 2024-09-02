@@ -152,8 +152,14 @@ export default function MatchEventsSummary(props: {
 
   return (
     <>
-      <div className="mt-5 bg-rose-500">
-        <span className="pl-8 font-extrabold">Summary</span>
+      <div className="mt-6 flex flex-row bg-c1 items-center justify-center">
+        <div className="mt-2 basis-full">
+          <div className="bg-c2 shadow-sm shadow-black mb-2">
+            <div className="p-3 pl-10">
+              <span className="font-extrabold text-c4">Summary</span>
+            </div>
+          </div>
+        </div>
       </div>
       {matchEventsContentLoaded ?
         <MatchEventsSummaryContent matchEvents={matchEvents} homeTeamId={props.homeTeamId} />
@@ -180,13 +186,13 @@ function MatchEventsSummaryContentSkeleton() {
       {[...Array(3)].map((_e, i) => {
         return (
           <>
-            <div key={i} className="animate-pulse flex flex-row bg-rose-300 h-8 pt-2 shadow-sm shadow-black mb-2">
+            <div key={i} className="animate-pulse flex flex-row bg-c2 h-8 pt-2 shadow-sm shadow-black mb-2">
               <div className="basis-full"></div>
             </div>
             {[...Array(3)].map((_e, j) => {
               return (
                 <>
-                  <div className="animate-pulse flex flex-col odd:bg-rose-200 even:bg-rose-100 p-8 mb-2">
+                  <div className="animate-pulse flex flex-col bg-c1 p-8 mb-2">
                     <div className="basis-full"></div>
                   </div>
                 </>
@@ -226,12 +232,12 @@ function StatusEventBox(props: { event: MatchEvents.StatusEvent }) {
   const currentScore = Score.format(props.event.mainScore);
   return (
     <>
-      <div className="flex flex-row bg-rose-300 h-8 pt-2 shadow-sm shadow-black mb-2">
+      <div className="flex flex-row bg-c1 h-8 pt-2 shadow-sm shadow-black mb-2">
         <div className="basis-1/2">
-          <span className="pl-10 float-left text-sm">{statusText}</span>
+          <span className="pl-10 float-left text-sm text-c3">{statusText}</span>
         </div>
         <div className="basis-1/2">
-          <span className="pr-10 float-right text-sm">{currentScore}</span>
+          <span className="pr-10 float-right text-sm text-c3">{currentScore}</span>
         </div>
       </div>
     </>
@@ -241,7 +247,7 @@ function StatusEventBox(props: { event: MatchEvents.StatusEvent }) {
 function CommentaryEventBox(props: { event: MatchEvents.CommentaryEvent }) {
   return (
     <>
-      <div className="flex flex-col bg-rose-200 p-8 mb-2">
+      <div className="flex flex-col p-8 mb-2">
         <div className="basis-full">
           <span className="text-sm font-extrabold">{props.event.minute}'</span>
           <p className="pl-8 text-sm">{props.event.message}</p>
@@ -273,7 +279,7 @@ function CardEventBox(props: { event: MatchEvents.CardEvent, leftSided: boolean 
 
   return (
     <>
-      <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} bg-rose-200 px-8 mb-2 items-center`}>
+      <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-8 mb-2 items-center`}>
         <div className="">
           <span className="text-sm font-extrabold">{props.event.minute}'</span>
           <Image
@@ -298,7 +304,7 @@ function GoalEventBox(props: { event: MatchEvents.GoalEvent, leftSided: boolean 
 
   return (
     <>
-      <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} bg-rose-200 px-8 mb-2 items-center`}>
+      <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-8 mb-2 items-center`}>
         <div className="">
           <span className="text-sm font-extrabold">{props.event.minute}'</span>
           <Image
@@ -315,7 +321,7 @@ function GoalEventBox(props: { event: MatchEvents.GoalEvent, leftSided: boolean 
           </div>
           <div className="">
             {props.event.assistingPlayer &&
-              <span className="font-extralight px-2 text-sm text-gray-700">({props.event.assistingPlayer.name})</span>
+              <span className="font-extralight px-2 text-sm text-gray">({props.event.assistingPlayer.name})</span>
             }
           </div>
         </div>
@@ -327,7 +333,7 @@ function GoalEventBox(props: { event: MatchEvents.GoalEvent, leftSided: boolean 
 function SubstitutionEventBox(props: { event: MatchEvents.SubstitutionEvent, leftSided: boolean }) {
   return (
     <>
-      <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} bg-rose-200 px-8 mb-2 items-center`}>
+      <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-8 mb-2 items-center`}>
         <div className="">
           <span className="text-sm font-extrabold">{props.event.minute}'</span>
           <Image
@@ -343,7 +349,7 @@ function SubstitutionEventBox(props: { event: MatchEvents.SubstitutionEvent, lef
             <span className="font-extrabold">{props.event.playerIn.name}</span>
           </div>
           <div className="">
-            <span className="font-extralight px-2 text-sm text-gray-700">{props.event.playerOut.name}</span>
+            <span className="font-extralight px-2 text-sm text-gray">{props.event.playerOut.name}</span>
           </div>
         </div>
       </div>
@@ -357,7 +363,7 @@ function PenaltyEventBox(props: { event: MatchEvents.PenaltyEvent, leftSided: bo
 
   return (
     <>
-      <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} bg-rose-200 px-8 mb-2 items-center`}>
+      <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-8 mb-2 items-center`}>
         <div className="">
           <span className="text-sm font-extrabold">{props.event.minute}'</span>
           <Image
@@ -373,7 +379,7 @@ function PenaltyEventBox(props: { event: MatchEvents.PenaltyEvent, leftSided: bo
             <span className="font-extrabold">{props.event.shootingPlayer.name}</span>
           </div>
           <div className="">
-            <span className="font-extralight px-2 text-sm text-gray-700">(Penalty)</span>
+            <span className="font-extralight px-2 text-sm text-gray">(Penalty)</span>
           </div>
         </div>
       </div>

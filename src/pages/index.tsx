@@ -55,8 +55,8 @@ function GroupedMatchesContent(props: { competitionGroupedMatches: CompetitionGr
           }
         </div>
         :
-        < div className="mt-8 py-40 bg-rose-300 text-center">
-          <span className="font-mono text-2xl font-extrabold">No matches available</span>
+        < div className="mt-8 py-40 text-center">
+          <span className="font-mono text-2xl font-extrabold text-c4">No matches available</span>
         </div >
       }
     </>

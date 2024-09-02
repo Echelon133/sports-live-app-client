@@ -51,7 +51,7 @@ export default function Competition() {
   }, [router.query.id]);
 
   return (
-    <div className="flex flex-row bg-rose-200 items-center justify-center">
+    <div className="flex flex-row items-center justify-center">
       <div className="mt-32 basis-full">
         {competitionInfoContentLoaded ?
           <CompetitionInfoContent competition={competitionInformation} />
@@ -94,8 +94,8 @@ function CompetitionInfoContent(props: { competition: CompetitionInfo | undefine
             alt="Competition name" />
         </div>
         <div className="basis-2/3 mt-6 pl-16">
-          <p className="font-extrabold text-4xl">{props.competition?.name}</p>
-          <span className="font-extralight text-xl">{props.competition?.season}</span>
+          <p className="font-extrabold text-4xl text-c4">{props.competition?.name}</p>
+          <span className="font-extralight text-xl text-c3">{props.competition?.season}</span>
         </div>
       </div>
     </>
@@ -115,8 +115,8 @@ function CompetitionInfoContentSkeleton() {
             alt="Competition name" />
         </div>
         <div className="basis-2/3 mt-6 pl-16">
-          <div className="animate-pulse bg-gray-300 h-12 w-full"></div>
-          <div className="animate-pulse bg-gray-300 mt-2 h-6 w-full"></div>
+          <div className="animate-pulse bg-c4 h-12 w-full"></div>
+          <div className="animate-pulse bg-c3 mt-2 h-6 w-full"></div>
         </div>
       </div>
     </>
@@ -172,9 +172,9 @@ function ResultsSummary(props: { competition: CompetitionInfo | undefined }) {
         <>
           <GroupedMatchInfo competitionInfo={props.competition} matches={matches} />
           {matches.length !== 0 &&
-            <div className="flex bg-rose-300 py-2 my-3">
+            <div className="flex py-2 my-3">
               <button
-                className="basis-full font-extrabold text-sm hover:underline"
+                className="text-c4 basis-full font-extrabold text-sm hover:underline"
                 onClick={() => fetchMoreResults(props.competition!.id)}
               >Load More...</button>
             </div>
@@ -236,9 +236,9 @@ function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
         <>
           <GroupedMatchInfo competitionInfo={props.competition} matches={matches} />
           {matches.length !== 0 &&
-            <div className="flex bg-rose-300 py-2 my-3">
+            <div className="flex py-2 my-3">
               <button
-                className="basis-full font-extrabold text-sm hover:underline"
+                className="text-c4 basis-full font-extrabold text-sm hover:underline"
                 onClick={() => fetchMoreFixtures(props.competition!.id)}
               >Load More...</button>
             </div>
@@ -252,7 +252,7 @@ function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
 }
 
 function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
-  const [standingsContentLoaded, setStandingsContentLoaded] = useState<boolean>(true);
+  const [standingsContentLoaded, setStandingsContentLoaded] = useState<boolean>(false);
   const [teamInfoCache, setTeamInfoCache] = useState<Map<string, TeamStanding>>(new Map());
   const [competitionStandings, setCompetitionStandings] =
     useState<CompetitionStandings | undefined>(undefined);
@@ -307,7 +307,7 @@ function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
       </div>
       {selectedStandingsInfoOption === "standings" &&
         <>
-          {standingsContentLoaded && (props.competition !== undefined) ?
+          {standingsContentLoaded ?
             <>
               <div className="">
                 {competitionStandings?.groups.map((group) =>
@@ -363,15 +363,15 @@ function CompetitionGroupBox(props: {
 
   return (
     <>
-      <div className="flex flex-row bg-rose-200 items-center justify-center">
+      <div className="bg-c1 flex flex-row items-center justify-center">
         <div className="mt-2 basis-full">
-          <div className="bg-rose-300 shadow-sm shadow-gray-400 mb-2">
-            <div className="p-3 pl-10">
-              <span className="font-extrabold">{props.group.name}</span>
+          <div className="shadow-sm shadow-black mb-2">
+            <div className="p-3 pl-10 bg-c2">
+              <span className="font-extrabold text-c4">{props.group.name}</span>
             </div>
           </div>
           <table className="basis-full w-full table-auto mb-10">
-            <tr className="text-center font-extralight text-sm">
+            <tr className="text-c3 text-center font-extralight text-sm">
               <th>#</th>
               <th>Team</th>
               <th className="pr-4">MP</th>
@@ -392,7 +392,7 @@ function CompetitionGroupBox(props: {
               // therefore we should highlight this team's entry in the table
               const highlightDependendStyles =
                 highlightedTeamsIds.includes(team.teamId) ?
-                  "odd:bg-red-500 even:bg-red-500 text-white" : "odd:bg-rose-300 even:bg-rose-200 ";
+                  "odd:bg-c3 even:bg-c3 text-black" : "odd:bg-c1 even:bg-c0 ";
 
               return (
                 <tr className={`${highlightDependendStyles} text-center`}>
@@ -531,21 +531,21 @@ function TopScorersListing(props: {
     <>
       {playerStats.length === 0 ?
         <>
-          <div className="flex flex-row bg-rose-100 h-14 shadow-sm shadow-gray-400 items-center justify-center">
-            <span className="font-extrabold text-xl">No stats</span>
+          <div className="flex flex-row bg-c1 h-14 shadow-sm shadow-black items-center justify-center">
+            <span className="font-extrabold text-xl text-c4">No stats</span>
           </div>
         </>
         :
         <>
-          <div className="flex flex-row bg-rose-200 items-center justify-center">
+          <div className="flex flex-row bg-c1 items-center justify-center">
             <div className="mt-2 basis-full">
-              <div className="bg-rose-300 shadow-sm shadow-gray-400 mb-2">
+              <div className="bg-c2 shadow-sm shadow-black mb-2">
                 <div className="p-3 pl-10">
-                  <span className="font-extrabold">Top Scorers</span>
+                  <span className="font-extrabold text-c4">Top Scorers</span>
                 </div>
               </div>
               <table className="basis-full w-full table-auto mb-10">
-                <tr className="text-center font-extralight text-sm">
+                <tr className="text-c3 text-center font-extralight text-sm">
                   <th>#</th>
                   <th>Player</th>
                   <th>Team</th>
@@ -553,12 +553,12 @@ function TopScorersListing(props: {
                   <th className="px-4" title="Assists">A</th>
                   <th className="px-4" title="Yellow Cards">
                     <div className="flex justify-center">
-                      <div className="h-4 w-3 bg-yellow-500"></div>
+                      <div className="h-4 w-3 bg-yellow"></div>
                     </div>
                   </th>
                   <th className="px-4" title="Red Cards">
                     <div className="flex justify-center">
-                      <div className="h-4 w-3 bg-red-600"></div>
+                      <div className="h-4 w-3 bg-red"></div>
                     </div>
                   </th>
                 </tr>
@@ -580,7 +580,7 @@ function TopScorersListing(props: {
                   return (
                     <tr
                       key={stat.playerId}
-                      className="odd:bg-rose-300 even:bg-rose-200 text-center"
+                      className="odd:bg-c1 even:bg-c0 text-center"
                     >
                       <td className="p-1">{playerPosition}</td>
                       <td className="font-extralight text-sm">{stat.name}</td>
@@ -603,9 +603,9 @@ function TopScorersListing(props: {
                 })}
               </table>
               {playerStats.length !== 0 &&
-                <div className="flex bg-rose-300 py-2 my-1">
+                <div className="flex py-2 my-1">
                   <button
-                    className="basis-full font-extrabold text-sm hover:underline"
+                    className="text-c4 basis-full font-extrabold text-sm hover:underline"
                     onClick={() => fetchMoreTopScorers(props.competitionId)}
                   >Load More...</button>
                 </div>
@@ -621,11 +621,11 @@ function TopScorersListing(props: {
 function SummarySkeleton() {
   return (
     <>
-      <div className="flex flex-row bg-rose-200">
-        <div className="animate-pulse basis-full bg-rose-300 h-10 shadow-sm shadow-black"></div>
+      <div className="flex flex-row bg-c1">
+        <div className="animate-pulse basis-full bg-c2 h-10 shadow-sm shadow-black"></div>
       </div>
-      <div className="animate-pulse mb-1 basis-full bg-rose-100 h-14 shadow-sm shadow-gray-400"></div>
-      <div className="animate-pulse mb-1 basis-full bg-rose-100 h-14 shadow-sm shadow-gray-400"></div>
+      <div className="animate-pulse mb-1 basis-full bg-c1 h-14 shadow-sm shadow-gray-400"></div>
+      <div className="animate-pulse mb-1 basis-full bg-c1 h-14 shadow-sm shadow-gray-400"></div>
     </>
   )
 }

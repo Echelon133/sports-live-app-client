@@ -37,14 +37,21 @@ export default function MatchLineupListing(props: { matchId: string | undefined 
 
   return (
     <>
-      <div className="mt-5 bg-rose-500">
-        <span className="pl-8 font-extrabold">Lineups</span>
-        {lineupContentLoaded ?
-          <LineupContent lineup={lineup} />
-          :
-          <LineupContentSkeleton />
-        }
+
+      <div className="mt-6 flex flex-row bg-c1 items-center justify-center">
+        <div className="mt-2 basis-full">
+          <div className="bg-c2 shadow-sm shadow-black mb-2">
+            <div className="p-3 pl-10">
+              <span className="font-extrabold text-c4">Lineups</span>
+            </div>
+          </div>
+        </div>
       </div>
+      {lineupContentLoaded ?
+        <LineupContent lineup={lineup} />
+        :
+        <LineupContentSkeleton />
+      }
     </>
   )
 }
@@ -70,8 +77,8 @@ function LineupContentSkeleton() {
           <>
             <div
               key={i}
-              className="animate-pulse flex flex-row bg-rose-300 h-8 pt-2 shadow-sm shadow-black mb-2">
-              <span className="pl-10 float-left text-sm">{title}</span>
+              className="animate-pulse flex flex-row bg-c1 h-8 pt-2 shadow-sm shadow-black mb-2">
+              <span className="pl-10 float-left text-sm text-c3">{title}</span>
             </div>
             <div className="flex flex-row">
               <table className="basis-full table-auto mx-8 mb-10">
@@ -80,7 +87,7 @@ function LineupContentSkeleton() {
                     return (
                       <div
                         key={j}
-                        className="animate-pulse odd:bg-rose-300 even:bg-rose-200">
+                        className="animate-pulse odd:bg-c1 even:bg-c0">
                         <div className="h-6"></div>
                       </div>
                     )
@@ -115,9 +122,9 @@ function zipPlayers(homePlayers: TeamPlayer[], awayPlayers: TeamPlayer[]): Zippe
 function NamedLineup(props: { title: string, players: ZippedPlayers[] }) {
   return (
     <>
-      <div className="flex flex-row bg-rose-300 h-8 pt-2 shadow-sm shadow-black mb-2">
+      <div className="flex flex-row bg-c1 h-8 pt-2 shadow-sm shadow-black mb-2">
         <div className="">
-          <span className="pl-10 float-left text-sm">{props.title}</span>
+          <span className="pl-10 float-left text-sm text-c3">{props.title}</span>
         </div>
       </div>
       <div className="flex flex-row">
@@ -134,14 +141,14 @@ function LineupTable(props: { players: ZippedPlayers[] }) {
         {props.players.map((e) => {
           return (
             <>
-              <tr className="odd:bg-rose-300 even:bg-rose-200">
+              <tr className="odd:bg-c1 even:bg-c0">
                 <td className="font-mono font-extrabold">{e.homePlayer?.number}</td>
                 <td>{CountryInfo.countryCodeToFlagEmoji(e.homePlayer?.countryCode)}</td>
-                <td className="text-xs text-gray-500">{PlayerPosition.format(e.homePlayer?.position)}</td>
+                <td className="text-xs text-gray">{PlayerPosition.format(e.homePlayer?.position)}</td>
                 <td>{e.homePlayer?.player.name}</td>
                 <td></td>
                 <td className="float-right pr-2">{e.awayPlayer?.player.name}</td>
-                <td className="text-xs text-gray-500">{PlayerPosition.format(e.awayPlayer?.position)}</td>
+                <td className="text-xs text-gray">{PlayerPosition.format(e.awayPlayer?.position)}</td>
                 <td>{CountryInfo.countryCodeToFlagEmoji(e.awayPlayer?.countryCode)}</td>
                 <td className="font-mono font-extrabold">{e.awayPlayer?.number}</td>
               </tr>

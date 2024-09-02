@@ -99,7 +99,7 @@ export default function Match() {
 
 
   return (
-    <div className="flex flex-row bg-rose-200 items-center justify-center">
+    <div className="flex flex-row items-center justify-center">
       <div className="mt-10 basis-full">
         {matchInfoContentLoaded && (allMatchInformation !== undefined) ?
           <MatchInfoContent
@@ -138,7 +138,7 @@ function MatchInfoContent(props: {
 
   return (
     <>
-      <div className="pl-4 bg-rose-500 py-3">
+      <div className="pl-4 bg-c2 py-3">
         <Image
           className="float-left mr-2"
           width="20"
@@ -146,16 +146,16 @@ function MatchInfoContent(props: {
           src={competitionLogoUrl ? competitionLogoUrl : "../../placeholder-competition-logo.svg"}
           alt="Competition name" />
         <Link href={`/competition/${props.allMatchInformation.competition.id}`}>
-          <span className="font-extrabold hover:underline">{props.allMatchInformation?.competition.name}</span>
+          <span className="font-extrabold hover:underline text-c4">{props.allMatchInformation?.competition.name}</span>
         </Link>
-        <span className="font-extralight text-sm text-gray-500 ml-2">({props.allMatchInformation?.competition.season})</span>
+        <span className="font-extralight text-sm text-c3 ml-2">({props.allMatchInformation?.competition.season})</span>
       </div>
-      <div className="flex flex-col bs-rose-200">
+      <div className="flex flex-col bg-c1 pb-4">
         <div className="basis-full mt-8 text-center">
-          <span className="font-mono text-sm">{matchDate}</span>
+          <span className="font-mono text-sm text-c3">{matchDate}</span>
         </div>
         <div className="flex flex-row basis-full">
-          <div className="basis-1/3 bg-yellow-100">
+          <div className="basis-1/3">
             <div className="flex flex-col items-end">
               <div className="basis-full">
                 <Image
@@ -172,14 +172,14 @@ function MatchInfoContent(props: {
               </div>
             </div>
           </div>
-          <div className="flex flex-col basis-1/3 bg-red-100 text-center">
+          <div className="flex flex-col basis-1/3 text-center">
             <div className="basis-full pt-5">
-              <span className={`text-5xl ${props.updateableMatchInfo.fullTimeScore.highlight ? "text-red-500" : ""}`}>
+              <span className={`text-5xl ${props.updateableMatchInfo.fullTimeScore.highlight ? "text-red" : ""}`}>
                 {Score.format(props.updateableMatchInfo.fullTimeScore.value)}
               </span>
             </div>
             <div className="basis-full">
-              <span className={`font-extrabold text-sm ${props.updateableMatchInfo.status.highlight ? "text-red-500" : ""}`}>
+              <span className={`font-extrabold text-sm ${props.updateableMatchInfo.status.highlight ? "text-red" : ""}`}>
                 {MatchStatus.format(props.updateableMatchInfo.status.value)}
               </span>
             </div>
@@ -211,7 +211,7 @@ function MatchInfoContent(props: {
               </div>
             }
           </div>
-          <div className="basis-1/3 bg-yellow-100">
+          <div className="basis-1/3">
             <div className="flex flex-col items-start">
               <div className="basis-full">
                 <Image
@@ -237,21 +237,31 @@ function MatchInfoContent(props: {
 function MatchInfoContentSkeleton() {
   return (
     <>
-      <div className="animate-pulse h-12 bg-rose-500">
+      <div className="animate-pulse h-12 bg-c2">
       </div>
-      <div className="flex flex-col bs-rose-200">
+      <div className="flex flex-col bg-c1 pb-8">
         <div className="basis-full mt-8"></div>
-        <div className="flex flex-row basis-full h-52">
-          <div className="animate-pulse basis-1/3 bg-yellow-100">
-            <div className="h-36 w-36"></div>
+        <div className="flex flex-row basis-full">
+          <div className="animate-pulse basis-1/3">
+            <Image
+              className="bg-white p-2 rounded-xl float-right animate-pulse"
+              width="100"
+              height="100"
+              src="../../placeholder-club-logo.svg"
+              alt="Club name" />
           </div>
-          <div className="flex flex-col basis-1/3 bg-red-100 text-center">
+          <div className="flex flex-col basis-1/3 text-center">
             <div className="basis-full pt-5">
-              <span className="animate-pulse text-5xl">-</span>
+              <span className="animate-pulse text-5xl text-white">-</span>
             </div>
           </div>
-          <div className="animate-pulse basis-1/3 bg-yellow-100">
-            <div className="h-36 w-36"></div>
+          <div className="animate-pulse basis-1/3">
+            <Image
+              className="bg-white p-2 rounded-xl float-left animate-pulse"
+              width="100"
+              height="100"
+              src="../../placeholder-club-logo.svg"
+              alt="Club name" />
           </div>
         </div>
       </div>
