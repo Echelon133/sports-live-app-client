@@ -77,7 +77,7 @@ function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
     props.matchInfo.status === MatchStatus.FINISHED;
 
   return (
-    <div className="mb-1 flex flex-row bg-c1 h-14 shadow-sm shadow-c0 items-center justify-center hover:bg-c0 hover:cursor-pointer">
+    <div className="mb-1 flex flex-row bg-c1 shadow-sm shadow-c0 items-center justify-center hover:bg-c0 hover:cursor-pointer">
       <div className="basis-2/12 text-center">
         <div className="flex flex-col">
           <span className={`${matchInfo === "Live" ? "text-red" : ""} text-sm`}>{matchInfo}</span>
@@ -87,7 +87,7 @@ function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
         </div>
       </div>
       <div className="basis-10/12 flex flex-col">
-        <div className="flex">
+        <div className="flex pt-2 pb-1">
           <div className="basis-10/12">
             <Image
               className="float-left"
@@ -95,14 +95,19 @@ function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
               height="18"
               src={homeCrestUrl ? homeCrestUrl : "placeholder-club-logo.svg"}
               alt="Home team crest" />
-            <span className="font-mono ml-2">{props.matchInfo.homeTeam?.name}</span>
+            <span className="font-mono ml-2">
+              {props.matchInfo.homeTeam?.name}
+            </span>
+            <span className="ml-2">
+              <RedCardBox redCardCount={props.matchInfo.redCardInfo.homeRedCards} />
+            </span>
           </div>
           <div className="basis-2/12">
             <span title="Score at fulltime" className="font-extrabold text-c4">{props.matchInfo.scoreInfo.homeGoals}</span>
             <span title="Score at halftime" className="ml-5 text-gray font-extralight">{props.matchInfo.halfTimeScoreInfo.homeGoals}</span>
           </div>
         </div>
-        <div className="flex">
+        <div className="flex pb-2">
           <div className="basis-10/12">
             <Image
               className="float-left"
@@ -110,7 +115,12 @@ function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
               height="18"
               src={awayCrestUrl ? awayCrestUrl : "placeholder-club-logo.svg"}
               alt="Away team crest" />
-            <span className="font-mono ml-2">{props.matchInfo.awayTeam?.name}</span>
+            <span className="font-mono ml-2">
+              {props.matchInfo.awayTeam?.name}
+            </span>
+            <span className="ml-2">
+              <RedCardBox redCardCount={props.matchInfo.redCardInfo.awayRedCards} />
+            </span>
           </div>
           <div className="basis-2/12">
             <span title="Score at fulltime" className="font-extrabold text-c4">{props.matchInfo.scoreInfo.awayGoals}</span>
@@ -121,6 +131,22 @@ function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
     </div>
 
   );
+}
+
+function RedCardBox(props: { redCardCount: number }) {
+  return (
+    <>
+      {props.redCardCount === 0 ?
+        <></>
+        :
+        <div className="bg-red w-3 h-5 inline-block text-center rounded-sm">
+          <span className="text-sm">
+            {props.redCardCount > 1 ? props.redCardCount.toString() : ""}
+          </span>
+        </div>
+      }
+    </>
+  )
 }
 
 function evaluateMatchInfo(status: MatchStatus, startTimeUTC: Date): string {

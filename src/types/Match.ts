@@ -47,6 +47,11 @@ export type Score = {
   awayGoals: number,
 }
 
+export type RedCardInfo = {
+  homeRedCards: number,
+  awayRedCards: number,
+}
+
 export namespace Score {
   export function format(score: Score | undefined): string {
     if (score === undefined) return ""
@@ -77,7 +82,8 @@ export type CompactMatchInfo = {
   awayTeam: CompactTeamInfoOrNull,
   halfTimeScoreInfo: Score,
   scoreInfo: Score,
-  penaltiesInfo: Score
+  penaltiesInfo: Score,
+  redCardInfo: RedCardInfo,
 }
 
 export namespace CompactMatchInfo {
