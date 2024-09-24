@@ -191,7 +191,7 @@ function MatchInfoContent(props: {
                 src="../../whistle.svg"
                 alt="Referee"
                 title="Referee" />
-              <span className="font-extrabold text-xs">{matchInformation?.referee?.name}</span>
+              <p className="font-extrabold text-xs">{matchInformation?.referee?.name}</p>
             </div>
             {matchInformation?.venue &&
               <div className="flex basis-full items-center justify-center">
@@ -203,9 +203,9 @@ function MatchInfoContent(props: {
                   alt="Stadium"
                   title="Stadium" />
                 <div className="">
-                  <span className="font-extrabold text-xs">{matchInformation.venue.name}</span>
+                  <p className="font-extrabold text-xs">{matchInformation.venue.name}</p>
                   {matchInformation.venue.capacity &&
-                    <span className="font-extrabold text-xs"> (capacity {matchInformation.venue.capacity})</span>
+                    <p className="font-extrabold text-xs"> (capacity {matchInformation.venue.capacity})</p>
                   }
                 </div>
               </div>
