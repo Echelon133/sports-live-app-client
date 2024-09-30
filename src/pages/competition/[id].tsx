@@ -358,14 +358,14 @@ function CompetitionGroupBox(props: {
 
   return (
     <>
-      <div className="bg-c1 flex flex-row items-center justify-center">
+      <div className="bg-c1 flex flex-row items-center justify-center mb-10">
         <div className="mt-2 basis-full">
           <div className="shadow-sm shadow-black mb-2">
             <div className="p-3 pl-10 bg-c2">
               <span className="font-extrabold text-c4">{props.group.name}</span>
             </div>
           </div>
-          <table className="basis-full w-full table-auto mb-10">
+          <table className="basis-full w-full table-auto">
             <tr className="text-c3 text-center font-extralight text-sm">
               <th>#</th>
               <th>Team</th>
