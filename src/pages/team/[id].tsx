@@ -10,6 +10,7 @@ import { CompactMatchInfo } from "@/types/Match";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { TeamPlayer } from "@/types/Lineup";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
+import LoadMoreButton from "@/components/LoadMoreButton";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -201,11 +202,8 @@ function ResultsSummary(props: { team: FullTeamInfo | undefined }) {
         <>
           <GroupedTeamMatchesContent competitionGroupedTeamMatches={groupedTeamMatches} />
           {groupedTeamMatches.length !== 0 &&
-            <div className="flex py-2 my-3">
-              <button
-                className="text-c4 basis-full font-extrabold text-sm hover:underline"
-                onClick={() => fetchMoreResults(props.team!.id)}
-              >Load More...</button>
+            <div className="flex">
+              <LoadMoreButton onClick={() => fetchMoreResults(props.team!.id)} />
             </div>
           }
         </>
@@ -255,11 +253,8 @@ function FixturesSummary(props: { team: FullTeamInfo | undefined }) {
         <>
           <GroupedTeamMatchesContent competitionGroupedTeamMatches={groupedTeamMatches} />
           {groupedTeamMatches.length !== 0 &&
-            <div className="flex py-2 my-3">
-              <button
-                className="text-c4 basis-full font-extrabold text-sm hover:underline"
-                onClick={() => fetchMoreFixtures(props.team!.id)}
-              >Load More...</button>
+            <div className="flex">
+              <LoadMoreButton onClick={() => fetchMoreFixtures(props.team!.id)} />
             </div>
           }
         </>

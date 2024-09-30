@@ -8,6 +8,7 @@ import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { CompactMatchInfo } from "@/types/Match";
 import Link from "next/link";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
+import LoadMoreButton from "@/components/LoadMoreButton";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -172,11 +173,8 @@ function ResultsSummary(props: { competition: CompetitionInfo | undefined }) {
         <>
           <GroupedMatchInfo competitionInfo={props.competition} matches={matches} />
           {matches.length !== 0 &&
-            <div className="flex py-2 my-3">
-              <button
-                className="text-c4 basis-full font-extrabold text-sm hover:underline"
-                onClick={() => fetchMoreResults(props.competition!.id)}
-              >Load More...</button>
+            <div className="flex">
+              <LoadMoreButton onClick={() => fetchMoreResults(props.competition!.id)} />
             </div>
           }
         </>
@@ -236,11 +234,8 @@ function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
         <>
           <GroupedMatchInfo competitionInfo={props.competition} matches={matches} />
           {matches.length !== 0 &&
-            <div className="flex py-2 my-3">
-              <button
-                className="text-c4 basis-full font-extrabold text-sm hover:underline"
-                onClick={() => fetchMoreFixtures(props.competition!.id)}
-              >Load More...</button>
+            <div className="flex">
+              <LoadMoreButton onClick={() => fetchMoreFixtures(props.competition!.id)} />
             </div>
           }
         </>
@@ -603,11 +598,8 @@ function TopScorersListing(props: {
                 })}
               </table>
               {playerStats.length !== 0 &&
-                <div className="flex py-2 my-1">
-                  <button
-                    className="text-c4 basis-full font-extrabold text-sm hover:underline"
-                    onClick={() => fetchMoreTopScorers(props.competitionId)}
-                  >Load More...</button>
+                <div className="flex">
+                  <LoadMoreButton onClick={() => fetchMoreTopScorers(props.competitionId)} />
                 </div>
               }
             </div>
