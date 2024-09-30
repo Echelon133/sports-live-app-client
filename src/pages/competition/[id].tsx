@@ -387,11 +387,11 @@ function CompetitionGroupBox(props: {
               // therefore we should highlight this team's entry in the table
               const highlightDependendStyles =
                 highlightedTeamsIds.includes(team.teamId) ?
-                  "odd:bg-c3 even:bg-c3 text-black" : "odd:bg-c1 even:bg-c0 ";
+                  "bg-gray" : "odd:bg-c1 even:bg-c0";
 
               return (
                 <tr className={`${highlightDependendStyles} text-center`}>
-                  <td><span className={`${positionColor} rounded-lg p-1 text-white`}>{index}.</span></td>
+                  <td><span className={`${positionColor} rounded-lg p-1`}>{index}.</span></td>
                   <td className="font-extralight text-sm">
                     <div className="flex items-center">
                       <Image
