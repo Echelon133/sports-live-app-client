@@ -52,7 +52,7 @@ function FormEntry(props: {
     <>
       <div className="flex">
         <div
-          className="basis-full pl-1"
+          className="basis-full pl-2 py-1"
           onMouseOver={() => entryMouseOver()}
           onMouseLeave={() => entryMouseLeave()}
         >
@@ -63,15 +63,13 @@ function FormEntry(props: {
             >{props.entry.form}</span>
           </Link>
         </div>
-        <div className="relative basis-full">
-          <div className={`absolute top-9 right-0 z-50 text-center text-black rounded-lg bg-c3 ${detailsVisible ? "" : "hidden"} `}>
-            <div className="flex flex-col">
-              <div className="basis-full px-2 py-2">
-                <p>
-                  <span className="text-sm font-extrabold">{score}</span>
-                  <span className="text-xs font-extralight"> ({teams})</span>
-                </p>
-                <p className="p-1">{formatMatchDate(entry.matchDetails.startTimeUTC)}</p>
+        <div className="relative">
+          <div className={`w-52 absolute top-12 right-0 z-50 text-center rounded-lg bg-gray ${detailsVisible ? "" : "hidden"} `}>
+            <div className="flex">
+              <div className="basis-full px-1 py-1">
+                <p className="text-sm font-extrabold pb-1">{score}</p>
+                <p className="text-xs font-extralight pb-2">{teams}</p>
+                <p className="text-sm font-extralight">{formatMatchDate(entry.matchDetails.startTimeUTC)}</p>
               </div>
             </div>
           </div>
