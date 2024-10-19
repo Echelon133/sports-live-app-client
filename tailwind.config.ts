@@ -34,6 +34,8 @@ const config: Config = {
       'positive-d': '#a855f7',
       'negative-a': '#881337',
       'negative-b': '#f43f5e',
+      'highlight-a': '#491130',
+      'highlight-b': '#ff0000',
     }
   },
   // all colors which are applied to elements dynamically should

@@ -27,6 +27,14 @@ export namespace MatchStatus {
     if (status === undefined) return ""
     return stringMapping.get(status);
   }
+
+  export function isLive(status: MatchStatus): boolean {
+    const nonLiveStatuses = [
+      MatchStatus.NOT_STARTED, MatchStatus.FINISHED,
+      MatchStatus.POSTPONED, MatchStatus.ABANDONED
+    ];
+    return !nonLiveStatuses.includes(status);
+  }
 }
 
 export enum MatchResult {

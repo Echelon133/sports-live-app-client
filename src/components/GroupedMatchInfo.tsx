@@ -1,13 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image'
-import { CompactMatchInfo, MatchStatus } from '@/types/Match';
+import { CompactMatchInfo, MatchStatus, RedCardInfo, Score } from '@/types/Match';
 import { CompetitionInfo } from '@/types/Competition';
 import Link from 'next/link';
+import { Socket } from 'socket.io-client';
+import { GlobalEventSide, GlobalMatchEvent } from '@/types/GlobalMatchEvents';
+import { MatchEventType } from '@/types/MatchEvents';
 
+const HIGHLIGHT_TIMEOUT = 15000;
 
 export default function GroupedMatchInfo(props: {
   competitionInfo: CompetitionInfo,
-  matches: CompactMatchInfo[]
+  matches: CompactMatchInfo[],
+  globalUpdatesSocket?: Socket | undefined
 }) {
   const [matchListVisible, setMatchListVisible] = useState<boolean>(true);
   const competitionLogoUrl = props.competitionInfo.logoUrl;
@@ -60,7 +65,9 @@ export default function GroupedMatchInfo(props: {
               </div>
             }
             {props.matches.map(m => {
-              return <Link href={`/match/${encodeURIComponent(m.id)}`}> <SingleMatchInfo matchInfo={m} /></Link>
+              return <Link href={`/match/${encodeURIComponent(m.id)}`}>
+                <SingleMatchInfo matchInfo={m} globalUpdatesSocket={props.globalUpdatesSocket} />
+              </Link>
             })}
           </div>
         </div>
@@ -69,19 +76,178 @@ export default function GroupedMatchInfo(props: {
   );
 }
 
-function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
-  const matchInfo: string = evaluateMatchInfo(props.matchInfo.status, props.matchInfo.startTimeUTC);
+type CompactUpdateableMatchInfo = {
+  status: MatchStatus,
+  fullTimeScore: Score,
+  halfTimeScore: Score,
+  redCards: RedCardInfo,
+  highlight: {
+    home: boolean,
+    away: boolean
+  },
+  eventContext: {
+    home: string,
+    away: string
+  }
+}
+
+function SingleMatchInfo(props: {
+  matchInfo: CompactMatchInfo,
+  globalUpdatesSocket?: Socket | undefined
+}) {
+  // copy already known values as the initial state, which could be updated later 
+  // in case there are any updates received via websocket
+  const [updateableMatchInfo, setUpdateableMatchInfo] = useState<CompactUpdateableMatchInfo>(
+    {
+      status: props.matchInfo.status,
+      fullTimeScore: props.matchInfo.scoreInfo,
+      halfTimeScore: props.matchInfo.halfTimeScoreInfo,
+      redCards: props.matchInfo.redCardInfo,
+      highlight: { home: false, away: false },
+      eventContext: { home: '', away: '' },
+    }
+  );
+
+  const matchInfo: string = evaluateMatchInfo(
+    updateableMatchInfo.status,
+    props.matchInfo.startTimeUTC
+  );
   const homeCrestUrl: string | undefined = props.matchInfo.homeTeam?.crestUrl;
   const awayCrestUrl: string | undefined = props.matchInfo.awayTeam?.crestUrl;
-  const displayMatchDate = props.matchInfo.status === MatchStatus.NOT_STARTED ||
-    props.matchInfo.status === MatchStatus.FINISHED;
+  const matchIsLive = MatchStatus.isLive(updateableMatchInfo.status);
+  const anyHighlight = updateableMatchInfo.highlight.home || updateableMatchInfo.highlight.away;
+
+  function resetHighlightAfterTimeout(timeout: number) {
+    setTimeout(() => {
+      setUpdateableMatchInfo((prev) => {
+        const updated = {
+          ...prev,
+          highlight: { home: false, away: false },
+          eventContext: { home: '', away: '' },
+        };
+        return updated;
+      })
+    }, timeout);
+  }
+
+  function updateMatchStatus(targetStatus: MatchStatus) {
+    setUpdateableMatchInfo((prev) => {
+      const updated = {
+        ...prev,
+        status: targetStatus,
+      };
+      return updated;
+    })
+  }
+
+  function incrementScoreline(homeTeamScored: boolean) {
+    const [homeTeamGoalsDelta, awayTeamGoalsDelta] =
+      homeTeamScored ? [1, 0] : [0, 1];
+
+    setUpdateableMatchInfo((prev) => {
+      const newFullScore: Score = {
+        homeGoals: prev.fullTimeScore.homeGoals + homeTeamGoalsDelta,
+        awayGoals: prev.fullTimeScore.awayGoals + awayTeamGoalsDelta,
+      };
+
+      let halfTimeScore = prev.halfTimeScore;
+      // increment halftime scoreline if the goal happened during
+      // the first half
+      if (prev.status === MatchStatus.FIRST_HALF) {
+        halfTimeScore = newFullScore;
+      }
+
+      const highlight = { home: homeTeamScored, away: !homeTeamScored };
+
+      const eventContext = {
+        home: homeTeamScored ? 'GOAL' : '',
+        away: !homeTeamScored ? 'GOAL' : '',
+      };
+
+      const updated = {
+        ...prev,
+        fullTimeScore: newFullScore,
+        halfTimeScore: halfTimeScore,
+        highlight: highlight,
+        eventContext: eventContext
+      };
+      return updated;
+    });
+
+    // turn off the match highlight after a timeout
+    resetHighlightAfterTimeout(HIGHLIGHT_TIMEOUT);
+  }
+
+  function incrementRedCards(homeTeamRedCard: boolean) {
+    const [homeTeamCardsDelta, awayTeamCardsDelta] =
+      homeTeamRedCard ? [1, 0] : [0, 1];
+
+    setUpdateableMatchInfo((prev) => {
+      const newRedCards: RedCardInfo = {
+        homeRedCards: prev.redCards.homeRedCards + homeTeamCardsDelta,
+        awayRedCards: prev.redCards.awayRedCards + awayTeamCardsDelta,
+      };
+
+      const highlight = { home: homeTeamRedCard, away: !homeTeamRedCard };
+
+      const eventContext = {
+        home: homeTeamRedCard ? 'RED CARD' : '',
+        away: !homeTeamRedCard ? 'RED CARD' : '',
+      };
+
+      const updated = {
+        ...prev,
+        redCards: newRedCards,
+        highlight: highlight,
+        eventContext: eventContext,
+      };
+      return updated;
+    });
+
+    // turn off the match highlight after a timeout
+    resetHighlightAfterTimeout(HIGHLIGHT_TIMEOUT)
+  }
+
+  useEffect(() => {
+    // if the status of the match is any of these, there won't be any updates
+    // for this match, therefore there is no sense in subscribing to the websocket message feed
+    const matchFinished =
+      updateableMatchInfo.status === MatchStatus.FINISHED ||
+      updateableMatchInfo.status === MatchStatus.POSTPONED ||
+      updateableMatchInfo.status === MatchStatus.ABANDONED;
+
+    if (props.globalUpdatesSocket === undefined || matchFinished) {
+      return;
+    }
+
+    const socket = props.globalUpdatesSocket;
+
+    socket.on('global-match-event', (matchEvent: GlobalMatchEvent) => {
+      // process this event's contents only if the event pertains to the same
+      // match as the one described by this component's state
+      if (matchEvent.matchId === props.matchInfo.id) {
+        switch (matchEvent.type) {
+          case MatchEventType.STATUS:
+            updateMatchStatus(matchEvent.targetStatus)
+            break;
+          case MatchEventType.GOAL:
+            incrementScoreline(matchEvent.side === GlobalEventSide.HOME)
+            break;
+          case MatchEventType.CARD:
+            incrementRedCards(matchEvent.side === GlobalEventSide.HOME)
+            break;
+        }
+      }
+    });
+
+  }, [props.globalUpdatesSocket]);
 
   return (
-    <div className="mb-1 flex flex-row bg-c1 shadow-sm shadow-c0 items-center justify-center hover:bg-c0 hover:cursor-pointer">
+    <div className={`${anyHighlight ? 'bg-highlight-a' : 'bg-c1 hover:bg-c0'} mb-1 flex flex-row shadow-sm shadow-c0 items-center justify-center hover:cursor-pointer`}>
       <div className="basis-2/12 text-center">
         <div className="flex flex-col">
-          <span className={`${matchInfo === "Live" ? "text-red" : ""} text-sm`}>{matchInfo}</span>
-          {displayMatchDate &&
+          <span className={`${matchIsLive ? "text-highlight-b" : ""} text-sm`}>{matchInfo}</span>
+          {!matchIsLive &&
             <span className="text-gray text-xs">{formatFinishedMatchDate(props.matchInfo.startTimeUTC)}</span>
           }
         </div>
@@ -95,16 +261,25 @@ function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
               height="18"
               src={homeCrestUrl ? homeCrestUrl : "placeholder-club-logo.svg"}
               alt="Home team crest" />
-            <span className="font-mono ml-2">
+            <span className={`font-mono ml-2 ${updateableMatchInfo.highlight.home ? 'text-highlight-b' : ''}`}>
               {props.matchInfo.homeTeam?.name}
             </span>
             <span className="ml-2">
-              <RedCardBox redCardCount={props.matchInfo.redCardInfo.homeRedCards} />
+              <RedCardBox redCardCount={updateableMatchInfo.redCards.homeRedCards} />
             </span>
+            {updateableMatchInfo.eventContext.home !== '' &&
+              <span title="Event context" className='animate-pulse float-right font-extrabold text-highlight-b mr-5'>
+                {updateableMatchInfo.eventContext.home}
+              </span>
+            }
           </div>
           <div className="basis-2/12">
-            <span title="Score at fulltime" className="font-extrabold text-c4">{props.matchInfo.scoreInfo.homeGoals}</span>
-            <span title="Score at halftime" className="ml-5 text-gray font-extralight">{props.matchInfo.halfTimeScoreInfo.homeGoals}</span>
+            <span title="Score at fulltime" className={`font-extrabold ${matchIsLive ? 'text-highlight-b' : 'text-c4'} `}>
+              {updateableMatchInfo.fullTimeScore.homeGoals}
+            </span>
+            <span title="Score at halftime" className='font-extralight ml-5 text-gray'>
+              {updateableMatchInfo.halfTimeScore.homeGoals}
+            </span>
           </div>
         </div>
         <div className="flex pb-2">
@@ -115,21 +290,29 @@ function SingleMatchInfo(props: { matchInfo: CompactMatchInfo }) {
               height="18"
               src={awayCrestUrl ? awayCrestUrl : "placeholder-club-logo.svg"}
               alt="Away team crest" />
-            <span className="font-mono ml-2">
+            <span className={`font-mono ml-2 ${updateableMatchInfo.highlight.away ? 'text-highlight-b' : ''}`}>
               {props.matchInfo.awayTeam?.name}
             </span>
             <span className="ml-2">
-              <RedCardBox redCardCount={props.matchInfo.redCardInfo.awayRedCards} />
+              <RedCardBox redCardCount={updateableMatchInfo.redCards.awayRedCards} />
             </span>
+            {updateableMatchInfo.eventContext.away !== '' &&
+              <span title="Event context" className='animate-pulse float-right font-extrabold text-highlight-b mr-5'>
+                {updateableMatchInfo.eventContext.away}
+              </span>
+            }
           </div>
           <div className="basis-2/12">
-            <span title="Score at fulltime" className="font-extrabold text-c4">{props.matchInfo.scoreInfo.awayGoals}</span>
-            <span title="Score at halftime" className="ml-5 text-gray font-extralight">{props.matchInfo.halfTimeScoreInfo.awayGoals}</span>
+            <span title="Score at fulltime" className={`font-extrabold ${matchIsLive ? 'text-highlight-b' : 'text-c4'} `}>
+              {updateableMatchInfo.fullTimeScore.awayGoals}
+            </span>
+            <span title="Score at halftime" className="ml-5 text-gray font-extralight">
+              {updateableMatchInfo.halfTimeScore.awayGoals}
+            </span>
           </div>
         </div>
       </div>
     </div>
-
   );
 }
 

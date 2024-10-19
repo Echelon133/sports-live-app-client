@@ -11,6 +11,7 @@ import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { TeamPlayer } from "@/types/Lineup";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
 import LoadMoreButton from "@/components/LoadMoreButton";
+import { Socket, io } from "socket.io-client";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -217,7 +218,21 @@ function ResultsSummary(props: { team: FullTeamInfo | undefined }) {
 function FixturesSummary(props: { team: FullTeamInfo | undefined }) {
   const [fixturesContentLoaded, setFixturesContentLoaded] = useState<boolean>(false);
   const [groupedTeamMatches, setGroupedTeamMatches] = useState<CompetitionGroupedTeamMatches[]>([]);
+  const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
   const pageNumber = useRef<number>(0);
+
+  // connect to a websocket which broadcasts global match events
+  useEffect(() => {
+    const connectionUrl = `${publicRuntimeConfig.GLOBAL_MATCH_EVENTS_WS_URL}`;
+    // only connectionUrl is required, since these events are global, and not match specific
+    const socket = io(connectionUrl);
+    setGlobalUpdatesSocket(socket);
+
+    return () => {
+      socket.disconnect();
+    }
+  }, []);
+
 
   function fetchFixturesPage(teamId: string, page: number) {
     const httpParams = new URLSearchParams({
@@ -251,7 +266,10 @@ function FixturesSummary(props: { team: FullTeamInfo | undefined }) {
     <>
       {fixturesContentLoaded && (props.team !== undefined) ?
         <>
-          <GroupedTeamMatchesContent competitionGroupedTeamMatches={groupedTeamMatches} />
+          <GroupedTeamMatchesContent
+            competitionGroupedTeamMatches={groupedTeamMatches}
+            globalUpdatesSocket={globalUpdatesSocket}
+          />
           {groupedTeamMatches.length !== 0 &&
             <div className="flex">
               <LoadMoreButton onClick={() => fetchMoreFixtures(props.team!.id)} />
@@ -265,7 +283,10 @@ function FixturesSummary(props: { team: FullTeamInfo | undefined }) {
   )
 }
 
-function GroupedTeamMatchesContent(props: { competitionGroupedTeamMatches: CompetitionGroupedTeamMatches[] }) {
+function GroupedTeamMatchesContent(props: {
+  competitionGroupedTeamMatches: CompetitionGroupedTeamMatches[],
+  globalUpdatesSocket?: Socket | undefined
+}) {
   return (
     <>
       {props.competitionGroupedTeamMatches.length > 0 ?
@@ -274,7 +295,9 @@ function GroupedTeamMatchesContent(props: { competitionGroupedTeamMatches: Compe
             props.competitionGroupedTeamMatches.map((matchGroup) => {
               return <GroupedMatchInfo
                 competitionInfo={matchGroup.competition}
-                matches={matchGroup.matches} />
+                matches={matchGroup.matches}
+                globalUpdatesSocket={props.globalUpdatesSocket}
+              />
             })
           }
         </div>

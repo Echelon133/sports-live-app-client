@@ -9,6 +9,7 @@ import { CompactMatchInfo } from "@/types/Match";
 import Link from "next/link";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
 import LoadMoreButton from "@/components/LoadMoreButton";
+import { Socket, io } from "socket.io-client";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -188,7 +189,21 @@ function ResultsSummary(props: { competition: CompetitionInfo | undefined }) {
 function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
   const [fixturesContentLoaded, setFixturesContentLoaded] = useState<boolean>(false);
   const [matches, setMatches] = useState<CompactMatchInfo[]>([]);
+  const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
   const pageNumber = useRef<number>(0);
+
+  // connect to a websocket which broadcasts global match events
+  useEffect(() => {
+    const connectionUrl = `${publicRuntimeConfig.GLOBAL_MATCH_EVENTS_WS_URL}`;
+    // only connectionUrl is required, since these events are global, and not match specific
+    const socket = io(connectionUrl);
+    setGlobalUpdatesSocket(socket);
+
+    return () => {
+      socket.disconnect();
+    }
+  }, []);
+
 
   function fetchFixturesPage(competitionId: string, page: number) {
     const httpParams = new URLSearchParams({
@@ -232,7 +247,11 @@ function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
     <>
       {fixturesContentLoaded && (props.competition !== undefined) ?
         <>
-          <GroupedMatchInfo competitionInfo={props.competition} matches={matches} />
+          <GroupedMatchInfo
+            competitionInfo={props.competition}
+            matches={matches}
+            globalUpdatesSocket={globalUpdatesSocket}
+          />
           {matches.length !== 0 &&
             <div className="flex">
               <LoadMoreButton onClick={() => fetchMoreFixtures(props.competition!.id)} />

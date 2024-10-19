@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { CompetitionInfo, CompetitionGroupedMatches, CompetitionIdGroupedMatches } from "@/types/Competition";
 import { CompactMatchInfo } from "@/types/Match";
 import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
+import { Socket, io } from "socket.io-client";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -16,6 +17,7 @@ export default function Home() {
   const [selectedDateKey, setSelectedDateKey] = useState<string>(INITIAL_DATE_PICKER_KEY);
   const [competitionGroupedMatches, setCompetitionGroupedMatches] =
     useState<CompetitionGroupedMatches>(new Map());
+  const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
 
   useEffect(() => {
     const httpParams = new URLSearchParams({
@@ -30,12 +32,26 @@ export default function Home() {
       });
   }, [selectedDateKey]);
 
+  // connect to a websocket which broadcasts global match events
+  useEffect(() => {
+    const connectionUrl = `${publicRuntimeConfig.GLOBAL_MATCH_EVENTS_WS_URL}`;
+    // only connectionUrl is required, since these events are global, and not match specific
+    const socket = io(connectionUrl);
+    setGlobalUpdatesSocket(socket);
+
+    return () => {
+      socket.disconnect();
+    }
+  }, []);
 
   return (
     <main>
       <DatePicker selectedDateKey={selectedDateKey} setSelectedDateKey={setSelectedDateKey} />
       {groupedMatchesContentLoaded ?
-        <GroupedMatchesContent competitionGroupedMatches={competitionGroupedMatches} />
+        <GroupedMatchesContent
+          competitionGroupedMatches={competitionGroupedMatches}
+          globalUpdatesSocket={globalUpdatesSocket}
+        />
         :
         <GroupedMatchInfoSkeleton />
       }
@@ -43,14 +59,21 @@ export default function Home() {
   );
 }
 
-function GroupedMatchesContent(props: { competitionGroupedMatches: CompetitionGroupedMatches }) {
+function GroupedMatchesContent(props: {
+  competitionGroupedMatches: CompetitionGroupedMatches,
+  globalUpdatesSocket: Socket | undefined
+}) {
   return (
     <>
       {props.competitionGroupedMatches.size > 0 ?
         <div className="mt-8 h-full">
           {
             Array.from(props.competitionGroupedMatches).map(([competitionInfo, matches]) => {
-              return <GroupedMatchInfo competitionInfo={competitionInfo} matches={matches} />
+              return <GroupedMatchInfo
+                competitionInfo={competitionInfo}
+                matches={matches}
+                globalUpdatesSocket={props.globalUpdatesSocket}
+              />
             })
           }
         </div>
