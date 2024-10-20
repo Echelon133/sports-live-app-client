@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import Image from 'next/image'
 import { useEffect, useRef, useState } from "react";
-import { CountryInfo, FullTeamInfo } from "@/types/Team";
+import { FullTeamInfo, countryCodeToFlagEmoji } from "@/types/Team";
 import getConfig from "next/config";
 import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
@@ -451,7 +451,7 @@ function TeamPlayersContent(props: { players: TeamPlayer[] }) {
                 <td>{player.player.name}</td>
                 <td>
                   <span title={player.countryCode}>
-                    {CountryInfo.countryCodeToFlagEmoji(player.countryCode)}
+                    {countryCodeToFlagEmoji(player.countryCode)}
                   </span>
                 </td>
                 <td>{player.position}</td>

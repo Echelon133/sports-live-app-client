@@ -1,7 +1,7 @@
 import { Lineup, PlayerPosition, TeamPlayer } from "@/types/Lineup"
 import { useEffect, useState } from "react"
 import getConfig from "next/config";
-import { CountryInfo } from "@/types/Team";
+import { countryCodeToFlagEmoji } from "@/types/Team";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -143,13 +143,13 @@ function LineupTable(props: { players: ZippedPlayers[] }) {
             <>
               <tr className="odd:bg-c1 even:bg-c0">
                 <td className="font-mono font-extrabold">{e.homePlayer?.number}</td>
-                <td>{CountryInfo.countryCodeToFlagEmoji(e.homePlayer?.countryCode)}</td>
+                <td>{countryCodeToFlagEmoji(e.homePlayer?.countryCode)}</td>
                 <td className="text-xs text-gray">{PlayerPosition.format(e.homePlayer?.position)}</td>
                 <td>{e.homePlayer?.player.name}</td>
                 <td></td>
                 <td className="float-right pr-2">{e.awayPlayer?.player.name}</td>
                 <td className="text-xs text-gray">{PlayerPosition.format(e.awayPlayer?.position)}</td>
-                <td>{CountryInfo.countryCodeToFlagEmoji(e.awayPlayer?.countryCode)}</td>
+                <td>{countryCodeToFlagEmoji(e.awayPlayer?.countryCode)}</td>
                 <td className="font-mono font-extrabold">{e.awayPlayer?.number}</td>
               </tr>
             </>
