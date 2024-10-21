@@ -1,4 +1,4 @@
-import { MatchStatus } from "./Match"
+import { MatchResult, MatchStatus } from "./Match"
 import { MatchEventType } from "./MatchEvents"
 
 export enum GlobalEventSide {
@@ -9,7 +9,8 @@ export enum GlobalEventSide {
 export interface GlobalStatusEvent {
   matchId: string,
   type: MatchEventType.STATUS,
-  targetStatus: MatchStatus
+  targetStatus: MatchStatus,
+  result: MatchResult
 }
 
 export interface GlobalGoalEvent {

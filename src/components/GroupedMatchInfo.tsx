@@ -135,11 +135,12 @@ function SingleMatchInfo(props: {
     }, timeout);
   }
 
-  function updateMatchStatus(targetStatus: MatchStatus) {
+  function updateMatchStatus(targetStatus: MatchStatus, result: MatchResult) {
     setUpdateableMatchInfo((prev) => {
       const updated = {
         ...prev,
         status: targetStatus,
+        result: result
       };
       return updated;
     })
@@ -233,7 +234,7 @@ function SingleMatchInfo(props: {
       if (matchEvent.matchId === props.matchInfo.id) {
         switch (matchEvent.type) {
           case MatchEventType.STATUS:
-            updateMatchStatus(matchEvent.targetStatus)
+            updateMatchStatus(matchEvent.targetStatus, matchEvent.result)
             break;
           case MatchEventType.GOAL:
             incrementScoreline(matchEvent.side === GlobalEventSide.HOME)
