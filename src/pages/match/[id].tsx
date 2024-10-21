@@ -140,9 +140,9 @@ function MatchInfoContent(props: {
     <>
       <div className="pl-4 bg-c2 py-3">
         <Image
-          className="float-left mr-2"
-          width="20"
-          height="20"
+          className="bg-white p-1 rounded-sm float-left mr-2"
+          width="25"
+          height="25"
           src={competitionLogoUrl ? competitionLogoUrl : "../../placeholder-competition-logo.svg"}
           alt="Competition name" />
         <Link href={`/competition/${props.allMatchInformation.competition.id}`}>

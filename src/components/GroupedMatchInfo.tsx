@@ -28,9 +28,9 @@ export default function GroupedMatchInfo(props: {
           <div className="bg-c2 shadow-sm shadow-black">
             <div className="p-3 pl-10">
               <Image
-                className="float-left mr-2"
-                width="20"
-                height="20"
+                className="bg-white p-1 rounded-sm float-left mr-2"
+                width="25"
+                height="25"
                 src={competitionLogoUrl ? competitionLogoUrl : "placeholder-competition-logo.svg"}
                 alt={props.competitionInfo.name} />
               <Link href={`/competition/${props.competitionInfo.id}`}>
