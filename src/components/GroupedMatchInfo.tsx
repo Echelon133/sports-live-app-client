@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image'
-import { CompactMatchInfo, MatchStatus, RedCardInfo, Score } from '@/types/Match';
+import { CompactMatchInfo, MatchResult, MatchStatus, RedCardInfo, Score } from '@/types/Match';
 import { CompetitionInfo } from '@/types/Competition';
 import Link from 'next/link';
 import { Socket } from 'socket.io-client';
@@ -81,6 +81,7 @@ type CompactUpdateableMatchInfo = {
   fullTimeScore: Score,
   halfTimeScore: Score,
   redCards: RedCardInfo,
+  result: MatchResult,
   highlight: {
     home: boolean,
     away: boolean
@@ -103,6 +104,7 @@ function SingleMatchInfo(props: {
       fullTimeScore: props.matchInfo.scoreInfo,
       halfTimeScore: props.matchInfo.halfTimeScoreInfo,
       redCards: props.matchInfo.redCardInfo,
+      result: props.matchInfo.result,
       highlight: { home: false, away: false },
       eventContext: { home: '', away: '' },
     }
@@ -116,6 +118,9 @@ function SingleMatchInfo(props: {
   const awayCrestUrl: string | undefined = props.matchInfo.awayTeam?.crestUrl;
   const matchIsLive = MatchStatus.isLive(updateableMatchInfo.status);
   const anyHighlight = updateableMatchInfo.highlight.home || updateableMatchInfo.highlight.away;
+
+  let homeTeamWon = updateableMatchInfo.result === MatchResult.HOME_WIN;
+  let awayTeamWon = updateableMatchInfo.result === MatchResult.AWAY_WIN;
 
   function resetHighlightAfterTimeout(timeout: number) {
     setTimeout(() => {
@@ -261,7 +266,9 @@ function SingleMatchInfo(props: {
               height="18"
               src={homeCrestUrl ? homeCrestUrl : "placeholder-club-logo.svg"}
               alt="Home team crest" />
-            <span className={`font-mono ml-2 ${updateableMatchInfo.highlight.home ? 'text-highlight-b' : ''}`}>
+            <span className={
+              `font-mono ml-2 ${updateableMatchInfo.highlight.home ? 'text-highlight-b' : ''} ${homeTeamWon ? 'font-extrabold' : ''}`
+            }>
               {props.matchInfo.homeTeam?.name}
             </span>
             <span className="ml-2">
@@ -290,7 +297,9 @@ function SingleMatchInfo(props: {
               height="18"
               src={awayCrestUrl ? awayCrestUrl : "placeholder-club-logo.svg"}
               alt="Away team crest" />
-            <span className={`font-mono ml-2 ${updateableMatchInfo.highlight.away ? 'text-highlight-b' : ''}`}>
+            <span className={
+              `font-mono ml-2 ${updateableMatchInfo.highlight.away ? 'text-highlight-b' : ''} ${awayTeamWon ? 'font-extrabold' : ''}`
+            }>
               {props.matchInfo.awayTeam?.name}
             </span>
             <span className="ml-2">
