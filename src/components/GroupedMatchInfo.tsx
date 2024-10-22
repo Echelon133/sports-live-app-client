@@ -332,7 +332,7 @@ function RedCardBox(props: { redCardCount: number }) {
       {props.redCardCount === 0 ?
         <></>
         :
-        <div className="bg-red w-3 h-5 inline-block text-center rounded-sm">
+        <div className="bg-red w-3 h-4 inline-block text-center rounded-sm">
           <span className="text-sm">
             {props.redCardCount > 1 ? props.redCardCount.toString() : ""}
           </span>
