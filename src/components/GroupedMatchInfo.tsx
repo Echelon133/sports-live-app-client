@@ -263,8 +263,8 @@ function SingleMatchInfo(props: {
           <div className="basis-10/12">
             <Image
               className="float-left"
-              width="18"
-              height="18"
+              width="20"
+              height="20"
               src={homeCrestUrl ? homeCrestUrl : "placeholder-club-logo.svg"}
               alt="Home team crest" />
             <span className={
@@ -294,8 +294,8 @@ function SingleMatchInfo(props: {
           <div className="basis-10/12">
             <Image
               className="float-left"
-              width="18"
-              height="18"
+              width="20"
+              height="20"
               src={awayCrestUrl ? awayCrestUrl : "placeholder-club-logo.svg"}
               alt="Away team crest" />
             <span className={
