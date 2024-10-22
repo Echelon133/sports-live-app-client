@@ -162,7 +162,15 @@ export default function MatchEventsSummary(props: {
         </div>
       </div>
       {matchEventsContentLoaded ?
-        <MatchEventsSummaryContent matchEvents={matchEvents} homeTeamId={props.homeTeamId} />
+        <>
+          {matchEvents.length === 0 ?
+            <div className="mt-8 py-40 text-center">
+              <span className="font-mono text-2xl font-extrabold text-c4">No events yet</span>
+            </div >
+            :
+            <MatchEventsSummaryContent matchEvents={matchEvents} homeTeamId={props.homeTeamId} />
+          }
+        </>
         :
         <MatchEventsSummaryContentSkeleton />
       }
