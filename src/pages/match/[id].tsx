@@ -157,15 +157,13 @@ function MatchInfoContent(props: {
         <div className="flex flex-row basis-full">
           <div className="basis-1/3">
             <div className="flex flex-col items-end">
-              <div className="basis-full">
+              <div className="basis-full text-center">
                 <Image
-                  className="h-24 w-24"
+                  className="bg-white p-2 rounded-xl h-24 w-24"
                   width="100"
                   height="100"
                   src={homeCrestUrl ? homeCrestUrl : "../../placeholder-club-logo.svg"}
                   alt="Home team crest" />
-              </div>
-              <div className="basis-full">
                 <Link href={`/team/${matchInformation.homeTeam?.id}`}>
                   <span className="font-extrabold hover:underline">{matchInformation?.homeTeam?.name}</span>
                 </Link>
@@ -213,15 +211,13 @@ function MatchInfoContent(props: {
           </div>
           <div className="basis-1/3">
             <div className="flex flex-col items-start">
-              <div className="basis-full">
+              <div className="basis-full text-center">
                 <Image
-                  className="h-24 w-24"
+                  className="bg-white p-2 rounded-xl h-24 w-24"
                   width="100"
                   height="100"
                   src={awayCrestUrl ? awayCrestUrl : "../../placeholder-club-logo.svg"}
                   alt="Away team crest" />
-              </div>
-              <div className="basis-full">
                 <Link href={`/team/${matchInformation.awayTeam?.id}`}>
                   <span className="font-extrabold hover:underline">{matchInformation?.awayTeam?.name}</span>
                 </Link>
