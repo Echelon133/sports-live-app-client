@@ -4,6 +4,7 @@ const nextConfig = {
   publicRuntimeConfig: {
     MATCHES_BASE_URL: `${process.env.BASE_URL}/api/matches`,
     TEAMS_BASE_URL: `${process.env.BASE_URL}/api/teams`,
+    GLOBAL_MATCH_EVENTS_WS_URL: `${process.env.WS_BASE_URL}/api/ws/global-match-events`,
     MATCH_EVENTS_WS_URL: `${process.env.WS_BASE_URL}/api/ws/match-events`,
     COMPETITIONS_BASE_URL: `${process.env.BASE_URL}/api/competitions`,
   },
