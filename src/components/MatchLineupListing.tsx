@@ -150,7 +150,7 @@ function LineupTable(props: { players: ZippedPlayers[] }) {
                 <td className="float-right pr-2">{e.awayPlayer?.player.name}</td>
                 <td className="text-xs text-gray">{PlayerPosition.format(e.awayPlayer?.position)}</td>
                 <td>{countryCodeToFlagEmoji(e.awayPlayer?.countryCode)}</td>
-                <td className="font-mono font-extrabold">{e.awayPlayer?.number}</td>
+                <td className="font-mono font-extrabold float-right">{e.awayPlayer?.number}</td>
               </tr>
             </>
           )
