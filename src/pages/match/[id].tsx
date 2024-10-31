@@ -8,6 +8,7 @@ import MatchEventsSummary from "@/components/MatchEventsSummary";
 import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import MatchLineupListing from "@/components/MatchLineupListing";
 import Link from "next/link";
+import MatchStatusBox from "@/components/MatchStatusBox";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -22,6 +23,7 @@ export type UpdateableMatchInfo = {
     highlight: boolean
   },
   status: {
+    lastModifiedUTC: Date | null,
     value: MatchStatus,
     highlight: boolean
   },
@@ -33,6 +35,7 @@ const INITIAL_MATCH_INFO = {
     highlight: false
   },
   status: {
+    lastModifiedUTC: null,
     value: MatchStatus.NOT_STARTED,
     highlight: false
   }
@@ -81,6 +84,7 @@ export default function Match() {
                 highlight: false
               },
               status: {
+                lastModifiedUTC: matchInfo.statusLastModifiedUTC,
                 value: matchInfo.status,
                 highlight: false
               }
@@ -135,6 +139,7 @@ function MatchInfoContent(props: {
   const homeCrestUrl = matchInformation?.homeTeam?.crestUrl;
   const awayCrestUrl = matchInformation?.awayTeam?.crestUrl;
   const matchDate = formatMatchDate(matchInformation?.startTimeUTC);
+  const matchIsLive = MatchStatus.isLive(props.updateableMatchInfo.status.value);
 
   return (
     <>
@@ -176,9 +181,15 @@ function MatchInfoContent(props: {
                 {Score.format(props.updateableMatchInfo.fullTimeScore.value)}
               </span>
             </div>
-            <div className="basis-full">
+            <div className="basis-full mt-4">
               <span className={`font-extrabold text-sm ${props.updateableMatchInfo.status.highlight ? "text-red" : ""}`}>
-                {MatchStatus.format(props.updateableMatchInfo.status.value)}
+                <MatchStatusBox
+                  currentStatus={props.updateableMatchInfo.status.value}
+                  startTimeUTC={props.allMatchInformation.match.startTimeUTC}
+                  statusLastModifiedUTC={props.updateableMatchInfo.status.lastModifiedUTC}
+                  matchIsLive={matchIsLive}
+                  textBig={true}
+                />
               </span>
             </div>
             <div className="flex basis-full items-center justify-center pt-5">

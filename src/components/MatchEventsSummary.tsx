@@ -47,11 +47,11 @@ export default function MatchEventsSummary(props: {
       };
 
       const updated = {
+        ...prev,
         fullTimeScore: {
           value: newScore,
           highlight: true,
         },
-        status: prev.status
       };
       return updated;
     });
@@ -60,11 +60,11 @@ export default function MatchEventsSummary(props: {
     setTimeout(() => {
       props.setUpdateableMatchInfo((prev) => {
         const updated = {
+          ...prev,
           fullTimeScore: {
             value: prev.fullTimeScore.value,
             highlight: false
           },
-          status: prev.status
         };
         return updated;
       })
@@ -74,8 +74,9 @@ export default function MatchEventsSummary(props: {
   function updateMatchStatus(newStatus: MatchStatus) {
     props.setUpdateableMatchInfo((prev) => {
       const updated = {
-        fullTimeScore: prev.fullTimeScore,
+        ...prev,
         status: {
+          lastModifiedUTC: new Date(),
           value: newStatus,
           highlight: true,
         }
@@ -87,8 +88,9 @@ export default function MatchEventsSummary(props: {
     setTimeout(() => {
       props.setUpdateableMatchInfo((prev) => {
         const updated = {
-          fullTimeScore: prev.fullTimeScore,
+          ...prev,
           status: {
+            lastModifiedUTC: prev.status.lastModifiedUTC,
             value: prev.status.value,
             highlight: false,
           }

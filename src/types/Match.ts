@@ -12,15 +12,15 @@ export enum MatchStatus {
 
 export namespace MatchStatus {
   const stringMapping: Map<MatchStatus, string> = new Map([
-    [MatchStatus.NOT_STARTED, "Not started"],
-    [MatchStatus.FIRST_HALF, "First Half"],
-    [MatchStatus.HALF_TIME, "Half Time"],
-    [MatchStatus.SECOND_HALF, "Second Half"],
-    [MatchStatus.FINISHED, "Finished"],
-    [MatchStatus.EXTRA_TIME, "Extra Time"],
-    [MatchStatus.PENALTIES, "Penalties"],
-    [MatchStatus.POSTPONED, "Postponed"],
-    [MatchStatus.ABANDONED, "Abandoned"],
+    [MatchStatus.NOT_STARTED, "NOT STARTED"],
+    [MatchStatus.FIRST_HALF, "FIRST HALF"],
+    [MatchStatus.HALF_TIME, "HT"],
+    [MatchStatus.SECOND_HALF, "SECOND HALF"],
+    [MatchStatus.FINISHED, "FT"],
+    [MatchStatus.EXTRA_TIME, "ET"],
+    [MatchStatus.PENALTIES, "PENALTIES"],
+    [MatchStatus.POSTPONED, "POSTPONED"],
+    [MatchStatus.ABANDONED, "ABANDONED"],
   ]);
 
   export function format(status: MatchStatus | undefined): string | undefined {
@@ -83,6 +83,7 @@ export type CompactTeamInfoOrNull = CompactTeamInfo | null;
 export type CompactMatchInfo = {
   id: string,
   status: MatchStatus,
+  statusLastModifiedUTC: Date | null,
   result: MatchResult,
   competitionId: string,
   startTimeUTC: Date,
@@ -118,8 +119,10 @@ export namespace FullMatchInfo {
 export function customUtcDateReviver(key: any, value: any): any {
   if (
     typeof key === 'string'
-    && key === 'startTimeUTC'
-    && typeof value === 'object') {
+    && (key === 'startTimeUTC' || key === 'statusLastModifiedUTC')
+    && typeof value === 'object'
+    && value !== null
+  ) {
 
     // [year, month, day, hour, minute]
     const dateArray: number[] = value;

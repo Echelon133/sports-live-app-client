@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Socket } from 'socket.io-client';
 import { GlobalEventSide, GlobalMatchEvent } from '@/types/GlobalMatchEvents';
 import { MatchEventType } from '@/types/MatchEvents';
+import MatchStatusBox from './MatchStatusBox';
 
 const HIGHLIGHT_TIMEOUT = 15000;
 
@@ -78,6 +79,7 @@ export default function GroupedMatchInfo(props: {
 
 type CompactUpdateableMatchInfo = {
   status: MatchStatus,
+  statusLastModifiedUTC: Date | null,
   fullTimeScore: Score,
   halfTimeScore: Score,
   redCards: RedCardInfo,
@@ -101,6 +103,7 @@ function SingleMatchInfo(props: {
   const [updateableMatchInfo, setUpdateableMatchInfo] = useState<CompactUpdateableMatchInfo>(
     {
       status: props.matchInfo.status,
+      statusLastModifiedUTC: props.matchInfo.statusLastModifiedUTC,
       fullTimeScore: props.matchInfo.scoreInfo,
       halfTimeScore: props.matchInfo.halfTimeScoreInfo,
       redCards: props.matchInfo.redCardInfo,
@@ -110,17 +113,13 @@ function SingleMatchInfo(props: {
     }
   );
 
-  const matchInfo: string = evaluateMatchInfo(
-    updateableMatchInfo.status,
-    props.matchInfo.startTimeUTC
-  );
   const homeCrestUrl: string | undefined = props.matchInfo.homeTeam?.crestUrl;
   const awayCrestUrl: string | undefined = props.matchInfo.awayTeam?.crestUrl;
-  const matchIsLive = MatchStatus.isLive(updateableMatchInfo.status);
   const anyHighlight = updateableMatchInfo.highlight.home || updateableMatchInfo.highlight.away;
+  const matchIsLive = MatchStatus.isLive(updateableMatchInfo.status);
 
-  let homeTeamWon = updateableMatchInfo.result === MatchResult.HOME_WIN;
-  let awayTeamWon = updateableMatchInfo.result === MatchResult.AWAY_WIN;
+  const homeTeamWon = updateableMatchInfo.result === MatchResult.HOME_WIN;
+  const awayTeamWon = updateableMatchInfo.result === MatchResult.AWAY_WIN;
 
   function resetHighlightAfterTimeout(timeout: number) {
     setTimeout(() => {
@@ -140,6 +139,7 @@ function SingleMatchInfo(props: {
       const updated = {
         ...prev,
         status: targetStatus,
+        statusLastModifiedUTC: new Date(),
         result: result
       };
       return updated;
@@ -248,15 +248,21 @@ function SingleMatchInfo(props: {
 
   }, [props.globalUpdatesSocket]);
 
+
   return (
     <div className={`${anyHighlight ? 'bg-highlight-a' : 'bg-c1 hover:bg-c0'} mb-1 flex flex-row shadow-sm shadow-c0 items-center justify-center hover:cursor-pointer`}>
       <div className="basis-2/12 text-center">
-        <div className="flex flex-col">
-          <span className={`${matchIsLive ? "text-highlight-b" : ""} text-sm`}>{matchInfo}</span>
-          {!matchIsLive &&
-            <span className="text-gray text-xs">{formatFinishedMatchDate(props.matchInfo.startTimeUTC)}</span>
-          }
-        </div>
+        <MatchStatusBox
+          currentStatus={updateableMatchInfo.status}
+          startTimeUTC={props.matchInfo.startTimeUTC}
+          statusLastModifiedUTC={updateableMatchInfo.statusLastModifiedUTC}
+          matchIsLive={matchIsLive}
+        />
+        {!matchIsLive &&
+          <span className="text-gray text-xs">
+            {formatFinishedMatchDate(props.matchInfo.startTimeUTC)}
+          </span>
+        }
       </div>
       <div className="basis-10/12 flex flex-col">
         <div className="flex pt-2 pb-1">
@@ -340,35 +346,6 @@ function RedCardBox(props: { redCardCount: number }) {
       }
     </>
   )
-}
-
-function evaluateMatchInfo(status: MatchStatus, startTimeUTC: Date): string {
-  let matchInfo = "";
-  switch (status) {
-    case MatchStatus.NOT_STARTED:
-      // convert UTC to local time
-      matchInfo = startTimeUTC.toTimeString().substring(0, 5);
-      break;
-    case MatchStatus.FIRST_HALF:
-    case MatchStatus.SECOND_HALF:
-    case MatchStatus.EXTRA_TIME:
-    case MatchStatus.PENALTIES:
-      matchInfo = "Live";
-      break;
-    case MatchStatus.HALF_TIME:
-      matchInfo = "HT";
-      break;
-    case MatchStatus.FINISHED:
-      matchInfo = "Finished";
-      break;
-    case MatchStatus.POSTPONED:
-      matchInfo = "Postponed";
-      break;
-    case MatchStatus.ABANDONED:
-      matchInfo = "Abandoned";
-      break;
-  }
-  return matchInfo;
 }
 
 function formatFinishedMatchDate(d: Date): string {
