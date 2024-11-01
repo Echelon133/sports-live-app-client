@@ -1,18 +1,21 @@
+import { getCookie, setCookie } from '@/util/cookies';
 import Image from 'next/image'
-import { useState, Dispatch, SetStateAction } from 'react';
+import { useState, Dispatch, SetStateAction, useEffect } from 'react';
 
+// Name of the cookie storing the most recent picker key
+const PICKER_COOKIE_NAME = "most-recent-picker-date";
 // How many days before today's date should appear in the picker
 const DAYS_BEFORE_TODAY: number = 7;
 // How many days after today's date should appear in the picker
 const DAYS_AFTER_TODAY: number = 7;
 const TODAY: Date = new Date();
 // Initial key value
-export const INITIAL_DATE_PICKER_KEY: string = formatPickerOptionKey(TODAY);
+const INITIAL_DATE_PICKER_KEY: string = formatPickerOptionKey(TODAY);
 
 
 export default function DatePicker(props: {
-  selectedDateKey: string,
-  setSelectedDateKey: Dispatch<SetStateAction<string>>
+  selectedDateKey: string | undefined,
+  setSelectedDateKey: Dispatch<SetStateAction<string | undefined>>
 }) {
   const [pickerListVisible, setPickerListVisible] = useState<boolean>(false);
   const [pickerOptions, setPickerOptions] = useState<Map<string, PickerOption>>(createPickerOptions);
@@ -33,6 +36,10 @@ export default function DatePicker(props: {
       updatedMap.forEach((v, k) => {
         if (k === selectedKey) {
           v.isSelected = true;
+          // remember the last picker state for 10 minutes
+          // to initialize the component with the remembered
+          // state on every component mount
+          setCookie(PICKER_COOKIE_NAME, selectedKey, 10);
         } else {
           v.isSelected = false;
         }
@@ -72,6 +79,17 @@ export default function DatePicker(props: {
     }
   }
 
+  useEffect(() => {
+    if (props.selectedDateKey === undefined) {
+      // if there is a cookie, get the initial key from the cookie,
+      // otherwise use the default key
+      const keyCookie = getCookie(PICKER_COOKIE_NAME);
+      const initialDateKey = (keyCookie === undefined) ? INITIAL_DATE_PICKER_KEY : keyCookie;
+      pickOptionByKey(initialDateKey);
+    }
+  }, [])
+
+
   return (
     <>
       <div className="flex flex-row h-12 bg-c2 items-center justify-center">
@@ -83,7 +101,9 @@ export default function DatePicker(props: {
         <div className="relative basis-4/12 mx-1">
           <button onClick={togglePickerListVisibility} className="bg-white text-black flex rounded-lg w-full items-center justify-center hover:bg-gray hover:bg-opacity-25 hover:text-white">
             <Image className="float-left" width="30" height="30" src="calendar.svg" alt="Precise date picker" />
-            <span className="font-bold mt-1 pl-2">{pickerOptions.get(props.selectedDateKey)!.displayName}</span>
+            <span className="font-bold mt-1 pl-2">
+              {pickerOptions.get(props.selectedDateKey!)?.displayName}
+            </span>
           </button >
           <ul className={`${pickerListVisible ? "visible" : "invisible"} absolute mt-1 w-full text-center rounded-lg bg-white`}>
             {Array.from(pickerOptions).map(([key, pickerOption]) => {

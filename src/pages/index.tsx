@@ -1,7 +1,6 @@
 import DatePicker from "@/components/DatePicker";
 import getConfig from "next/config";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
-import { INITIAL_DATE_PICKER_KEY } from "@/components/DatePicker";
 import { useEffect, useState } from "react";
 import { CompetitionInfo, CompetitionGroupedMatches, CompetitionIdGroupedMatches } from "@/types/Competition";
 import { CompactMatchInfo } from "@/types/Match";
@@ -14,12 +13,19 @@ const UTC_OFFSET = '+01:00';
 
 export default function Home() {
   const [groupedMatchesContentLoaded, setGroupedMatchesContentLoaded] = useState<boolean>(false);
-  const [selectedDateKey, setSelectedDateKey] = useState<string>(INITIAL_DATE_PICKER_KEY);
+  const [selectedDateKey, setSelectedDateKey] = useState<string | undefined>(undefined);
   const [competitionGroupedMatches, setCompetitionGroupedMatches] =
     useState<CompetitionGroupedMatches>(new Map());
   const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
 
   useEffect(() => {
+    // do not fetch any data until the picker initializes
+    // itself with either a default date or a date restored from
+    // a cookie
+    if (selectedDateKey === undefined) {
+      return;
+    }
+
     const httpParams = new URLSearchParams({
       date: selectedDateKey,
       utcOffset: UTC_OFFSET,
