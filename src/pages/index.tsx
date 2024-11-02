@@ -9,7 +9,38 @@ import { Socket, io } from "socket.io-client";
 
 const { publicRuntimeConfig } = getConfig();
 
-const UTC_OFFSET = '+01:00';
+function calculateClientUTCOffset(): string {
+  const now = new Date();
+  const timezoneDiffInMinutes = now.getTimezoneOffset();
+
+  // getTimezoneOffset returns how many minutes of difference there is between
+  // a local timezone and UTC
+  //
+  // example: a UTC+9 timezone is represented as -540 minutes (i.e. -9 hours)
+  // and our backend requires that offset represented as '+09:00', therefore we
+  // need to flip the sign
+  const diffHours = -1 * (timezoneDiffInMinutes / 60);
+  const diffMinutes = Math.abs(timezoneDiffInMinutes % diffHours);
+
+  // timezone offsets of timezones in front of the UTC need to start with a '+', whereas
+  // timezones that trail the UTC need to start with a '-'
+  //
+  // examples:
+  //    * a timezone that's 1 hour in front of the UTC is represented as '+01:00'
+  //    * a timezone that's trails the UTC by 4 hours and 30 minutes is represented as '-04:30'
+  const offsetSign = (diffHours >= 0) ? "+" : "-";
+
+  // make sure there is no negative sign in the diffHours string before adding
+  // the leading zeros
+  const hoursWithPadding = (Math.abs(diffHours)).toString().padStart(2, "0");
+  const minutesWithPadding = diffMinutes.toString().padStart(2, "0");
+  return `${offsetSign}${hoursWithPadding}:${minutesWithPadding}`;
+}
+
+// When the client wants to fetch matches from a particular day, it must provide both the date
+// and the offset between the user's timezone and the UTC. This makes sure that all
+// fetched matches happen between 00:00AM and 11:59PM in that user's timezone.
+const UTC_OFFSET = calculateClientUTCOffset();
 
 export default function Home() {
   const [groupedMatchesContentLoaded, setGroupedMatchesContentLoaded] = useState<boolean>(false);
