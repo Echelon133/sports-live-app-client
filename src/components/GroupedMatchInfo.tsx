@@ -140,10 +140,14 @@ function SingleMatchInfo(props: {
         ...prev,
         status: targetStatus,
         statusLastModifiedUTC: new Date(),
-        result: result
+        result: result,
+        highlight: { home: true, away: true },
       };
       return updated;
     })
+
+    // turn off the match highlight after a timeout
+    resetHighlightAfterTimeout(HIGHLIGHT_TIMEOUT);
   }
 
   function incrementScoreline(homeTeamScored: boolean) {
