@@ -34,7 +34,8 @@ export type TeamPlayer = {
 
 export type TeamLineup = {
   startingPlayers: TeamPlayer[],
-  substitutePlayers: TeamPlayer[]
+  substitutePlayers: TeamPlayer[],
+  formation: String | null,
 }
 
 export interface Lineup {

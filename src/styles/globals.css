@@ -2,3 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+.football-pitch {
+  background: url('/football-pitch.svg') 0 0 no-repeat;
+  background-size: cover;
+  height: 130vw;
+  width: 90vw;
+}
+
+@screen sm {
+  .football-pitch {
+    background: url('/football-pitch-horizontal.svg') 0 0 no-repeat;
+    background-size: cover;
+    height: 60vw;
+    width: 100%;
+  }
+}

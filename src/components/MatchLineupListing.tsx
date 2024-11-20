@@ -2,6 +2,7 @@ import { Lineup, PlayerPosition, TeamPlayer } from "@/types/Lineup"
 import { useEffect, useState } from "react"
 import getConfig from "next/config";
 import { countryCodeToFlagEmoji } from "@/types/Team";
+import LineupFormations from "./LineupFormations";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -9,10 +10,12 @@ const INITIAL_LINEUP = {
   home: {
     startingPlayers: [],
     substitutePlayers: [],
+    formation: null,
   },
   away: {
     startingPlayers: [],
-    substitutePlayers: []
+    substitutePlayers: [],
+    formation: null,
   }
 };
 
@@ -59,6 +62,7 @@ export default function MatchLineupListing(props: { matchId: string | undefined 
 function LineupContent(props: { lineup: Lineup }) {
   return (
     <>
+      <LineupFormations lineup={props.lineup} />
       <NamedLineup
         title="Starting Players"
         players={zipPlayers(props.lineup.home.startingPlayers, props.lineup.away.startingPlayers)} />
