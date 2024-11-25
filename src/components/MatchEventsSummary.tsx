@@ -1,25 +1,19 @@
-import getConfig from "next/config";
 import { MatchStatus, Score } from "@/types/Match";
 import Image from 'next/image'
-import * as MatchEvents from "@/types/MatchEvents"
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { io } from "socket.io-client";
-import { UpdateableMatchInfo } from "@/pages/match/[id]";
+import * as MatchEvents from "@/types/MatchEvents";
+import { Dispatch, SetStateAction, useEffect } from "react";
+import getConfig from "next/config";
 
 const { publicRuntimeConfig } = getConfig();
-const HIGHLIGHT_ON_UPDATE_TIME = 3000;
-
 
 export default function MatchEventsSummary(props: {
   matchId: string | undefined,
   homeTeamId: string | undefined,
-  matchFinished: boolean,
-  setUpdateableMatchInfo: Dispatch<SetStateAction<UpdateableMatchInfo>>,
+  matchEvents: MatchEvents.MatchEvent[],
+  setMatchEvents: Dispatch<SetStateAction<MatchEvents.MatchEvent[]>>,
 }) {
-  const [matchEventsContentLoaded, setMatchEventsContentLoaded] = useState<boolean>(false);
-  const [matchEvents, setMatchEvents] = useState<MatchEvents.MatchEvent[]>([]);
 
-  // fetch past match events
+  // fetch already existing match events
   useEffect(() => {
     if (props.matchId === undefined) {
       return;
@@ -30,127 +24,10 @@ export default function MatchEventsSummary(props: {
       .then((res) => res.json())
       .then((data) => {
         const matchEvents: MatchEvents.MatchEvent[] = data;
-        setMatchEvents(matchEvents);
-        setMatchEventsContentLoaded(true);
+        props.setMatchEvents(matchEvents);
       });
 
-  }, [props.matchId])
-
-  function incrementFullTimeScore(homeTeamScored: boolean) {
-    const [homeTeamGoalsDelta, awayTeamGoalsDelta] =
-      homeTeamScored ? [1, 0] : [0, 1];
-
-    props.setUpdateableMatchInfo((prev) => {
-      const newScore: Score = {
-        homeGoals: prev.fullTimeScore.value.homeGoals + homeTeamGoalsDelta,
-        awayGoals: prev.fullTimeScore.value.awayGoals + awayTeamGoalsDelta,
-      };
-
-      const updated = {
-        ...prev,
-        fullTimeScore: {
-          value: newScore,
-          highlight: true,
-        },
-      };
-      return updated;
-    });
-
-    // turn off the score highlight after 3 seconds
-    setTimeout(() => {
-      props.setUpdateableMatchInfo((prev) => {
-        const updated = {
-          ...prev,
-          fullTimeScore: {
-            value: prev.fullTimeScore.value,
-            highlight: false
-          },
-        };
-        return updated;
-      })
-    }, HIGHLIGHT_ON_UPDATE_TIME);
-  }
-
-  function updateMatchStatus(newStatus: MatchStatus) {
-    props.setUpdateableMatchInfo((prev) => {
-      const updated = {
-        ...prev,
-        status: {
-          lastModifiedUTC: new Date(),
-          value: newStatus,
-          highlight: true,
-        }
-      };
-      return updated;
-    });
-
-    // turn off the status highlight after 3 seconds
-    setTimeout(() => {
-      props.setUpdateableMatchInfo((prev) => {
-        const updated = {
-          ...prev,
-          status: {
-            lastModifiedUTC: prev.status.lastModifiedUTC,
-            value: prev.status.value,
-            highlight: false,
-          }
-        };
-        return updated;
-      })
-    }, HIGHLIGHT_ON_UPDATE_TIME);
-  }
-
-  // fetch match events which could happen after the page load
-  useEffect(() => {
-    // connect to the websocket only if:
-    //    * homeTeamId is set (needed to determine if an event should be placed on
-    //    the left or the right side on the summary)
-    //    * the matchId is defined
-    //    * the match is not finished (a finished match will never send any more events)
-    if (props.homeTeamId === undefined || props.matchFinished || props.matchId === undefined) {
-      return;
-    }
-
-    // ?match_id={matchId} has to be attached while connecting to subscribe to match events
-    // happening in a specific match
-    const connectionUrl = `${publicRuntimeConfig.MATCH_EVENTS_WS_URL}`;
-    const socket = io(connectionUrl, {
-      query: {
-        "match_id": props.matchId
-      }
-    });
-
-    // event type 'match-event' sends JSON of type MatchEvents.MatchEvent, some of these
-    // events (STATUS, GOAL, PENALTY) require updating state that's placed in the parent
-    // component (updating through the setter recieved via props)
-    socket.on('match-event', (matchEvent: MatchEvents.MatchEvent) => {
-      setMatchEvents((prev) => [...prev, matchEvent])
-
-      switch (matchEvent.event.type) {
-        case MatchEvents.MatchEventType.STATUS:
-          const newStatus = matchEvent.event.targetStatus;
-          updateMatchStatus(newStatus);
-          break;
-        case MatchEvents.MatchEventType.GOAL:
-          const homeTeamScoredGoal = isHomeTeamRelated(matchEvent.event.teamId, props.homeTeamId);
-          incrementFullTimeScore(homeTeamScoredGoal);
-          break;
-        case MatchEvents.MatchEventType.PENALTY:
-          const homeTeamScoredPenalty = isHomeTeamRelated(matchEvent.event.teamId, props.homeTeamId);
-          // missed penalties or penalties during the penalty shootout do not count as goals
-          // in full-time
-          const countsAsScored = matchEvent.event.countAsGoal && matchEvent.event.scored;
-          if (countsAsScored) {
-            incrementFullTimeScore(homeTeamScoredPenalty);
-          }
-          break;
-      }
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [props.matchId, props.matchFinished, props.homeTeamId])
+  }, [props.matchId]);
 
   return (
     <>
@@ -163,14 +40,17 @@ export default function MatchEventsSummary(props: {
           </div>
         </div>
       </div>
-      {matchEventsContentLoaded ?
+      {((props.matchEvents !== undefined) && (props.homeTeamId !== undefined)) ?
         <>
-          {matchEvents.length === 0 ?
+          {props.matchEvents.length === 0 ?
             <div className="mt-8 py-40 text-center">
               <span className="font-mono text-2xl font-extrabold text-c4">No events yet</span>
             </div >
             :
-            <MatchEventsSummaryContent matchEvents={matchEvents} homeTeamId={props.homeTeamId} />
+            <MatchEventsSummaryContent
+              matchEvents={props.matchEvents}
+              homeTeamId={props.homeTeamId}
+            />
           }
         </>
         :
@@ -180,11 +60,16 @@ export default function MatchEventsSummary(props: {
   )
 }
 
-function MatchEventsSummaryContent(props: { matchEvents: MatchEvents.MatchEvent[], homeTeamId: string | undefined }) {
+function MatchEventsSummaryContent(props: {
+  matchEvents: MatchEvents.MatchEvent[],
+  homeTeamId: string | undefined
+}) {
   return (
     <>
       <div className="">
-        {props.matchEvents.map((e) => matchEventsRender({ event: e, homeTeamId: props.homeTeamId }))}
+        {props.matchEvents.map(
+          (e) => matchEventsRender({ event: e, homeTeamId: props.homeTeamId })
+        )}
       </div>
     </>
   )
@@ -219,7 +104,10 @@ function isHomeTeamRelated(checkedTeamId: string, homeTeamId: string | undefined
   return checkedTeamId === homeTeamId;
 }
 
-function matchEventsRender(matchEvent: { event: MatchEvents.MatchEvent, homeTeamId: string | undefined }) {
+function matchEventsRender(matchEvent: {
+  event: MatchEvents.MatchEvent,
+  homeTeamId: string | undefined
+}) {
   const event = matchEvent.event.event;
   switch (event.type) {
     case MatchEvents.MatchEventType.STATUS:
@@ -227,13 +115,25 @@ function matchEventsRender(matchEvent: { event: MatchEvents.MatchEvent, homeTeam
     case MatchEvents.MatchEventType.COMMENTARY:
       return <CommentaryEventBox event={event} />
     case MatchEvents.MatchEventType.CARD:
-      return <CardEventBox event={event} leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)} />
+      return <CardEventBox
+        event={event}
+        leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)}
+      />
     case MatchEvents.MatchEventType.GOAL:
-      return <GoalEventBox event={event} leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)} />
+      return <GoalEventBox
+        event={event}
+        leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)}
+      />
     case MatchEvents.MatchEventType.SUBSTITUTION:
-      return <SubstitutionEventBox event={event} leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)} />
+      return <SubstitutionEventBox
+        event={event}
+        leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)}
+      />
     case MatchEvents.MatchEventType.PENALTY:
-      return <PenaltyEventBox event={event} leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)} />
+      return <PenaltyEventBox
+        event={event}
+        leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)}
+      />
   }
 }
 
@@ -266,7 +166,6 @@ function CommentaryEventBox(props: { event: MatchEvents.CommentaryEvent }) {
     </>
   )
 };
-
 
 function CardEventBox(props: { event: MatchEvents.CardEvent, leftSided: boolean }) {
   let cardImageSrc = ""

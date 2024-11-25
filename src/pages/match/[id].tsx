@@ -9,6 +9,10 @@ import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/com
 import MatchLineupListing from "@/components/MatchLineupListing";
 import Link from "next/link";
 import MatchStatusBox from "@/components/MatchStatusBox";
+import { MatchEvent, MatchEventType } from "@/types/MatchEvents";
+import { io } from "socket.io-client";
+
+const HIGHLIGHT_TIME = 3000;
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -42,9 +46,10 @@ const INITIAL_MATCH_INFO = {
 };
 
 export default function Match() {
-  const [matchInfoContentLoaded, setMatchInfoContentLoaded] = useState<boolean>(false);
-
   const router = useRouter();
+  const [allMatchInformation, setAllMatchInformation] =
+    useState<AllMatchInfo | undefined>(undefined);
+  const [matchEvents, setMatchEvents] = useState<MatchEvent[]>([]);
 
   // setup the filter menu with two options: SUMMARY and LINEUPS 
   const DEFAULT_MATCH_FILTER: FilterOptionKey = "summary";
@@ -52,18 +57,18 @@ export default function Match() {
     [DEFAULT_MATCH_FILTER, { displayName: "SUMMARY", isSelected: true }],
     ["lineups", { displayName: "LINEUPS", isSelected: false }],
   ]);
-  const [selectedMatchInfoOption, setSelectedMatchInfoOption] = useState<string>(DEFAULT_MATCH_FILTER);
+  const [selectedMatchInfoOption, setSelectedMatchInfoOption] =
+    useState<string>(DEFAULT_MATCH_FILTER);
   const filterMenuInfo: FilterMenuInfo = {
     options: matchFilterOptions,
     currentlySelected: selectedMatchInfoOption,
     setCurrentlySelected: setSelectedMatchInfoOption
   };
 
-  const [allMatchInformation, setAllMatchInformation] = useState<AllMatchInfo | undefined>(undefined);
-
-  // match info which can change as the match progresses (in case new match events are received
-  // via socket.io AFTER the initial render of the page)
-  const [updateableMatchInfo, setUpdateableMatchInfo] = useState<UpdateableMatchInfo>(INITIAL_MATCH_INFO);
+  // match events received via websocket should be able to update the scoreline, the status
+  // of the match, etc.
+  const [updateableMatchInfo, setUpdateableMatchInfo] =
+    useState<UpdateableMatchInfo>(INITIAL_MATCH_INFO);
 
   useEffect(() => {
     if (router.query.id === undefined) {
@@ -89,7 +94,6 @@ export default function Match() {
                 highlight: false
               }
             });
-            setMatchInfoContentLoaded(true);
           });
       })
       .catch((error) => {
@@ -101,14 +105,133 @@ export default function Match() {
       });
   }, [router.query.id]);
 
+  function incrementFullTimeScore(homeTeamScored: boolean) {
+    const [homeTeamGoalsDelta, awayTeamGoalsDelta] =
+      homeTeamScored ? [1, 0] : [0, 1];
+
+    setUpdateableMatchInfo((prev) => {
+      const newScore: Score = {
+        homeGoals: prev.fullTimeScore.value.homeGoals + homeTeamGoalsDelta,
+        awayGoals: prev.fullTimeScore.value.awayGoals + awayTeamGoalsDelta,
+      };
+
+      const updated = {
+        ...prev,
+        fullTimeScore: {
+          value: newScore,
+          highlight: true,
+        },
+      };
+      return updated;
+    });
+
+    // turn off the score highlight after a timeout 
+    setTimeout(() => {
+      setUpdateableMatchInfo((prev) => {
+        const updated = {
+          ...prev,
+          fullTimeScore: {
+            ...prev.fullTimeScore,
+            highlight: false
+          },
+        };
+        return updated;
+      })
+    }, HIGHLIGHT_TIME);
+  }
+
+  function updateMatchStatus(newStatus: MatchStatus) {
+    setUpdateableMatchInfo((prev) => {
+      const updated = {
+        ...prev,
+        status: {
+          lastModifiedUTC: new Date(),
+          value: newStatus,
+          highlight: true,
+        }
+      };
+      return updated;
+    });
+
+    // turn off the status highlight after a timeout
+    setTimeout(() => {
+      setUpdateableMatchInfo((prev) => {
+        const updated = {
+          ...prev,
+          status: {
+            ...prev.status,
+            highlight: false,
+          }
+        };
+        return updated;
+      })
+    }, HIGHLIGHT_TIME);
+  }
+
+  // websocket connection which updates matchEvents is placed in this parent component instead 
+  // of being placed directly in MatchEventsSummary, because two mutually exclusive 
+  // child components (MatchEventsSummary and MatchLineupListing) of this component 
+  // depend on matchEvents being up-to-date, which means that the websocket connection needs
+  // to be alive no matter which mutually exclusive child is currently being rendered
+  useEffect(() => {
+    const matchFinished = allMatchInformation?.match.status === MatchStatus.FINISHED;
+    const homeTeamId = allMatchInformation?.match.homeTeam?.id;
+    const matchId = router.query.id;
+    // connect to the websocket only if:
+    //    * homeTeamId is set (needed to determine if an event should be placed on
+    //    the left or the right side on the summary)
+    //    * the matchId is defined
+    //    * the match is not finished (a finished match will never send any more events)
+    if (homeTeamId === undefined || matchFinished || matchId === undefined) {
+      return;
+    }
+
+    // ?match_id={matchId} has to be attached while connecting to subscribe to match events
+    // happening in a specific match
+    const connectionUrl = `${publicRuntimeConfig.MATCH_EVENTS_WS_URL}`;
+    const socket = io(connectionUrl, {
+      query: {
+        "match_id": matchId
+      }
+    });
+
+    socket.on('match-event', (matchEvent: MatchEvent) => {
+      setMatchEvents((prev) => [...prev, matchEvent])
+
+      switch (matchEvent.event.type) {
+        case MatchEventType.STATUS:
+          const newStatus = matchEvent.event.targetStatus;
+          updateMatchStatus(newStatus);
+          break;
+        case MatchEventType.GOAL:
+          const homeTeamScoredGoal = matchEvent.event.teamId === homeTeamId;
+          incrementFullTimeScore(homeTeamScoredGoal);
+          break;
+        case MatchEventType.PENALTY:
+          const homeTeamScoredPenalty = matchEvent.event.teamId === homeTeamId;
+          // missed penalties or penalties during the penalty shootout do not count as goals
+          // in full-time
+          const countsAsScored = matchEvent.event.countAsGoal && matchEvent.event.scored;
+          if (countsAsScored) {
+            incrementFullTimeScore(homeTeamScoredPenalty);
+          }
+          break;
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [router.query.id, allMatchInformation?.match.homeTeam?.id])
 
   return (
     <div className="flex flex-row items-center justify-center">
       <div className="mt-10 basis-full">
-        {matchInfoContentLoaded && (allMatchInformation !== undefined) ?
+        {allMatchInformation !== undefined ?
           <MatchInfoContent
             allMatchInformation={allMatchInformation}
-            updateableMatchInfo={updateableMatchInfo} />
+            updateableMatchInfo={updateableMatchInfo}
+          />
           :
           <MatchInfoContentSkeleton />
         }
@@ -119,11 +242,15 @@ export default function Match() {
           <MatchEventsSummary
             matchId={router.query.id?.toString()}
             homeTeamId={allMatchInformation?.match.homeTeam?.id}
-            matchFinished={allMatchInformation?.match.status === MatchStatus.FINISHED}
-            setUpdateableMatchInfo={setUpdateableMatchInfo} />
+            matchEvents={matchEvents}
+            setMatchEvents={setMatchEvents}
+          />
         }
         {selectedMatchInfoOption === "lineups" &&
-          <MatchLineupListing matchId={router.query.id?.toString()} />
+          <MatchLineupListing
+            matchId={router.query.id?.toString()}
+            matchEvents={matchEvents}
+          />
         }
       </div>
     </div>
