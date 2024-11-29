@@ -96,8 +96,8 @@ function TeamInfoContent(props: { team: FullTeamInfo | undefined }) {
                 className="bg-white p-2 rounded-xl"
                 width="125"
                 height="125"
-                src={teamCrestUrl ? teamCrestUrl : "../../placeholder-club-logo.svg"}
-                alt={teamName !== undefined ? teamName : ""} />
+                src={teamCrestUrl ?? "../../placeholder-club-logo.svg"}
+                alt={teamName ?? ""} />
             </div>
             <div className="basis-full mt-2 w-[125px]">
               <div className="flex justify-center">

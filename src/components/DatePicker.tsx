@@ -84,7 +84,7 @@ export default function DatePicker(props: {
       // if there is a cookie, get the initial key from the cookie,
       // otherwise use the default key
       const keyCookie = getCookie(PICKER_COOKIE_NAME);
-      const initialDateKey = (keyCookie === undefined) ? INITIAL_DATE_PICKER_KEY : keyCookie;
+      const initialDateKey = keyCookie ?? INITIAL_DATE_PICKER_KEY;
       pickOptionByKey(initialDateKey);
     }
   }, [])

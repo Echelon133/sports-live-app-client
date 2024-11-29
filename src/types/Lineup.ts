@@ -45,8 +45,5 @@ export function playerActivityGetOrDefault(
   playerActivity: PlayerActivityMap,
   playerId: string
 ): PlayerActivity {
-  return playerActivity.has(playerId) ?
-    playerActivity.get(playerId)!
-    :
-    { goalCounter: 0, ownGoalCounter: 0, card: undefined, inSubstitution: false };
+  return playerActivity.get(playerId) ?? { goalCounter: 0, ownGoalCounter: 0, card: undefined, inSubstitution: false };
 }

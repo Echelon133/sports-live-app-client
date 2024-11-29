@@ -275,7 +275,7 @@ function MatchInfoContent(props: {
           className="bg-white p-1 rounded-sm float-left mr-2"
           width="25"
           height="25"
-          src={competitionLogoUrl ? competitionLogoUrl : "../../placeholder-competition-logo.svg"}
+          src={competitionLogoUrl ?? "../../placeholder-competition-logo.svg"}
           alt="Competition name" />
         <Link href={`/competition/${props.allMatchInformation.competition.id}`}>
           <span className="font-extrabold hover:underline text-c4">{props.allMatchInformation?.competition.name}</span>
@@ -294,7 +294,7 @@ function MatchInfoContent(props: {
                   className="bg-white p-2 rounded-xl h-24 w-24"
                   width="100"
                   height="100"
-                  src={homeCrestUrl ? homeCrestUrl : "../../placeholder-club-logo.svg"}
+                  src={homeCrestUrl ?? "../../placeholder-club-logo.svg"}
                   alt="Home team crest" />
                 <Link href={`/team/${matchInformation.homeTeam?.id}`}>
                   <span className="font-extrabold hover:underline">{matchInformation?.homeTeam?.name}</span>
@@ -354,7 +354,7 @@ function MatchInfoContent(props: {
                   className="bg-white p-2 rounded-xl h-24 w-24"
                   width="100"
                   height="100"
-                  src={awayCrestUrl ? awayCrestUrl : "../../placeholder-club-logo.svg"}
+                  src={awayCrestUrl ?? "../../placeholder-club-logo.svg"}
                   alt="Away team crest" />
                 <Link href={`/team/${matchInformation.awayTeam?.id}`}>
                   <span className="font-extrabold hover:underline">{matchInformation?.awayTeam?.name}</span>

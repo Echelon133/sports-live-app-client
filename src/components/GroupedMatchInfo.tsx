@@ -32,7 +32,7 @@ export default function GroupedMatchInfo(props: {
                 className="bg-white p-1 rounded-sm float-left mr-2"
                 width="25"
                 height="25"
-                src={competitionLogoUrl ? competitionLogoUrl : "placeholder-competition-logo.svg"}
+                src={competitionLogoUrl ?? "placeholder-competition-logo.svg"}
                 alt={props.competitionInfo.name} />
               <Link href={`/competition/${props.competitionInfo.id}`}>
                 <span className="font-extrabold hover:underline text-c4">{props.competitionInfo.name}</span>
@@ -275,7 +275,7 @@ function SingleMatchInfo(props: {
               className="float-left"
               width="20"
               height="20"
-              src={homeCrestUrl ? homeCrestUrl : "placeholder-club-logo.svg"}
+              src={homeCrestUrl ?? "placeholder-club-logo.svg"}
               alt="Home team crest" />
             <span className={
               `font-mono ml-2 ${updateableMatchInfo.highlight.home ? 'text-highlight-b' : ''} ${homeTeamWon ? 'font-extrabold' : ''}`
@@ -306,7 +306,7 @@ function SingleMatchInfo(props: {
               className="float-left"
               width="20"
               height="20"
-              src={awayCrestUrl ? awayCrestUrl : "placeholder-club-logo.svg"}
+              src={awayCrestUrl ?? "placeholder-club-logo.svg"}
               alt="Away team crest" />
             <span className={
               `font-mono ml-2 ${updateableMatchInfo.highlight.away ? 'text-highlight-b' : ''} ${awayTeamWon ? 'font-extrabold' : ''}`

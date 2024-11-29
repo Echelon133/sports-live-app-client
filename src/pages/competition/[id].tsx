@@ -92,7 +92,7 @@ function CompetitionInfoContent(props: { competition: CompetitionInfo | undefine
             className="bg-white p-2 rounded-xl float-right"
             width="120"
             height="120"
-            src={competitionLogoUrl ? competitionLogoUrl : "../../placeholder-competition-logo.svg"}
+            src={competitionLogoUrl ?? "../../placeholder-competition-logo.svg"}
             alt="Competition name" />
         </div>
         <div className="basis-2/3 mt-6 pl-16">
@@ -417,7 +417,7 @@ function CompetitionGroupBox(props: {
                         className="float-left"
                         width="22"
                         height="22"
-                        src={team.crestUrl ? team.crestUrl : "placeholder-club-logo.svg"}
+                        src={team.crestUrl ?? "placeholder-club-logo.svg"}
                         alt={team.teamName} />
                       <Link href={`/team/${team.teamId}`}>
                         <span className="pl-2 hover:underline">{team.teamName}</span>
@@ -603,8 +603,8 @@ function TopScorersListing(props: {
                           <Image
                             width="22"
                             height="22"
-                            src={teamCrestUrl ? teamCrestUrl : "placeholder-club-logo.svg"}
-                            alt={teamName ? teamName : ""} />
+                            src={teamCrestUrl ?? "placeholder-club-logo.svg"}
+                            alt={teamName ?? ""} />
                           <span className="pl-2 hover:underline">{teamName}</span>
                         </div>
                       </td>
