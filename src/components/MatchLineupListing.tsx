@@ -1,4 +1,4 @@
-import { Lineup, PlayerActivity, PlayerActivityMap, PlayerPosition, TeamPlayer, playerActivityGetOrDefault } from "@/types/Lineup"
+import { Lineup, PlayerActivity, PlayerActivityMap, TeamPlayer, playerActivityGetOrDefault } from "@/types/Lineup"
 import { useEffect, useState } from "react"
 import getConfig from "next/config";
 import { countryCodeToFlagEmoji } from "@/types/Team";
@@ -145,14 +145,12 @@ function NamedLineup(props: {
 }) {
   return (
     <>
-      <div className="flex flex-row bg-c1 h-8 pt-2 shadow-sm shadow-black mb-2">
+      <div className="flex flex-row bg-c1 h-8 pt-2 shadow-sm shadow-black mb-2 mt-12">
         <div className="">
           <span className="pl-10 float-left text-sm text-c3">{props.title}</span>
         </div>
       </div>
-      <div className="flex flex-row">
-        <LineupTable players={props.players} playerActivity={props.playerActivity} />
-      </div>
+      <LineupTable players={props.players} playerActivity={props.playerActivity} />
     </>
   )
 }
@@ -162,79 +160,79 @@ function LineupTable(props: {
   playerActivity: PlayerActivityMap
 }) {
   return (
-    <table className="basis-full table-auto mx-8 mb-10">
-      <tbody className="">
-        {props.players.map((e) => {
-          const homePlayerId = e.homePlayer?.id!;
+    <>
+      <div className="flex flex-col">
+        {props.players.map((zippedPlayers) => {
+          const homePlayer = zippedPlayers.homePlayer;
           const homePlayerActivity =
-            playerActivityGetOrDefault(props.playerActivity, homePlayerId);
-
-          const awayPlayerId = e.awayPlayer?.id!;
+            playerActivityGetOrDefault(props.playerActivity, homePlayer?.id!);
+          const awayPlayer = zippedPlayers.awayPlayer;
           const awayPlayerActivity =
-            playerActivityGetOrDefault(props.playerActivity, awayPlayerId);
+            playerActivityGetOrDefault(props.playerActivity, awayPlayer?.id!);
 
           return (
             <>
-              <tr className="odd:bg-c1 even:bg-c0">
-                <td className="font-mono font-extrabold">{e.homePlayer?.number}</td>
-                <td>{countryCodeToFlagEmoji(e.homePlayer?.countryCode)}</td>
-                <td className="text-xs text-gray">{PlayerPosition.format(e.homePlayer?.position)}</td>
-                <td className="flex flex-row">
-                  {e.homePlayer?.player.name}
-                  {homePlayerActivity.goalCounter > 0 &&
-                    <div className="pl-1">
-                      <GoalIcon goalCounter={homePlayerActivity.goalCounter} />
-                    </div>
-                  }
-                  {homePlayerActivity.ownGoalCounter > 0 &&
-                    <div className="pl-1">
-                      <OwnGoalIcon ownGoalCounter={homePlayerActivity.ownGoalCounter} />
-                    </div>
-                  }
-                  {homePlayerActivity.card !== undefined &&
-                    <div className="pl-1">
-                      <CardIcon card={homePlayerActivity.card} />
-                    </div>
-                  }
-                  {homePlayerActivity.inSubstitution &&
-                    <div className="pl-1">
-                      <SubstitutionIcon />
-                    </div>
-                  }
-                </td>
-                <td></td>
-                <td className="flex flex-row-reverse">
-                  {e.awayPlayer?.player.name}
-                  {awayPlayerActivity.goalCounter > 0 &&
-                    <div className="pr-1">
-                      <GoalIcon goalCounter={awayPlayerActivity.goalCounter} />
-                    </div>
-                  }
-                  {awayPlayerActivity.ownGoalCounter > 0 &&
-                    <div className="pr-1">
-                      <OwnGoalIcon ownGoalCounter={awayPlayerActivity.ownGoalCounter} />
-                    </div>
-                  }
-                  {awayPlayerActivity.card !== undefined &&
-                    <div className="pr-1">
-                      <CardIcon card={awayPlayerActivity.card} />
-                    </div>
-                  }
-                  {awayPlayerActivity.inSubstitution &&
-                    <div className="pr-1">
-                      <SubstitutionIcon />
-                    </div>
-                  }
-                </td>
-                <td className="text-xs text-gray">{PlayerPosition.format(e.awayPlayer?.position)}</td>
-                <td>{countryCodeToFlagEmoji(e.awayPlayer?.countryCode)}</td>
-                <td className="font-mono font-extrabold float-right">{e.awayPlayer?.number}</td>
-              </tr>
+              <div className="flex odd:bg-c0 even:bg-c1 h-12 justify-between items-center rounded-xl mx-5">
+                <div className="flex flex-row ml-4">
+                  <span className="w-8 text-center">{homePlayer?.number}</span>
+                  <span className="w-7">
+                    {countryCodeToFlagEmoji(homePlayer?.countryCode)}
+                  </span>
+                  <div className="flex flex-row">
+                    <span className="text-wrap">
+                      {homePlayer?.player.name}
+                      {homePlayer?.position === "GOALKEEPER" ? " (G)" : ""}
+                    </span>
+                    <PlayerActivityIcons playerActivity={homePlayerActivity} />
+                  </div>
+                </div>
+                <div className="flex flex-row mr-4">
+                  <div className="flex flex-row-reverse flex-wrap">
+                    <span className="pl-1">
+                      {awayPlayer?.player.name}
+                      {awayPlayer?.position === "GOALKEEPER" ? " (G)" : ""}
+                    </span>
+                    <PlayerActivityIcons playerActivity={awayPlayerActivity} />
+                  </div>
+                  <span className="w-7 pl-1">
+                    {countryCodeToFlagEmoji(awayPlayer?.countryCode)}
+                  </span>
+                  <span className="w-8 text-center">{awayPlayer?.number}</span>
+                </div>
+              </div>
             </>
           )
         })}
-      </tbody>
-    </table>
+      </div >
+    </>
+  )
+}
+
+function PlayerActivityIcons(props: { playerActivity: PlayerActivity }) {
+  const a = props.playerActivity;
+  return (
+    <>
+      {a.goalCounter > 0 &&
+        <div className="pl-1">
+          <GoalIcon goalCounter={a.goalCounter} />
+        </div>
+      }
+      {a.ownGoalCounter > 0 &&
+        <div className="pl-1">
+          <OwnGoalIcon ownGoalCounter={a.ownGoalCounter} />
+        </div>
+      }
+      {a.card !== undefined &&
+        <div className="pl-1">
+          <CardIcon card={a.card} />
+        </div>
+      }
+      {a.inSubstitution &&
+        <div className="pl-1">
+          <SubstitutionIcon />
+        </div>
+      }
+    </>
   )
 }
 
