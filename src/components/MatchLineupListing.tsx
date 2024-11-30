@@ -99,21 +99,14 @@ function LineupContentSkeleton() {
               className="animate-pulse flex flex-row bg-c1 h-8 pt-2 shadow-sm shadow-black mb-2">
               <span className="pl-10 float-left text-sm text-c3">{title}</span>
             </div>
-            <div className="flex flex-row">
-              <table className="basis-full table-auto mx-8 mb-10">
-                <tbody>
-                  {[...Array(8)].map((_e, j) => {
-                    return (
-                      <div
-                        key={j}
-                        className="animate-pulse odd:bg-c1 even:bg-c0">
-                        <div className="h-6"></div>
-                      </div>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+            {[...Array(8)].map((_e, j) => {
+              return (
+                <>
+                  <div key={i * j} className="animate-pulse flex odd:bg-c0 even:bg-c1 h-12 rounded-xl mx-5">
+                  </div>
+                </>
+              )
+            })}
           </>
         )
       })}
