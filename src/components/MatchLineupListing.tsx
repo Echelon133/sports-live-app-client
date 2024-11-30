@@ -76,12 +76,14 @@ function LineupContent(props: {
       <LineupFormations lineup={props.lineup} playerActivity={props.playerActivity} />
       <NamedLineup
         title="Starting Players"
-        players={zipPlayers(props.lineup.home.startingPlayers, props.lineup.away.startingPlayers)}
+        homePlayers={props.lineup.home.startingPlayers}
+        awayPlayers={props.lineup.away.startingPlayers}
         playerActivity={props.playerActivity}
       />
       <NamedLineup
         title="Substitute Players"
-        players={zipPlayers(props.lineup.home.substitutePlayers, props.lineup.away.substitutePlayers)}
+        homePlayers={props.lineup.home.substitutePlayers}
+        awayPlayers={props.lineup.away.substitutePlayers}
         playerActivity={props.playerActivity}
       />
     </>
@@ -114,26 +116,11 @@ function LineupContentSkeleton() {
   )
 }
 
-type ZippedPlayers = {
-  homePlayer: TeamPlayer | undefined,
-  awayPlayer: TeamPlayer | undefined,
-};
-
-function zipPlayers(homePlayers: TeamPlayer[], awayPlayers: TeamPlayer[]): ZippedPlayers[] {
-  const finalLength = Math.max(homePlayers.length, awayPlayers.length);
-  let zippedPlayers: ZippedPlayers[] = []
-
-  for (let i = 0; i < finalLength; i++) {
-    const homePlayer = homePlayers[i];
-    const awayPlayer = awayPlayers[i];
-    zippedPlayers.push({ homePlayer: homePlayer, awayPlayer: awayPlayer })
-  }
-  return zippedPlayers
-}
 
 function NamedLineup(props: {
   title: string,
-  players: ZippedPlayers[],
+  homePlayers: TeamPlayer[],
+  awayPlayers: TeamPlayer[],
   playerActivity: PlayerActivityMap
 }) {
   return (
@@ -143,59 +130,73 @@ function NamedLineup(props: {
           <span className="pl-10 float-left text-sm text-c3">{props.title}</span>
         </div>
       </div>
-      <LineupTable players={props.players} playerActivity={props.playerActivity} />
+      <LineupTable
+        homePlayers={props.homePlayers}
+        awayPlayers={props.awayPlayers}
+        playerActivity={props.playerActivity}
+      />
     </>
   )
 }
 
 function LineupTable(props: {
-  players: ZippedPlayers[],
+  homePlayers: TeamPlayer[],
+  awayPlayers: TeamPlayer[],
   playerActivity: PlayerActivityMap
 }) {
   return (
     <>
-      <div className="flex flex-col">
-        {props.players.map((zippedPlayers) => {
-          const homePlayer = zippedPlayers.homePlayer;
-          const homePlayerActivity =
-            playerActivityGetOrDefault(props.playerActivity, homePlayer?.id!);
-          const awayPlayer = zippedPlayers.awayPlayer;
-          const awayPlayerActivity =
-            playerActivityGetOrDefault(props.playerActivity, awayPlayer?.id!);
-
-          return (
-            <>
-              <div className="flex odd:bg-c0 even:bg-c1 h-12 justify-between items-center rounded-xl mx-5">
-                <div className="flex flex-row ml-4">
-                  <span className="w-8 text-center">{homePlayer?.number}</span>
-                  <span className="w-7">
-                    {countryCodeToFlagEmoji(homePlayer?.countryCode)}
-                  </span>
-                  <div className="flex flex-row">
-                    <span className="text-wrap">
-                      {homePlayer?.player.name}
-                      {homePlayer?.position === "GOALKEEPER" ? " (G)" : ""}
-                    </span>
-                    <PlayerActivityIcons playerActivity={homePlayerActivity} />
+      <div className="flex flex-row">
+        <div className="basis-1/2">
+          {props.homePlayers.map(homePlayer => {
+            const homePlayerActivity =
+              playerActivityGetOrDefault(props.playerActivity, homePlayer?.id!);
+            return (
+              <>
+                <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center rounded-l-xl ml-5">
+                  <div className="flex flex-row ml-4">
+                    <div className="flex flex-row">
+                      <span className="w-8 text-center">{homePlayer?.number}</span>
+                      <span className="w-7">
+                        {countryCodeToFlagEmoji(homePlayer?.countryCode)}
+                      </span>
+                      <span className="text-wrap">
+                        {homePlayer?.player.name}
+                        {homePlayer?.position === "GOALKEEPER" ? " (G)" : ""}
+                      </span>
+                      <PlayerActivityIcons playerActivity={homePlayerActivity} />
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-row mr-4">
-                  <div className="flex flex-row-reverse flex-wrap">
-                    <span className="pl-1">
-                      {awayPlayer?.player.name}
-                      {awayPlayer?.position === "GOALKEEPER" ? " (G)" : ""}
-                    </span>
-                    <PlayerActivityIcons playerActivity={awayPlayerActivity} />
+              </>
+            )
+          })}
+        </div >
+        <div className="basis-1/2">
+          {props.awayPlayers.map(awayPlayer => {
+            const awayPlayerActivity =
+              playerActivityGetOrDefault(props.playerActivity, awayPlayer?.id!);
+            return (
+              <>
+                <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center justify-end rounded-r-xl mr-5">
+                  <div className="flex flex-row mr-4">
+                    <div className="flex flex-row-reverse">
+                      <span className="w-8 text-center">{awayPlayer?.number}</span>
+                      <span className="w-7 pl-2">
+                        {countryCodeToFlagEmoji(awayPlayer?.countryCode)}
+                      </span>
+                      <span className="text-wrap pl-1">
+                        {awayPlayer?.player.name}
+                        {awayPlayer?.position === "GOALKEEPER" ? " (G)" : ""}
+                      </span>
+                      <PlayerActivityIcons playerActivity={awayPlayerActivity} />
+                    </div>
                   </div>
-                  <span className="w-7 pl-1">
-                    {countryCodeToFlagEmoji(awayPlayer?.countryCode)}
-                  </span>
-                  <span className="w-8 text-center">{awayPlayer?.number}</span>
                 </div>
-              </div>
-            </>
-          )
-        })}
+              </>
+            )
+          })}
+        </div>
       </div >
     </>
   )
