@@ -1,8 +1,11 @@
 import { MatchStatus, Score } from "@/types/Match";
-import Image from 'next/image'
 import * as MatchEvents from "@/types/MatchEvents";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import getConfig from "next/config";
+import CardIcon from "./icons/CardIcon";
+import OwnGoalIcon from "./icons/OwnGoalIcon";
+import GoalIcon from "./icons/GoalIcon";
+import SubstitutionIcon from "./icons/SubstitutionIcon";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -168,36 +171,12 @@ function CommentaryEventBox(props: { event: MatchEvents.CommentaryEvent }) {
 };
 
 function CardEventBox(props: { event: MatchEvents.CardEvent, leftSided: boolean }) {
-  let cardImageSrc = ""
-  let cardText = ""
-
-  switch (props.event.cardType) {
-    case MatchEvents.CardType.YELLOW:
-      cardImageSrc = "../../yellow.svg"
-      cardText = "Yellow Card"
-      break;
-    case MatchEvents.CardType.SECOND_YELLOW:
-      cardImageSrc = "../../second-yellow.svg"
-      cardText = "Second Yellow Card"
-      break;
-    case MatchEvents.CardType.DIRECT_RED:
-      cardImageSrc = "../../red.svg"
-      cardText = "Direct Red Card"
-      break;
-  }
-
   return (
     <>
       <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-8 mb-2 items-center`}>
         <div className="">
           <span className="text-sm font-extrabold">{props.event.minute}'</span>
-          <Image
-            className="h-6 w-5"
-            width="20"
-            height="40"
-            src={cardImageSrc}
-            alt={cardText}
-            title={cardText} />
+          <CardIcon card={props.event.cardType} />
         </div>
         <div className="px-5">
           <span className="font-extrabold">{props.event.cardedPlayer.name}</span>
@@ -208,21 +187,16 @@ function CardEventBox(props: { event: MatchEvents.CardEvent, leftSided: boolean 
 };
 
 function GoalEventBox(props: { event: MatchEvents.GoalEvent, leftSided: boolean }) {
-  const goalImageSrc = props.event.ownGoal ? "../../ball-red.svg" : "../../ball-white.svg";
-  const goalText = props.event.ownGoal ? "Own Goal" : "Goal";
-
   return (
     <>
       <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-8 mb-2 items-center`}>
         <div className="">
           <span className="text-sm font-extrabold">{props.event.minute}'</span>
-          <Image
-            className="h-5 w-5"
-            width="80"
-            height="80"
-            src={goalImageSrc}
-            alt={goalText}
-            title={goalText} />
+          {props.event.ownGoal ?
+            <OwnGoalIcon />
+            :
+            <GoalIcon />
+          }
         </div>
         <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-5`}>
           <div className="">
@@ -245,13 +219,7 @@ function SubstitutionEventBox(props: { event: MatchEvents.SubstitutionEvent, lef
       <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-8 mb-2 items-center`}>
         <div className="">
           <span className="text-sm font-extrabold">{props.event.minute}'</span>
-          <Image
-            className="h-5 w-5"
-            width="80"
-            height="80"
-            src="../../substitution.svg"
-            alt="Substitution"
-            title="Substitution" />
+          <SubstitutionIcon />
         </div>
         <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-5`}>
           <div className="">
@@ -267,21 +235,16 @@ function SubstitutionEventBox(props: { event: MatchEvents.SubstitutionEvent, lef
 }
 
 function PenaltyEventBox(props: { event: MatchEvents.PenaltyEvent, leftSided: boolean }) {
-  const penaltyImageSrc = props.event.scored ? "../../ball-white.svg" : "../../ball-red.svg";
-  const penaltyText = props.event.scored ? "Penalty Scored" : "Penalty Missed";
-
   return (
     <>
       <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-8 mb-2 items-center`}>
         <div className="">
           <span className="text-sm font-extrabold">{props.event.minute}'</span>
-          <Image
-            className="h-5 w-5"
-            width="80"
-            height="80"
-            src={penaltyImageSrc}
-            alt={penaltyText}
-            title={penaltyText} />
+          {props.event.scored ?
+            <GoalIcon />
+            :
+            <OwnGoalIcon />
+          }
         </div>
         <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-5`}>
           <div className="">
