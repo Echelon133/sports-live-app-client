@@ -7,7 +7,7 @@ import GoalIcon from "./icons/GoalIcon";
 import OwnGoalIcon from "./icons/OwnGoalIcon";
 import CardIcon from "./icons/CardIcon";
 import SubstitutionIcon from "./icons/SubstitutionIcon";
-import { MatchEvent, MatchEventInfo, MatchEventType } from "@/types/MatchEvents";
+import { MatchEvent, MatchEventInfo, MatchEventType, SubstitutionEvent } from "@/types/MatchEvents";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -26,11 +26,14 @@ const INITIAL_LINEUP = {
 
 export default function MatchLineupListing(props: {
   matchId: string | undefined,
+  homeTeamId: string | undefined,
   matchEvents: MatchEvent[],
 }) {
   const [lineupContentLoaded, setLineupContentLoaded] = useState<boolean>(false);
   const [lineup, setLineup] = useState<Lineup>(INITIAL_LINEUP);
   const playerActivity = evaluatePlayerActivity(props.matchEvents);
+  const [homeSubstitutionEvents, awaySubstitutionEvents] =
+    divideSubstitutionEventsByTeam(props.homeTeamId, props.matchEvents);
 
   useEffect(() => {
     if (props.matchId == undefined) {
@@ -59,7 +62,12 @@ export default function MatchLineupListing(props: {
         </div>
       </div>
       {lineupContentLoaded ?
-        <LineupContent lineup={lineup} playerActivity={playerActivity} />
+        <LineupContent
+          lineup={lineup}
+          playerActivity={playerActivity}
+          homeSubstitutionEvents={homeSubstitutionEvents}
+          awaySubstitutionEvents={awaySubstitutionEvents}
+        />
         :
         <LineupContentSkeleton />
       }
@@ -69,11 +77,24 @@ export default function MatchLineupListing(props: {
 
 function LineupContent(props: {
   lineup: Lineup,
-  playerActivity: PlayerActivityMap
+  playerActivity: PlayerActivityMap,
+  homeSubstitutionEvents: SubstitutionEvent[],
+  awaySubstitutionEvents: SubstitutionEvent[]
 }) {
+  // only show the substitution box when there is at least one substitution (no matter the side)
+  const showSubstitutionBox =
+    (props.homeSubstitutionEvents.length !== 0) ||
+    (props.awaySubstitutionEvents.length !== 0);
+
   return (
     <>
       <LineupFormations lineup={props.lineup} playerActivity={props.playerActivity} />
+      {showSubstitutionBox &&
+        <SubstitutionEventsBox
+          homeSubstitutionEvents={props.homeSubstitutionEvents}
+          awaySubstitutionEvents={props.awaySubstitutionEvents}
+        />
+      }
       <NamedLineup
         title="Starting Players"
         homePlayers={props.lineup.home.startingPlayers}
@@ -112,6 +133,60 @@ function LineupContentSkeleton() {
           </>
         )
       })}
+    </>
+  )
+}
+
+function SubstitutionEventsBox(props: {
+  homeSubstitutionEvents: SubstitutionEvent[],
+  awaySubstitutionEvents: SubstitutionEvent[],
+}) {
+  return (
+    <>
+      <div className="flex flex-row bg-c1 h-8 pt-2 shadow-sm shadow-black mb-2 mt-12">
+        <div className="">
+          <span className="pl-10 float-left text-sm text-c3">Substitutions</span>
+        </div>
+      </div>
+      <div className="flex flex-row">
+        <div className="basis-1/2">
+          {props.homeSubstitutionEvents.map(e => {
+            return (
+              <>
+                <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center rounded-l-xl ml-5">
+                  <div className="flex flex-row items-center ml-3">
+                    <SubstitutionIcon />
+                    <span className="ml-2">{e.minute}'</span>
+                    <div className="flex flex-col ml-4">
+                      <span className="font-extrabold">{e.playerIn.name}</span>
+                      <span className="text-gray text-sm">{e.playerOut.name}</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )
+          })}
+        </div>
+        <div className="basis-1/2">
+          {props.awaySubstitutionEvents.map(e => {
+            return (
+              <>
+                <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center justify-end rounded-r-xl mr-5">
+                  <div className="flex flex-row-reverse items-center mr-3">
+                    <SubstitutionIcon />
+                    <span className="mr-2">{e.minute}'</span>
+                    <div className="flex flex-col mr-4 items-end">
+                      <span className="font-extrabold">{e.playerIn.name}</span>
+                      <span className="text-gray text-sm">{e.playerOut.name}</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )
+          })}
+
+        </div>
+      </div>
     </>
   )
 }
@@ -282,4 +357,26 @@ function evaluatePlayerActivity(events: MatchEvent[]): PlayerActivityMap {
     }
   }
   return result;
+}
+
+function divideSubstitutionEventsByTeam(
+  homeTeamId: string | undefined,
+  matchEvents: MatchEvent[]
+): [SubstitutionEvent[], SubstitutionEvent[]] {
+  const substitutionEvents: SubstitutionEvent[] = matchEvents
+    .map(e => e.event)
+    .filter((e): e is SubstitutionEvent => e.type === MatchEventType.SUBSTITUTION);
+
+  let homeSubstitutionEvents: SubstitutionEvent[] = [];
+  let awaySubstitutionEvents: SubstitutionEvent[] = [];
+
+  for (let e of substitutionEvents) {
+    if (e.teamId === homeTeamId) {
+      homeSubstitutionEvents.push(e);
+    } else {
+      awaySubstitutionEvents.push(e);
+    }
+  }
+
+  return [homeSubstitutionEvents, awaySubstitutionEvents];
 }

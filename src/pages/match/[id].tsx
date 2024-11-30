@@ -249,6 +249,7 @@ export default function Match() {
         {selectedMatchInfoOption === "lineups" &&
           <MatchLineupListing
             matchId={router.query.id?.toString()}
+            homeTeamId={allMatchInformation?.match.homeTeam?.id}
             matchEvents={matchEvents}
           />
         }
