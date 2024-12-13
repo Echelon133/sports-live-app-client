@@ -590,7 +590,6 @@ function TopScorersListing(props: {
 
                   const cachedTeamInfo = props.teamInfoCache.get(stat.teamId);
                   const teamName = cachedTeamInfo?.teamName;
-                  const teamCrestUrl = cachedTeamInfo?.crestUrl;
                   return (
                     <tr
                       key={stat.playerId}
@@ -603,9 +602,11 @@ function TopScorersListing(props: {
                           <Image
                             width="22"
                             height="22"
-                            src={teamCrestUrl ?? "placeholder-club-logo.svg"}
+                            src={cachedTeamInfo?.crestUrl ?? "placeholder-club-logo.svg"}
                             alt={teamName ?? ""} />
-                          <span className="pl-2 hover:underline">{teamName}</span>
+                          <Link href={`/team/${cachedTeamInfo?.teamId}`}>
+                            <span className="pl-2 hover:underline">{teamName}</span>
+                          </Link>
                         </div>
                       </td>
                       <td>{stat.goals}</td>
