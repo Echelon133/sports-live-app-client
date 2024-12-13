@@ -43,30 +43,28 @@ function MatchStatusText(props: {
   startTimeUTC: Date,
   matchIsLive: boolean
 }) {
-  const [visibleStatus, setVisibleStatus] = useState<string>("");
 
-  useEffect(() => {
-    switch (props.currentStatus) {
-      // in case the game is not started, print the hour when the match starts
-      case MatchStatus.NOT_STARTED:
-        setVisibleStatus(props.startTimeUTC.toTimeString().substring(0, 5));
-        break;
-      case MatchStatus.HALF_TIME:
-      case MatchStatus.FINISHED:
-      case MatchStatus.PENALTIES:
-      case MatchStatus.POSTPONED:
-      case MatchStatus.ABANDONED:
-        setVisibleStatus(MatchStatus.format(props.currentStatus)!);
-        break;
-      // these are included for completeness, but they should not do anything, 
-      // since if the status is set to these values, this component should not 
-      // be rendered at all - the rendered component must be MatchClock
-      case MatchStatus.FIRST_HALF:
-      case MatchStatus.SECOND_HALF:
-      case MatchStatus.EXTRA_TIME:
-        break;
-    }
-  }, []);
+  let visibleStatus = "";
+  switch (props.currentStatus) {
+    // in case the game is not started, print the hour when the match starts
+    case MatchStatus.NOT_STARTED:
+      visibleStatus = props.startTimeUTC.toTimeString().substring(0, 5);
+      break;
+    case MatchStatus.HALF_TIME:
+    case MatchStatus.FINISHED:
+    case MatchStatus.PENALTIES:
+    case MatchStatus.POSTPONED:
+    case MatchStatus.ABANDONED:
+      visibleStatus = MatchStatus.format(props.currentStatus)!;
+      break;
+    // these are included for completeness, but they should not do anything, 
+    // since if the status is set to these values, this component should not 
+    // be rendered at all - the rendered component must be MatchClock
+    case MatchStatus.FIRST_HALF:
+    case MatchStatus.SECOND_HALF:
+    case MatchStatus.EXTRA_TIME:
+      break;
+  }
 
   return (
     <>
