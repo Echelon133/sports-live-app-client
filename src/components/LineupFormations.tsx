@@ -159,11 +159,13 @@ function PlayerPoint(props: { player: PlayerInFormation }) {
         <div className={`${sideColor} w-9 h-9 rounded-full border border-1 border-c4 text-center`}>
           <p className="font-bold text-2xl py-1">{props.player.number}</p>
         </div>
-        <span className="font-bold text-sm px-1 bg-c0 rounded-xl text-center text-wrap">
-          {props.player.name}
-        </span>
         <div className="absolute">
-          <div className="relative bottom-5 right-7">
+          <span className="relative top-8 font-bold text-sm px-1 bg-c0 rounded-xl text-center text-wrap">
+            {props.player.name}
+          </span>
+        </div>
+        <div className="absolute">
+          <div className="relative bottom-4 right-6">
             <div className="flex flex-col h-12 justify-end">
               {props.player.activity.goalCounter > 0 &&
                 <div className="mb-[-6px]">
