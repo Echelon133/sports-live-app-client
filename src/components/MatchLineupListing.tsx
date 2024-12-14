@@ -141,6 +141,14 @@ function SubstitutionEventsBox(props: {
   homeSubstitutionEvents: SubstitutionEvent[],
   awaySubstitutionEvents: SubstitutionEvent[],
 }) {
+  // make both arrays the same length so that the html lists based on them are also of equal length,
+  // otherwise there is a UI bug where the elements of the longer html list abruptly end in 
+  // the middle of the screen, with no styling on the other side
+  const [homeSubstitutions, awaySubstitutions] = equalizeArrayLengths<SubstitutionEvent>(
+    props.homeSubstitutionEvents,
+    props.awaySubstitutionEvents
+  );
+
   return (
     <>
       <div className="flex flex-row bg-c1 h-8 pt-2 shadow-sm shadow-black mb-2 mt-12">
@@ -150,36 +158,40 @@ function SubstitutionEventsBox(props: {
       </div>
       <div className="flex flex-row">
         <div className="basis-1/2">
-          {props.homeSubstitutionEvents.map(e => {
+          {homeSubstitutions.map(e => {
             return (
               <>
                 <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center rounded-l-xl ml-5">
-                  <div className="flex flex-row items-center ml-3">
-                    <SubstitutionIcon />
-                    <span className="ml-2">{e.minute}'</span>
-                    <div className="flex flex-col ml-4">
-                      <span className="font-extrabold">{e.playerIn.name}</span>
-                      <span className="text-gray text-sm">{e.playerOut.name}</span>
+                  {e !== undefined &&
+                    <div className="flex flex-row items-center ml-3">
+                      <SubstitutionIcon />
+                      <span className="ml-2">{e.minute}'</span>
+                      <div className="flex flex-col ml-4">
+                        <span className="font-extrabold">{e.playerIn.name}</span>
+                        <span className="text-gray text-sm">{e.playerOut.name}</span>
+                      </div>
                     </div>
-                  </div>
+                  }
                 </div>
               </>
             )
           })}
         </div>
         <div className="basis-1/2">
-          {props.awaySubstitutionEvents.map(e => {
+          {awaySubstitutions.map(e => {
             return (
               <>
                 <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center justify-end rounded-r-xl mr-5">
-                  <div className="flex flex-row-reverse items-center mr-3">
-                    <SubstitutionIcon />
-                    <span className="mr-2">{e.minute}'</span>
-                    <div className="flex flex-col mr-4 items-end">
-                      <span className="font-extrabold">{e.playerIn.name}</span>
-                      <span className="text-gray text-sm">{e.playerOut.name}</span>
+                  {e !== undefined &&
+                    <div className="flex flex-row-reverse items-center mr-3">
+                      <SubstitutionIcon />
+                      <span className="mr-2">{e.minute}'</span>
+                      <div className="flex flex-col mr-4 items-end">
+                        <span className="font-extrabold">{e.playerIn.name}</span>
+                        <span className="text-gray text-sm">{e.playerOut.name}</span>
+                      </div>
                     </div>
-                  </div>
+                  }
                 </div>
               </>
             )
@@ -219,54 +231,64 @@ function LineupTable(props: {
   awayPlayers: TeamPlayer[],
   playerActivity: PlayerActivityMap
 }) {
+  // make both arrays the same length so that the html lists based on them are also of equal length,
+  // otherwise there is a UI bug where the elements of the longer html list abruptly end in 
+  // the middle of the screen, with no styling on the other side
+  const [homePlayers, awayPlayers] =
+    equalizeArrayLengths<TeamPlayer>(props.homePlayers, props.awayPlayers);
+
   return (
     <>
       <div className="flex flex-row">
         <div className="basis-1/2">
-          {props.homePlayers.map(homePlayer => {
-            const homePlayerActivity =
-              playerActivityGetOrDefault(props.playerActivity, homePlayer?.id!);
+          {homePlayers.map(homePlayer => {
             return (
               <>
                 <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center rounded-l-xl ml-5">
-                  <div className="flex flex-row ml-4">
-                    <div className="flex flex-row">
-                      <span className="w-8 text-center">{homePlayer?.number}</span>
-                      <span className="w-7">
-                        {countryCodeToFlagEmoji(homePlayer?.countryCode)}
-                      </span>
-                      <span className="text-wrap">
-                        {homePlayer?.player.name}
-                        {homePlayer?.position === "GOALKEEPER" ? " (G)" : ""}
-                      </span>
-                      <PlayerActivityIcons playerActivity={homePlayerActivity} />
+                  {homePlayer !== undefined &&
+                    <div className="flex flex-row ml-4">
+                      <div className="flex flex-row">
+                        <span className="w-8 text-center">{homePlayer?.number}</span>
+                        <span className="w-7">
+                          {countryCodeToFlagEmoji(homePlayer?.countryCode)}
+                        </span>
+                        <span className="text-wrap">
+                          {homePlayer?.player.name}
+                          {homePlayer?.position === "GOALKEEPER" ? " (G)" : ""}
+                        </span>
+                        <PlayerActivityIcons playerActivity={
+                          playerActivityGetOrDefault(props.playerActivity, homePlayer!.id)
+                        } />
+                      </div>
                     </div>
-                  </div>
+                  }
                 </div>
               </>
             )
           })}
         </div >
         <div className="basis-1/2">
-          {props.awayPlayers.map(awayPlayer => {
-            const awayPlayerActivity =
-              playerActivityGetOrDefault(props.playerActivity, awayPlayer?.id!);
+          {awayPlayers.map(awayPlayer => {
             return (
               <>
                 <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center justify-end rounded-r-xl mr-5">
-                  <div className="flex flex-row mr-4">
-                    <div className="flex flex-row-reverse">
-                      <span className="w-8 text-center">{awayPlayer?.number}</span>
-                      <span className="w-7 pl-2">
-                        {countryCodeToFlagEmoji(awayPlayer?.countryCode)}
-                      </span>
-                      <span className="text-wrap pl-1">
-                        {awayPlayer?.player.name}
-                        {awayPlayer?.position === "GOALKEEPER" ? " (G)" : ""}
-                      </span>
-                      <PlayerActivityIcons playerActivity={awayPlayerActivity} />
+                  {awayPlayer !== undefined &&
+                    <div className="flex flex-row mr-4">
+                      <div className="flex flex-row-reverse">
+                        <span className="w-8 text-center">{awayPlayer?.number}</span>
+                        <span className="w-7 pl-2">
+                          {countryCodeToFlagEmoji(awayPlayer?.countryCode)}
+                        </span>
+                        <span className="text-wrap pl-1">
+                          {awayPlayer?.player.name}
+                          {awayPlayer?.position === "GOALKEEPER" ? " (G)" : ""}
+                        </span>
+                        <PlayerActivityIcons playerActivity={
+                          playerActivityGetOrDefault(props.playerActivity, awayPlayer!.id)
+                        } />
+                      </div>
                     </div>
-                  </div>
+                  }
                 </div>
               </>
             )
@@ -379,4 +401,21 @@ function divideSubstitutionEventsByTeam(
   }
 
   return [homeSubstitutionEvents, awaySubstitutionEvents];
+}
+
+function equalizeArrayLengths<E>(arr1: E[], arr2: E[])
+  : [(E | undefined)[], (E | undefined)[]] {
+
+  if (arr1.length == arr2.length) {
+    return [arr1, arr2];
+  }
+
+  const desiredLength = Math.max(arr1.length, arr2.length);
+  const arr1Result = new Array(desiredLength).fill(undefined);
+  const arr2Result = new Array(desiredLength).fill(undefined);
+  for (let i = 0; i < desiredLength; i++) {
+    arr1Result[i] = arr1[i];
+    arr2Result[i] = arr2[i];
+  }
+  return [arr1Result, arr2Result];
 }
