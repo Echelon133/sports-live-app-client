@@ -238,21 +238,23 @@ export default function Match() {
         <div className="ml-10 mt-5">
           <FilterMenu filter={filterMenuInfo} />
         </div>
-        {selectedMatchInfoOption === "summary" &&
-          <MatchEventsSummary
-            matchId={router.query.id?.toString()}
-            homeTeamId={allMatchInformation?.match.homeTeam?.id}
-            matchEvents={matchEvents}
-            setMatchEvents={setMatchEvents}
-          />
-        }
-        {selectedMatchInfoOption === "lineups" &&
-          <MatchLineupListing
-            matchId={router.query.id?.toString()}
-            homeTeamId={allMatchInformation?.match.homeTeam?.id}
-            matchEvents={matchEvents}
-          />
-        }
+        <div className="pb-14">
+          {selectedMatchInfoOption === "summary" &&
+            <MatchEventsSummary
+              matchId={router.query.id?.toString()}
+              homeTeamId={allMatchInformation?.match.homeTeam?.id}
+              matchEvents={matchEvents}
+              setMatchEvents={setMatchEvents}
+            />
+          }
+          {selectedMatchInfoOption === "lineups" &&
+            <MatchLineupListing
+              matchId={router.query.id?.toString()}
+              homeTeamId={allMatchInformation?.match.homeTeam?.id}
+              matchEvents={matchEvents}
+            />
+          }
+        </div>
       </div>
     </div>
   )
