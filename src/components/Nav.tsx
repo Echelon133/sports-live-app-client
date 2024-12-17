@@ -1,12 +1,13 @@
-import { Rubik } from "next/font/google";
-const headerFont = Rubik({ subsets: ["latin"] });
+import Link from "next/link";
 
 export default function Nav() {
   return (
     <nav>
       <div className="flex h-20 bg-c1">
         <div className="basis-3/5 md:pl-16">
-          <h2 className={"p-6 text-white font-extrabold text-xl " + headerFont.className}><a href="/">Sports-live</a></h2>
+          <h2 className="p-6 text-white font-extrabold text-xl ">
+            <Link href="/">Sports-live</Link>
+          </h2>
         </div>
         <div className="basis-2/5">
           <div className="mt-7 relative">
@@ -27,3 +28,4 @@ export default function Nav() {
     </nav>
   );
 }
+
