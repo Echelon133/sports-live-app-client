@@ -24,8 +24,8 @@ export default function LineupFormations(props: {
 
   return (
     <>
-      <div className="">
-        <div className="flex bg-c1 my-3 mx-4 py-2 items-center text-sm text-center font-bold rounded-xl">
+      <div className="justify-items-center">
+        <div className="w-full flex bg-c1 my-3 mx-4 py-2 items-center text-sm text-center font-bold rounded-xl">
           <div className="basis-1/3">
             {homeFormation}
           </div>
@@ -117,8 +117,8 @@ function FootballPitch(props: {
 
   return (
     <div className="flex bg-c1 my-2">
-      <div className="basis-full football-pitch mx-6 my-4 sm:m-auto">
-        <div className="flex flex-col sm:flex-row h-full sm:h-[60vw]">
+      <div className="basis-full football-pitch mx-6 my-4">
+        <div className="flex flex-col sm:flex-row h-full">
           <div className="basis-1/2">
             <div className="flex flex-col sm:flex-row h-full justify-evenly">
               {homeFormation.map(row => {

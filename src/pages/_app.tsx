@@ -25,7 +25,11 @@ export default function App({ Component, pageProps }: AppProps) {
         showPinnedCompetitions={showPinnedCompetitions}
         togglePinnedCompetitions={togglePinnedCompetitions}
       />
-      <Component {...pageProps} />
+      <div className="flex justify-center">
+        <div className="basis-full md:basis-[768px]">
+          <Component {...pageProps} />
+        </div>
+      </div>
     </>
   )
 }

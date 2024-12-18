@@ -225,8 +225,8 @@ export default function Match() {
   }, [router.query.id, allMatchInformation?.match.homeTeam?.id])
 
   return (
-    <div className="flex flex-row items-center justify-center">
-      <div className="mt-10 basis-full">
+    <div className="mt-10 flex flex-row">
+      <div className="basis-full">
         {allMatchInformation !== undefined ?
           <MatchInfoContent
             allMatchInformation={allMatchInformation}

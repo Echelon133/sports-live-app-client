@@ -82,17 +82,19 @@ export default function Home() {
   }, []);
 
   return (
-    <main>
-      <DatePicker selectedDateKey={selectedDateKey} setSelectedDateKey={setSelectedDateKey} />
-      {groupedMatchesContentLoaded ?
-        <GroupedMatchesContent
-          competitionGroupedMatches={competitionGroupedMatches}
-          globalUpdatesSocket={globalUpdatesSocket}
-        />
-        :
-        <GroupedMatchInfoSkeleton />
-      }
-    </main>
+    <>
+      <div className="mt-10">
+        <DatePicker selectedDateKey={selectedDateKey} setSelectedDateKey={setSelectedDateKey} />
+        {groupedMatchesContentLoaded ?
+          <GroupedMatchesContent
+            competitionGroupedMatches={competitionGroupedMatches}
+            globalUpdatesSocket={globalUpdatesSocket}
+          />
+          :
+          <GroupedMatchInfoSkeleton />
+        }
+      </div>
+    </>
   );
 }
 
@@ -103,7 +105,7 @@ function GroupedMatchesContent(props: {
   return (
     <>
       {props.competitionGroupedMatches.size > 0 ?
-        <div className="mt-8 h-full">
+        <div className="h-full">
           {
             Array.from(props.competitionGroupedMatches).map(([competitionInfo, matches]) => {
               return <GroupedMatchInfo
