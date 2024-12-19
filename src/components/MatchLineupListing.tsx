@@ -8,6 +8,7 @@ import OwnGoalIcon from "./icons/OwnGoalIcon";
 import CardIcon from "./icons/CardIcon";
 import SubstitutionIcon from "./icons/SubstitutionIcon";
 import { MatchEvent, MatchEventInfo, MatchEventType, SubstitutionEvent } from "@/types/MatchEvents";
+import InfoMessage from "./InfoMessage";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -87,27 +88,45 @@ function LineupContent(props: {
     (props.homeSubstitutionEvents.length !== 0) ||
     (props.awaySubstitutionEvents.length !== 0);
 
+  function lineupNotEmpty(lineup: Lineup): boolean {
+    const lengths =
+      lineup.home.startingPlayers.length +
+      lineup.home.substitutePlayers.length +
+      lineup.away.startingPlayers.length +
+      lineup.away.substitutePlayers.length;
+
+    return lengths !== 0
+  }
+
   return (
     <>
-      <LineupFormations lineup={props.lineup} playerActivity={props.playerActivity} />
-      {showSubstitutionBox &&
-        <SubstitutionEventsBox
-          homeSubstitutionEvents={props.homeSubstitutionEvents}
-          awaySubstitutionEvents={props.awaySubstitutionEvents}
-        />
+      {lineupNotEmpty(props.lineup) ?
+        <>
+          <LineupFormations lineup={props.lineup} playerActivity={props.playerActivity} />
+          {showSubstitutionBox &&
+            <SubstitutionEventsBox
+              homeSubstitutionEvents={props.homeSubstitutionEvents}
+              awaySubstitutionEvents={props.awaySubstitutionEvents}
+            />
+          }
+          <NamedLineup
+            title="Starting Players"
+            homePlayers={props.lineup.home.startingPlayers}
+            awayPlayers={props.lineup.away.startingPlayers}
+            playerActivity={props.playerActivity}
+          />
+          <NamedLineup
+            title="Substitute Players"
+            homePlayers={props.lineup.home.substitutePlayers}
+            awayPlayers={props.lineup.away.substitutePlayers}
+            playerActivity={props.playerActivity}
+          />
+        </>
+        :
+        <div className="mt-8">
+          <InfoMessage message="Lineups currently unavailable" />
+        </div>
       }
-      <NamedLineup
-        title="Starting Players"
-        homePlayers={props.lineup.home.startingPlayers}
-        awayPlayers={props.lineup.away.startingPlayers}
-        playerActivity={props.playerActivity}
-      />
-      <NamedLineup
-        title="Substitute Players"
-        homePlayers={props.lineup.home.substitutePlayers}
-        awayPlayers={props.lineup.away.substitutePlayers}
-        playerActivity={props.playerActivity}
-      />
     </>
   )
 }

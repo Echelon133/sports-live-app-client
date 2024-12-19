@@ -10,6 +10,7 @@ import Link from "next/link";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
 import LoadMoreButton from "@/components/LoadMoreButton";
 import { Socket, io } from "socket.io-client";
+import InfoMessage from "@/components/InfoMessage";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -548,9 +549,7 @@ function TopScorersListing(props: {
     <>
       {playerStats.length === 0 ?
         <>
-          <div className="flex flex-row bg-c1 h-14 shadow-sm shadow-black items-center justify-center">
-            <span className="font-extrabold text-xl text-c4">No stats</span>
-          </div>
+          <InfoMessage message="Statistics currently unavailable" />
         </>
         :
         <>

@@ -6,6 +6,7 @@ import CardIcon from "./icons/CardIcon";
 import OwnGoalIcon from "./icons/OwnGoalIcon";
 import GoalIcon from "./icons/GoalIcon";
 import SubstitutionIcon from "./icons/SubstitutionIcon";
+import InfoMessage from "./InfoMessage";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -46,9 +47,9 @@ export default function MatchEventsSummary(props: {
       {((props.matchEvents !== undefined) && (props.homeTeamId !== undefined)) ?
         <>
           {props.matchEvents.length === 0 ?
-            <div className="mt-8 py-40 text-center">
-              <span className="font-mono text-2xl font-extrabold text-c4">No events yet</span>
-            </div >
+            <div className="mt-8">
+              <InfoMessage message="No events yet" />
+            </div>
             :
             <MatchEventsSummaryContent
               key={props.matchId}

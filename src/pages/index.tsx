@@ -6,6 +6,7 @@ import { CompetitionInfo, CompetitionGroupedMatches, CompetitionIdGroupedMatches
 import { CompactMatchInfo } from "@/types/Match";
 import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
 import { Socket, io } from "socket.io-client";
+import InfoMessage from "@/components/InfoMessage";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -118,8 +119,8 @@ function GroupedMatchesContent(props: {
           }
         </div>
         :
-        < div className="mt-8 py-40 text-center">
-          <span className="font-mono text-2xl font-extrabold text-c4">No matches available</span>
+        < div className="mt-8">
+          <InfoMessage message="No results" />
         </div >
       }
     </>

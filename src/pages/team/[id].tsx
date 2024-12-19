@@ -12,6 +12,7 @@ import { TeamPlayer } from "@/types/Lineup";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
 import LoadMoreButton from "@/components/LoadMoreButton";
 import { Socket, io } from "socket.io-client";
+import InfoMessage from "@/components/InfoMessage";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -413,7 +414,15 @@ function TeamPlayersListing(props: { teamId: string | undefined }) {
   return (
     <>
       {playersContentLoaded ?
-        <TeamPlayersContent players={players} />
+        <>
+          {players.length > 0 ?
+            <>
+              <TeamPlayersContent players={players} />
+            </>
+            :
+            <InfoMessage message="Player list currently unavailable" />
+          }
+        </>
         :
         <TeamPlayersContentSkeleton />
       }
