@@ -25,7 +25,7 @@ export default function PinnedCompetitionListing(props: {
 
   return (
     <>
-      <div className={`h-full absolute top-0 ${props.showPinnedCompetitions ? "visible" : "invisible"}`}>
+      <div className={`z-50 h-full absolute top-0 ${props.showPinnedCompetitions ? "visible" : "invisible"}`}>
         <div className="relative flex flex-col bg-c0 items-center text-c4 h-full px-5 pt-5 shadow-white shadow-sm">
           <button
             onClick={props.togglePinnedCompetitions}

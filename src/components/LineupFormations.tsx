@@ -155,7 +155,7 @@ function PlayerPoint(props: { player: PlayerInFormation }) {
   const sideColor = props.player.home ? "bg-positive-b" : "bg-positive-c";
   return (
     <>
-      <div className="flex flex-col items-center m-auto z-50">
+      <div className="flex flex-col items-center m-auto z-40">
         <div className={`${sideColor} w-9 h-9 rounded-full border border-1 border-c4 text-center`}>
           <p className="font-bold text-2xl py-1">{props.player.number}</p>
         </div>
