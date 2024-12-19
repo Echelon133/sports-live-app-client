@@ -39,7 +39,7 @@ export default function PinnedCompetitionListing(props: {
           <ul className="flex flex-col mt-5">
             {competitions.map(c => {
               return (
-                <li key={c.id} className="pl-4">
+                <li key={c.id} className="pl-4 mb-4">
                   <Image
                     className="bg-white p-1 rounded-sm float-left mr-2"
                     width="25"
