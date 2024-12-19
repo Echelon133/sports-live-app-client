@@ -279,7 +279,7 @@ function MatchInfoContent(props: {
           width="25"
           height="25"
           src={competitionLogoUrl ?? "../../placeholder-competition-logo.svg"}
-          alt="Competition name" />
+          alt="Competition's name" />
         <Link href={`/competition/${props.allMatchInformation.competition.id}`}>
           <span className="font-extrabold hover:underline text-c4">{props.allMatchInformation?.competition.name}</span>
         </Link>
@@ -298,7 +298,7 @@ function MatchInfoContent(props: {
                   width="100"
                   height="100"
                   src={homeCrestUrl ?? "../../placeholder-club-logo.svg"}
-                  alt="Home team crest" />
+                  alt="Home team's crest" />
                 <Link href={`/team/${matchInformation.homeTeam?.id}`}>
                   <span className="font-extrabold hover:underline">{matchInformation?.homeTeam?.name}</span>
                 </Link>
@@ -358,7 +358,7 @@ function MatchInfoContent(props: {
                   width="100"
                   height="100"
                   src={awayCrestUrl ?? "../../placeholder-club-logo.svg"}
-                  alt="Away team crest" />
+                  alt="Away team's crest" />
                 <Link href={`/team/${matchInformation.awayTeam?.id}`}>
                   <span className="font-extrabold hover:underline">{matchInformation?.awayTeam?.name}</span>
                 </Link>
@@ -385,7 +385,7 @@ function MatchInfoContentSkeleton() {
               width="100"
               height="100"
               src="../../placeholder-club-logo.svg"
-              alt="Club name" />
+              alt="Team's name" />
           </div>
           <div className="flex flex-col basis-1/3 text-center">
             <div className="basis-full pt-5">
@@ -398,7 +398,7 @@ function MatchInfoContentSkeleton() {
               width="100"
               height="100"
               src="../../placeholder-club-logo.svg"
-              alt="Club name" />
+              alt="Team's name" />
           </div>
         </div>
       </div>

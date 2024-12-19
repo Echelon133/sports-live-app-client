@@ -45,7 +45,7 @@ export default function PinnedCompetitionListing(props: {
                     width="25"
                     height="25"
                     src={c.logoUrl ?? "placeholder-competition-logo.svg"}
-                    alt={c.name} />
+                    alt={c.name ?? "Competition's logo"} />
                   <Link
                     href={`/competition/${c.id}`}
                     onClick={props.togglePinnedCompetitions}>

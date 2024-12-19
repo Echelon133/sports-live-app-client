@@ -51,13 +51,14 @@ export default function MatchEventsSummary(props: {
             </div >
             :
             <MatchEventsSummaryContent
+              key={props.matchId}
               matchEvents={props.matchEvents}
               homeTeamId={props.homeTeamId}
             />
           }
         </>
         :
-        <MatchEventsSummaryContentSkeleton />
+        <MatchEventsSummaryContentSkeleton key={props.matchId + "skeleton"} />
       }
     </>
   )
@@ -83,20 +84,20 @@ function MatchEventsSummaryContentSkeleton() {
     <>
       {[...Array(3)].map((_e, i) => {
         return (
-          <>
-            <div key={i} className="animate-pulse flex flex-row bg-c2 h-8 pt-2 shadow-sm shadow-black mb-2">
+          <div key={i}>
+            <div className="animate-pulse flex flex-row bg-c2 h-8 pt-2 shadow-sm shadow-black mb-2">
               <div className="basis-full"></div>
             </div>
-            {[...Array(3)].map((_e, j) => {
-              return (
-                <>
-                  <div className="animate-pulse flex flex-col bg-c1 p-8 mb-2">
-                    <div className="basis-full"></div>
-                  </div>
-                </>
-              )
-            })}
-          </>
+            <div className="animate-pulse flex flex-col bg-c1 p-8 mb-2">
+              <div className="basis-full"></div>
+            </div>
+            <div className="animate-pulse flex flex-col bg-c1 p-8 mb-2">
+              <div className="basis-full"></div>
+            </div>
+            <div className="animate-pulse flex flex-col bg-c1 p-8 mb-2">
+              <div className="basis-full"></div>
+            </div>
+          </div>
         )
       })}
     </>
@@ -111,29 +112,34 @@ function matchEventsRender(matchEvent: {
   event: MatchEvents.MatchEvent,
   homeTeamId: string | undefined
 }) {
+  const eventId = matchEvent.event.id;
   const event = matchEvent.event.event;
   switch (event.type) {
     case MatchEvents.MatchEventType.STATUS:
-      return <StatusEventBox event={event} />
+      return <StatusEventBox key={eventId} event={event} />
     case MatchEvents.MatchEventType.COMMENTARY:
-      return <CommentaryEventBox event={event} />
+      return <CommentaryEventBox key={eventId} event={event} />
     case MatchEvents.MatchEventType.CARD:
       return <CardEventBox
+        key={eventId}
         event={event}
         leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)}
       />
     case MatchEvents.MatchEventType.GOAL:
       return <GoalEventBox
+        key={eventId}
         event={event}
         leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)}
       />
     case MatchEvents.MatchEventType.SUBSTITUTION:
       return <SubstitutionEventBox
+        key={eventId}
         event={event}
         leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)}
       />
     case MatchEvents.MatchEventType.PENALTY:
       return <PenaltyEventBox
+        key={eventId}
         event={event}
         leftSided={isHomeTeamRelated(event.teamId, matchEvent.homeTeamId)}
       />

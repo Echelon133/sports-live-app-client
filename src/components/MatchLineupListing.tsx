@@ -63,13 +63,14 @@ export default function MatchLineupListing(props: {
       </div>
       {lineupContentLoaded ?
         <LineupContent
+          key={props.matchId}
           lineup={lineup}
           playerActivity={playerActivity}
           homeSubstitutionEvents={homeSubstitutionEvents}
           awaySubstitutionEvents={awaySubstitutionEvents}
         />
         :
-        <LineupContentSkeleton />
+        <LineupContentSkeleton key={props.matchId + "skeleton"} />
       }
     </>
   )
@@ -116,21 +117,18 @@ function LineupContentSkeleton() {
     <>
       {["Starting Players", "Substitute Players"].map((title, i) => {
         return (
-          <>
+          <div key={i}>
             <div
-              key={i}
               className="animate-pulse flex flex-row bg-c1 h-8 pt-2 shadow-sm shadow-black mb-2">
               <span className="pl-10 float-left text-sm text-c3">{title}</span>
             </div>
             {[...Array(8)].map((_e, j) => {
               return (
-                <>
-                  <div key={i * j} className="animate-pulse flex odd:bg-c0 even:bg-c1 h-12 rounded-xl mx-5">
-                  </div>
-                </>
+                <div key={(j + 1) * 10} className="animate-pulse flex odd:bg-c0 even:bg-c1 h-12 rounded-xl mx-5">
+                </div>
               )
             })}
-          </>
+          </div>
         )
       })}
     </>
@@ -158,42 +156,38 @@ function SubstitutionEventsBox(props: {
       </div>
       <div className="flex flex-row">
         <div className="basis-1/2">
-          {homeSubstitutions.map(e => {
+          {homeSubstitutions.map((e, i) => {
             return (
-              <>
-                <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center rounded-l-xl ml-5">
-                  {e !== undefined &&
-                    <div className="flex flex-row items-center ml-3">
-                      <SubstitutionIcon />
-                      <span className="ml-2">{e.minute}'</span>
-                      <div className="flex flex-col ml-4">
-                        <span className="font-extrabold">{e.playerIn.name}</span>
-                        <span className="text-gray text-sm">{e.playerOut.name}</span>
-                      </div>
+              <div key={i} className="flex odd:bg-c0 even:bg-c1 h-12 items-center rounded-l-xl ml-5">
+                {e !== undefined &&
+                  <div className="flex flex-row items-center ml-3">
+                    <SubstitutionIcon />
+                    <span className="ml-2">{e.minute}'</span>
+                    <div className="flex flex-col ml-4">
+                      <span className="font-extrabold">{e.playerIn.name}</span>
+                      <span className="text-gray text-sm">{e.playerOut.name}</span>
                     </div>
-                  }
-                </div>
-              </>
+                  </div>
+                }
+              </div>
             )
           })}
         </div>
         <div className="basis-1/2">
-          {awaySubstitutions.map(e => {
+          {awaySubstitutions.map((e, j) => {
             return (
-              <>
-                <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center justify-end rounded-r-xl mr-5">
-                  {e !== undefined &&
-                    <div className="flex flex-row-reverse items-center mr-3">
-                      <SubstitutionIcon />
-                      <span className="mr-2">{e.minute}'</span>
-                      <div className="flex flex-col mr-4 items-end">
-                        <span className="font-extrabold">{e.playerIn.name}</span>
-                        <span className="text-gray text-sm">{e.playerOut.name}</span>
-                      </div>
+              <div key={(j + 1) * 10} className="flex odd:bg-c0 even:bg-c1 h-12 items-center justify-end rounded-r-xl mr-5">
+                {e !== undefined &&
+                  <div className="flex flex-row-reverse items-center mr-3">
+                    <SubstitutionIcon />
+                    <span className="mr-2">{e.minute}'</span>
+                    <div className="flex flex-col mr-4 items-end">
+                      <span className="font-extrabold">{e.playerIn.name}</span>
+                      <span className="text-gray text-sm">{e.playerOut.name}</span>
                     </div>
-                  }
-                </div>
-              </>
+                  </div>
+                }
+              </div>
             )
           })}
 
@@ -243,54 +237,50 @@ function LineupTable(props: {
         <div className="basis-1/2">
           {homePlayers.map(homePlayer => {
             return (
-              <>
-                <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center rounded-l-xl ml-5">
-                  {homePlayer !== undefined &&
-                    <div className="flex flex-row ml-4">
-                      <div className="flex flex-row">
-                        <span className="w-8 text-center">{homePlayer?.number}</span>
-                        <span className="w-7">
-                          {countryCodeToFlagEmoji(homePlayer?.countryCode)}
-                        </span>
-                        <span className="text-wrap">
-                          {homePlayer?.player.name}
-                          {homePlayer?.position === "GOALKEEPER" ? " (G)" : ""}
-                        </span>
-                        <PlayerActivityIcons playerActivity={
-                          playerActivityGetOrDefault(props.playerActivity, homePlayer!.id)
-                        } />
-                      </div>
+              <div key={homePlayer?.id} className="flex odd:bg-c0 even:bg-c1 h-12 items-center rounded-l-xl ml-5">
+                {homePlayer !== undefined &&
+                  <div className="flex flex-row ml-4">
+                    <div className="flex flex-row">
+                      <span className="w-8 text-center">{homePlayer?.number}</span>
+                      <span className="w-7">
+                        {countryCodeToFlagEmoji(homePlayer?.countryCode)}
+                      </span>
+                      <span className="text-wrap">
+                        {homePlayer?.player.name}
+                        {homePlayer?.position === "GOALKEEPER" ? " (G)" : ""}
+                      </span>
+                      <PlayerActivityIcons playerActivity={
+                        playerActivityGetOrDefault(props.playerActivity, homePlayer!.id)
+                      } />
                     </div>
-                  }
-                </div>
-              </>
+                  </div>
+                }
+              </div>
             )
           })}
         </div >
         <div className="basis-1/2">
           {awayPlayers.map(awayPlayer => {
             return (
-              <>
-                <div className="flex odd:bg-c0 even:bg-c1 h-12 items-center justify-end rounded-r-xl mr-5">
-                  {awayPlayer !== undefined &&
-                    <div className="flex flex-row mr-4">
-                      <div className="flex flex-row-reverse">
-                        <span className="w-8 text-center">{awayPlayer?.number}</span>
-                        <span className="w-7 pl-2">
-                          {countryCodeToFlagEmoji(awayPlayer?.countryCode)}
-                        </span>
-                        <span className="text-wrap pl-1">
-                          {awayPlayer?.player.name}
-                          {awayPlayer?.position === "GOALKEEPER" ? " (G)" : ""}
-                        </span>
-                        <PlayerActivityIcons playerActivity={
-                          playerActivityGetOrDefault(props.playerActivity, awayPlayer!.id)
-                        } />
-                      </div>
+              <div key={awayPlayer?.id} className="flex odd:bg-c0 even:bg-c1 h-12 items-center justify-end rounded-r-xl mr-5">
+                {awayPlayer !== undefined &&
+                  <div className="flex flex-row mr-4">
+                    <div className="flex flex-row-reverse">
+                      <span className="w-8 text-center">{awayPlayer?.number}</span>
+                      <span className="w-7 pl-2">
+                        {countryCodeToFlagEmoji(awayPlayer?.countryCode)}
+                      </span>
+                      <span className="text-wrap pl-1">
+                        {awayPlayer?.player.name}
+                        {awayPlayer?.position === "GOALKEEPER" ? " (G)" : ""}
+                      </span>
+                      <PlayerActivityIcons playerActivity={
+                        playerActivityGetOrDefault(props.playerActivity, awayPlayer!.id)
+                      } />
                     </div>
-                  }
-                </div>
-              </>
+                  </div>
+                }
+              </div>
             )
           })}
         </div>

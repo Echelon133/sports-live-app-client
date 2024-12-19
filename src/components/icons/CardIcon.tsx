@@ -18,7 +18,7 @@ export default function CardIcon(props: { card: CardType }) {
 
   return (
     <div className="flex items-center justify-center h-6 w-6 bg-black rounded-full border border-white">
-      <Image className="h-3 w-2" width="0" height="0" src={cardImageSrc} alt="card" />
+      <Image className="h-3 w-2" width="0" height="0" src={cardImageSrc} alt="Card" />
     </div>
   )
 }

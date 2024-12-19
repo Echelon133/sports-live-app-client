@@ -121,9 +121,9 @@ function FootballPitch(props: {
         <div className="flex flex-col sm:flex-row h-full">
           <div className="basis-1/2">
             <div className="flex flex-col sm:flex-row h-full justify-evenly">
-              {homeFormation.map(row => {
+              {homeFormation.map((row, i) => {
                 return (
-                  <div className="flex flex-row sm:flex-col-reverse">
+                  <div key={i} className="flex flex-row sm:flex-col-reverse">
                     {row.map(player => {
                       return <PlayerPoint key={player.id} player={player} />
                     })}
@@ -134,9 +134,9 @@ function FootballPitch(props: {
           </div>
           <div className="basis-1/2">
             <div className="flex flex-col-reverse sm:flex-row-reverse h-full justify-evenly">
-              {awayFormation.map(row => {
+              {awayFormation.map((row, j) => {
                 return (
-                  <div className="flex flex-row-reverse sm:flex-col">
+                  <div key={(j + 1) * 10} className="flex flex-row-reverse sm:flex-col">
                     {row.map(player => {
                       return <PlayerPoint key={player.id} player={player} />
                     })}

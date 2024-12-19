@@ -107,9 +107,10 @@ function GroupedMatchesContent(props: {
       {props.competitionGroupedMatches.size > 0 ?
         <div className="h-full">
           {
-            Array.from(props.competitionGroupedMatches).map(([competitionInfo, matches]) => {
+            Array.from(props.competitionGroupedMatches).map(([competitionInfo, matches], i) => {
               return <GroupedMatchInfo
                 competitionInfo={competitionInfo}
+                key={competitionInfo.id ?? i}
                 matches={matches}
                 globalUpdatesSocket={props.globalUpdatesSocket}
               />

@@ -9,8 +9,8 @@ export function FormEntriesBox(props: {
 }) {
   return (
     <>
-      {props.formEntries.map((entry) => {
-        return <FormEntry entry={entry} setHighlightedTeamsIds={props.setHighlightedTeamsIds} />
+      {props.formEntries.map((entry, i) => {
+        return <FormEntry key={i} entry={entry} setHighlightedTeamsIds={props.setHighlightedTeamsIds} />
       })}
     </>
   )

@@ -33,7 +33,7 @@ export default function GroupedMatchInfo(props: {
                 width="25"
                 height="25"
                 src={competitionLogoUrl ?? "placeholder-competition-logo.svg"}
-                alt={props.competitionInfo.name} />
+                alt={props.competitionInfo.name ?? "Competition's logo"} />
               <Link href={`/competition/${props.competitionInfo.id}`}>
                 <span className="font-extrabold hover:underline text-c4">{props.competitionInfo.name}</span>
               </Link>
@@ -66,8 +66,8 @@ export default function GroupedMatchInfo(props: {
               </div>
             }
             {props.matches.map(m => {
-              return <Link href={`/match/${encodeURIComponent(m.id)}`}>
-                <SingleMatchInfo matchInfo={m} globalUpdatesSocket={props.globalUpdatesSocket} />
+              return <Link key={m.id} href={`/match/${encodeURIComponent(m.id)}`}>
+                <SingleMatchInfo key={m.id} matchInfo={m} globalUpdatesSocket={props.globalUpdatesSocket} />
               </Link>
             })}
           </div>
@@ -276,7 +276,7 @@ function SingleMatchInfo(props: {
               width="20"
               height="20"
               src={homeCrestUrl ?? "placeholder-club-logo.svg"}
-              alt="Home team crest" />
+              alt="Home team's crest" />
             <span className={
               `font-mono ml-2 ${updateableMatchInfo.highlight.home ? 'text-highlight-b' : ''} ${homeTeamWon ? 'font-extrabold' : ''}`
             }>

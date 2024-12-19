@@ -97,7 +97,7 @@ function TeamInfoContent(props: { team: FullTeamInfo | undefined }) {
                 width="125"
                 height="125"
                 src={teamCrestUrl ?? "../../placeholder-club-logo.svg"}
-                alt={teamName ?? ""} />
+                alt={teamName ?? "Team's crest"} />
             </div>
             <div className="basis-full mt-2 w-[125px]">
               <div className="flex justify-center">
@@ -127,7 +127,7 @@ function TeamInfoContentSkeleton() {
             width="120"
             height="120"
             src="../../placeholder-club-logo.svg"
-            alt="Team name" />
+            alt="Team's name" />
         </div>
         <div className="basis-2/3 mt-6 pl-16">
           <div className="animate-pulse bg-c4 h-12 w-full"></div>
@@ -294,6 +294,7 @@ function GroupedTeamMatchesContent(props: {
           {
             props.competitionGroupedTeamMatches.map((matchGroup) => {
               return <GroupedMatchInfo
+                key={matchGroup.competition.id}
                 competitionInfo={matchGroup.competition}
                 matches={matchGroup.matches}
                 globalUpdatesSocket={props.globalUpdatesSocket}

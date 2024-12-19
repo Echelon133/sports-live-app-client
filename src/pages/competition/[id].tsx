@@ -73,7 +73,7 @@ export default function Competition() {
             <FixturesSummary competition={competitionInformation} />
           }
           {selectedCompetitionInfoOption === "standings" &&
-            <StandingsSummary competition={competitionInformation} />
+            <StandingsSummary key={competitionInformation?.id} competition={competitionInformation} />
           }
         </div>
       </div>
@@ -93,7 +93,8 @@ function CompetitionInfoContent(props: { competition: CompetitionInfo | undefine
             width="120"
             height="120"
             src={competitionLogoUrl ?? "../../placeholder-competition-logo.svg"}
-            alt="Competition name" />
+            priority={true}
+            alt="Competition's name" />
         </div>
         <div className="basis-2/3 mt-6 pl-16">
           <p className="font-extrabold text-4xl text-c4">{props.competition?.name}</p>
@@ -114,7 +115,8 @@ function CompetitionInfoContentSkeleton() {
             width="120"
             height="120"
             src="../../placeholder-competition-logo.svg"
-            alt="Competition name" />
+            priority={false}
+            alt="Competition's name" />
         </div>
         <div className="basis-2/3 mt-6 pl-16">
           <div className="animate-pulse bg-c4 h-12 w-full"></div>
@@ -326,6 +328,7 @@ function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
               <div className="">
                 {competitionStandings?.groups.map((group) =>
                   <CompetitionGroupBox
+                    key={group.name}
                     competitionId={props.competition!.id}
                     group={group}
                     legendEntries={competitionStandings.legend}
@@ -418,7 +421,7 @@ function CompetitionGroupBox(props: {
                         width="22"
                         height="22"
                         src={team.crestUrl ?? "placeholder-club-logo.svg"}
-                        alt={team.teamName} />
+                        alt={team.teamName ?? "Team's crest"} />
                       <Link href={`/team/${team.teamId}`}>
                         <span className="pl-2 hover:underline">{team.teamName}</span>
                       </Link>
@@ -603,7 +606,7 @@ function TopScorersListing(props: {
                             width="22"
                             height="22"
                             src={cachedTeamInfo?.crestUrl ?? "placeholder-club-logo.svg"}
-                            alt={teamName ?? ""} />
+                            alt={teamName ?? "Team's crest"} />
                           <Link href={`/team/${cachedTeamInfo?.teamId}`}>
                             <span className="pl-2 hover:underline">{teamName}</span>
                           </Link>
