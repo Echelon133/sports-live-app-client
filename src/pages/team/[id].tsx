@@ -446,7 +446,7 @@ function TeamPlayersContent(props: { players: TeamPlayer[] }) {
             const dateOfBirth = player.player.dateOfBirth;
             const formattedDateOfBirth = `${dateOfBirth[0]}-${dateOfBirth[1]}-${dateOfBirth[2]}`;
             return (
-              <tr key={i} className="odd:bg-c1 even:bg-c0 text-center">
+              <tr key={i} className="odd:bg-c1 even:bg-c0 text-center text-sm sm:text-base">
                 <td>{player.number}</td>
                 <td>{player.player.name}</td>
                 <td>

@@ -205,15 +205,11 @@ function GoalEventBox(props: { event: MatchEvents.GoalEvent, leftSided: boolean 
             <GoalIcon />
           }
         </div>
-        <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-5`}>
-          <div className="">
-            <span className="font-extrabold">{props.event.scoringPlayer.name}</span>
-          </div>
-          <div className="">
-            {props.event.assistingPlayer &&
-              <span className="font-extralight px-2 text-sm text-gray">({props.event.assistingPlayer.name})</span>
-            }
-          </div>
+        <div className={`flex ${props.leftSided ? "sm:flex-row" : "sm:flex-row-reverse"} flex-col px-5 items-center`}>
+          <span className="font-extrabold">{props.event.scoringPlayer.name}</span>
+          {props.event.assistingPlayer &&
+            <span className="font-extralight px-2 text-sm text-gray">({props.event.assistingPlayer.name})</span>
+          }
         </div>
       </div>
     </>
@@ -228,13 +224,9 @@ function SubstitutionEventBox(props: { event: MatchEvents.SubstitutionEvent, lef
           <span className="text-sm font-extrabold">{props.event.minute}'</span>
           <SubstitutionIcon />
         </div>
-        <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-5`}>
-          <div className="">
-            <span className="font-extrabold">{props.event.playerIn.name}</span>
-          </div>
-          <div className="">
-            <span className="font-extralight px-2 text-sm text-gray">{props.event.playerOut.name}</span>
-          </div>
+        <div className={`flex ${props.leftSided ? "sm:flex-row" : "sm:flex-row-reverse"} flex-col px-5 items-center`}>
+          <span className="font-extrabold">{props.event.playerIn.name}</span>
+          <span className="font-extralight px-2 text-sm text-gray">{props.event.playerOut.name}</span>
         </div>
       </div>
     </>
@@ -253,13 +245,9 @@ function PenaltyEventBox(props: { event: MatchEvents.PenaltyEvent, leftSided: bo
             <OwnGoalIcon />
           }
         </div>
-        <div className={`flex ${props.leftSided ? "flex-row" : "flex-row-reverse"} px-5`}>
-          <div className="">
-            <span className="font-extrabold">{props.event.shootingPlayer.name}</span>
-          </div>
-          <div className="">
-            <span className="font-extralight px-2 text-sm text-gray">(Penalty)</span>
-          </div>
+        <div className={`flex ${props.leftSided ? "sm:flex-row" : "sm:flex-row-reverse"} flex-col px-5 items-center`}>
+          <span className="font-extrabold">{props.event.shootingPlayer.name}</span>
+          <span className="font-extralight px-2 text-sm text-gray">(Penalty)</span>
         </div>
       </div>
     </>

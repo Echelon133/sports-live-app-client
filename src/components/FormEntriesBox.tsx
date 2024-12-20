@@ -52,7 +52,7 @@ function FormEntry(props: {
     <>
       <div className="flex">
         <div
-          className="basis-full pl-2 py-1"
+          className="basis-full pl-1 py-1"
           onMouseOver={() => entryMouseOver()}
           onMouseLeave={() => entryMouseLeave()}
         >

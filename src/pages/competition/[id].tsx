@@ -391,7 +391,7 @@ function CompetitionGroupBox(props: {
                   "bg-gray" : "odd:bg-c1 even:bg-c0";
 
               return (
-                <tr className={`${highlightDependendStyles} text-center`}>
+                <tr className={`${highlightDependendStyles} text-center h-10`}>
                   <td><span className={`${positionColor} rounded-lg p-1`}>{index}.</span></td>
                   <td className="font-extralight text-sm">
                     <div className="flex items-center">
@@ -469,7 +469,7 @@ function FormBox(props: {
   return (
     <>
       {formContentLoaded && (teamForm.length > 0) ?
-        <div className="flex">
+        <div className="flex justify-center">
           <FormEntriesBox
             formEntries={teamForm}
             setHighlightedTeamsIds={props.setHighlightedTeamsIds}

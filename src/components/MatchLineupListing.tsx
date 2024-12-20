@@ -169,9 +169,7 @@ function SubstitutionEventsBox(props: {
   return (
     <>
       <div className="flex flex-row bg-c1 h-8 pt-2 shadow-sm shadow-black mb-2 mt-12">
-        <div className="">
-          <span className="pl-10 float-left text-sm text-c3">Substitutions</span>
-        </div>
+        <span className="pl-10 float-left text-sm text-c3">Substitutions</span>
       </div>
       <div className="flex flex-row">
         <div className="basis-1/2">
@@ -179,12 +177,12 @@ function SubstitutionEventsBox(props: {
             return (
               <div key={i} className="flex odd:bg-c0 even:bg-c1 h-12 items-center rounded-l-xl ml-5">
                 {e !== undefined &&
-                  <div className="flex flex-row items-center ml-3">
+                  <div className="flex flex-row items-center ml-3 text-xs sm:text-base">
                     <SubstitutionIcon />
-                    <span className="ml-2">{e.minute}'</span>
+                    <span className="ml-2 text-base">{e.minute}'</span>
                     <div className="flex flex-col ml-4">
                       <span className="font-extrabold">{e.playerIn.name}</span>
-                      <span className="text-gray text-sm">{e.playerOut.name}</span>
+                      <span className="text-gray sm:text-sm">{e.playerOut.name}</span>
                     </div>
                   </div>
                 }
@@ -197,12 +195,12 @@ function SubstitutionEventsBox(props: {
             return (
               <div key={(j + 1) * 10} className="flex odd:bg-c0 even:bg-c1 h-12 items-center justify-end rounded-r-xl mr-5">
                 {e !== undefined &&
-                  <div className="flex flex-row-reverse items-center mr-3">
+                  <div className="flex flex-row-reverse items-center mr-3 text-xs sm:text-base">
                     <SubstitutionIcon />
-                    <span className="mr-2">{e.minute}'</span>
+                    <span className="mr-2 text-base">{e.minute}'</span>
                     <div className="flex flex-col mr-4 items-end">
                       <span className="font-extrabold">{e.playerIn.name}</span>
-                      <span className="text-gray text-sm">{e.playerOut.name}</span>
+                      <span className="text-gray sm:text-sm">{e.playerOut.name}</span>
                     </div>
                   </div>
                 }
@@ -256,21 +254,24 @@ function LineupTable(props: {
         <div className="basis-1/2">
           {homePlayers.map(homePlayer => {
             return (
-              <div key={homePlayer?.id} className="flex odd:bg-c0 even:bg-c1 h-12 items-center rounded-l-xl ml-5">
+              <div key={homePlayer?.id} className="flex odd:bg-c0 even:bg-c1 h-12 justify-start rounded-l-xl ml-5">
                 {homePlayer !== undefined &&
                   <div className="flex flex-row ml-4">
-                    <div className="flex flex-row">
+                    <div className="flex flex-row items-center">
                       <span className="w-8 text-center">{homePlayer?.number}</span>
                       <span className="w-7">
                         {countryCodeToFlagEmoji(homePlayer?.countryCode)}
                       </span>
-                      <span className="text-wrap">
-                        {homePlayer?.player.name}
-                        {homePlayer?.position === "GOALKEEPER" ? " (G)" : ""}
-                      </span>
-                      <PlayerActivityIcons playerActivity={
-                        playerActivityGetOrDefault(props.playerActivity, homePlayer!.id)
-                      } />
+                      <div className="flex flex-col sm:flex-row sm:items-start">
+                        <span className="pl-1 text-xs sm:text-base">
+                          {homePlayer?.player.name}
+                          {homePlayer?.position === "GOALKEEPER" ? " (G)" : ""}
+                        </span>
+                        <PlayerActivityIcons
+                          playerActivity={playerActivityGetOrDefault(props.playerActivity, homePlayer!.id)}
+                          leftSide={true}
+                        />
+                      </div>
                     </div>
                   </div>
                 }
@@ -281,21 +282,24 @@ function LineupTable(props: {
         <div className="basis-1/2">
           {awayPlayers.map(awayPlayer => {
             return (
-              <div key={awayPlayer?.id} className="flex odd:bg-c0 even:bg-c1 h-12 items-center justify-end rounded-r-xl mr-5">
+              <div key={awayPlayer?.id} className="flex odd:bg-c0 even:bg-c1 h-12 justify-end rounded-r-xl mr-5">
                 {awayPlayer !== undefined &&
                   <div className="flex flex-row mr-4">
-                    <div className="flex flex-row-reverse">
+                    <div className="flex flex-row-reverse items-center">
                       <span className="w-8 text-center">{awayPlayer?.number}</span>
                       <span className="w-7 pl-2">
                         {countryCodeToFlagEmoji(awayPlayer?.countryCode)}
                       </span>
-                      <span className="text-wrap pl-1">
-                        {awayPlayer?.player.name}
-                        {awayPlayer?.position === "GOALKEEPER" ? " (G)" : ""}
-                      </span>
-                      <PlayerActivityIcons playerActivity={
-                        playerActivityGetOrDefault(props.playerActivity, awayPlayer!.id)
-                      } />
+                      <div className="flex flex-col sm:flex-row-reverse sm:items-end">
+                        <span className="pl-1 text-xs sm:text-base">
+                          {awayPlayer?.player.name}
+                          {awayPlayer?.position === "GOALKEEPER" ? " (G)" : ""}
+                        </span>
+                        <PlayerActivityIcons
+                          playerActivity={playerActivityGetOrDefault(props.playerActivity, awayPlayer!.id)}
+                          leftSide={false}
+                        />
+                      </div>
                     </div>
                   </div>
                 }
@@ -308,30 +312,32 @@ function LineupTable(props: {
   )
 }
 
-function PlayerActivityIcons(props: { playerActivity: PlayerActivity }) {
+function PlayerActivityIcons(props: { playerActivity: PlayerActivity, leftSide: boolean }) {
   const a = props.playerActivity;
   return (
     <>
-      {a.goalCounter > 0 &&
-        <div className="pl-1">
-          <GoalIcon goalCounter={a.goalCounter} />
-        </div>
-      }
-      {a.ownGoalCounter > 0 &&
-        <div className="pl-1">
-          <OwnGoalIcon ownGoalCounter={a.ownGoalCounter} />
-        </div>
-      }
-      {a.card !== undefined &&
-        <div className="pl-1">
-          <CardIcon card={a.card} />
-        </div>
-      }
-      {a.inSubstitution &&
-        <div className="pl-1">
-          <SubstitutionIcon />
-        </div>
-      }
+      <div className={`flex flex-row ${props.leftSide ? "justify-start" : "justify-end"}`}>
+        {a.goalCounter > 0 &&
+          <div className="pl-1">
+            <GoalIcon goalCounter={a.goalCounter} />
+          </div>
+        }
+        {a.ownGoalCounter > 0 &&
+          <div className="pl-1">
+            <OwnGoalIcon ownGoalCounter={a.ownGoalCounter} />
+          </div>
+        }
+        {a.card !== undefined &&
+          <div className="pl-1">
+            <CardIcon card={a.card} />
+          </div>
+        }
+        {a.inSubstitution &&
+          <div className="pl-1">
+            <SubstitutionIcon />
+          </div>
+        }
+      </div>
     </>
   )
 }
