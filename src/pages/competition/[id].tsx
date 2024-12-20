@@ -3,7 +3,6 @@ import Image from 'next/image'
 import getConfig from "next/config";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { CompetitionInfo, CompetitionGroupEntry, CompetitionIdGroupedMatches, CompetitionStandings, LegendEntry, LegendSentiment, PlayerStatsEntry, TeamFormEntries, TeamFormEntry, TeamStanding } from "@/types/Competition";
-import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { CompactMatchInfo } from "@/types/Match";
 import Link from "next/link";
@@ -11,6 +10,7 @@ import { FormEntriesBox } from "@/components/FormEntriesBox";
 import LoadMoreButton from "@/components/LoadMoreButton";
 import { Socket, io } from "socket.io-client";
 import InfoMessage from "@/components/InfoMessage";
+import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -21,21 +21,9 @@ export default function Competition() {
   const [competitionInformation, setCompetitionInformation] =
     useState<CompetitionInfo | undefined>(undefined);
 
-  // setup the filter with three options: Results, Fixtures, Standings
-  const DEFAULT_COMPETITION_FILTER: FilterOptionKey = "results";
-  const competitionFilterOptions: Map<FilterOptionKey, FilterOption> = new Map([
-    [DEFAULT_COMPETITION_FILTER, { displayName: "RESULTS", isSelected: true }],
-    ["fixtures", { displayName: "FIXTURES", isSelected: false }],
-    ["standings", { displayName: "STANDINGS", isSelected: false }],
-  ]);
-  const [selectedCompetitionInfoOption, setSelectedCompetitionInfoOption] =
-    useState<string>(DEFAULT_COMPETITION_FILTER);
-  const filterMenuInfo: FilterMenuInfo = {
-    options: competitionFilterOptions,
-    currentlySelected: selectedCompetitionInfoOption,
-    setCurrentlySelected: setSelectedCompetitionInfoOption
-  };
-
+  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
+    createMenuConfig(["RESULTS", "FIXTURES", "STANDINGS"])
+  );
 
   useEffect(() => {
     if (router.query.id === undefined) {
@@ -63,17 +51,17 @@ export default function Competition() {
         }
         <div className="mt-12 flex flex-row justify-center">
           <div>
-            <FilterMenu filter={filterMenuInfo} />
+            <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
           </div>
         </div>
         <div className="mt-12 pb-32">
-          {selectedCompetitionInfoOption === "results" &&
+          {menuConfig.currentlySelected === "RESULTS" &&
             <ResultsSummary competition={competitionInformation} />
           }
-          {selectedCompetitionInfoOption === "fixtures" &&
+          {menuConfig.currentlySelected === "FIXTURES" &&
             <FixturesSummary competition={competitionInformation} />
           }
-          {selectedCompetitionInfoOption === "standings" &&
+          {menuConfig.currentlySelected === "STANDINGS" &&
             <StandingsSummary key={competitionInformation?.id} competition={competitionInformation} />
           }
         </div>
@@ -274,19 +262,9 @@ function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
   const [competitionStandings, setCompetitionStandings] =
     useState<CompetitionStandings | undefined>(undefined);
 
-  // setup the filter with two options: Standings, Top Scorers
-  const DEFAULT_STANDINGS_FILTER: FilterOptionKey = "standings";
-  const standingsFilterOptions: Map<FilterOptionKey, FilterOption> = new Map([
-    [DEFAULT_STANDINGS_FILTER, { displayName: "STANDINGS", isSelected: true }],
-    ["top-scorers", { displayName: "TOP SCORERS", isSelected: false }],
-  ]);
-  const [selectedStandingsInfoOption, setSelectedStandingsInfoOption] =
-    useState<string>(DEFAULT_STANDINGS_FILTER);
-  const filterMenuInfo: FilterMenuInfo = {
-    options: standingsFilterOptions,
-    currentlySelected: selectedStandingsInfoOption,
-    setCurrentlySelected: setSelectedStandingsInfoOption
-  };
+  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
+    createMenuConfig(["STANDINGS", "TOP SCORERS"])
+  );
 
   useEffect(() => {
     if (props.competition === undefined) {
@@ -320,9 +298,9 @@ function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
   return (
     <>
       <div className="ml-12 mb-6">
-        <FilterMenu filter={filterMenuInfo} />
+        <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
       </div>
-      {selectedStandingsInfoOption === "standings" &&
+      {menuConfig.currentlySelected === "STANDINGS" &&
         <>
           {standingsContentLoaded ?
             <>
@@ -345,7 +323,7 @@ function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
           }
         </>
       }
-      {selectedStandingsInfoOption === "top-scorers" &&
+      {menuConfig.currentlySelected === "TOP SCORERS" &&
         <TopScorersListing competitionId={props.competition!.id} teamInfoCache={teamInfoCache} />
       }
     </>

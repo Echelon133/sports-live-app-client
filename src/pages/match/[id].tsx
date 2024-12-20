@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 import { FullMatchInfo, MatchStatus, Score, formatMatchDate } from "@/types/Match";
 import { CompetitionInfo } from "@/types/Competition";
 import MatchEventsSummary from "@/components/MatchEventsSummary";
-import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import MatchLineupListing from "@/components/MatchLineupListing";
 import Link from "next/link";
 import MatchStatusBox from "@/components/MatchStatusBox";
 import { MatchEvent, MatchEventType } from "@/types/MatchEvents";
 import { io } from "socket.io-client";
+import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
 
 const HIGHLIGHT_TIME = 3000;
 
@@ -51,19 +51,9 @@ export default function Match() {
     useState<AllMatchInfo | undefined>(undefined);
   const [matchEvents, setMatchEvents] = useState<MatchEvent[]>([]);
 
-  // setup the filter menu with two options: SUMMARY and LINEUPS 
-  const DEFAULT_MATCH_FILTER: FilterOptionKey = "summary";
-  const matchFilterOptions: Map<FilterOptionKey, FilterOption> = new Map([
-    [DEFAULT_MATCH_FILTER, { displayName: "SUMMARY", isSelected: true }],
-    ["lineups", { displayName: "LINEUPS", isSelected: false }],
-  ]);
-  const [selectedMatchInfoOption, setSelectedMatchInfoOption] =
-    useState<string>(DEFAULT_MATCH_FILTER);
-  const filterMenuInfo: FilterMenuInfo = {
-    options: matchFilterOptions,
-    currentlySelected: selectedMatchInfoOption,
-    setCurrentlySelected: setSelectedMatchInfoOption
-  };
+  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
+    createMenuConfig(["SUMMARY", "LINEUPS"])
+  );
 
   // match events received via websocket should be able to update the scoreline, the status
   // of the match, etc.
@@ -236,10 +226,10 @@ export default function Match() {
           <MatchInfoContentSkeleton />
         }
         <div className="ml-10 mt-5">
-          <FilterMenu filter={filterMenuInfo} />
+          <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
         </div>
         <div className="pb-14">
-          {selectedMatchInfoOption === "summary" &&
+          {menuConfig.currentlySelected === "SUMMARY" &&
             <MatchEventsSummary
               matchId={router.query.id?.toString()}
               homeTeamId={allMatchInformation?.match.homeTeam?.id}
@@ -247,7 +237,7 @@ export default function Match() {
               setMatchEvents={setMatchEvents}
             />
           }
-          {selectedMatchInfoOption === "lineups" &&
+          {menuConfig.currentlySelected === "LINEUPS" &&
             <MatchLineupListing
               matchId={router.query.id?.toString()}
               homeTeamId={allMatchInformation?.match.homeTeam?.id}

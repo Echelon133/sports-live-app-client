@@ -3,7 +3,6 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from "react";
 import { FullTeamInfo, countryCodeToFlagEmoji } from "@/types/Team";
 import getConfig from "next/config";
-import FilterMenu, { FilterMenuInfo, FilterOption, FilterOptionKey } from "@/components/FilterMenu";
 import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
 import { CompetitionInfo, TeamFormEntries, TeamFormEntry } from "@/types/Competition";
 import { CompactMatchInfo } from "@/types/Match";
@@ -13,6 +12,7 @@ import { FormEntriesBox } from "@/components/FormEntriesBox";
 import LoadMoreButton from "@/components/LoadMoreButton";
 import { Socket, io } from "socket.io-client";
 import InfoMessage from "@/components/InfoMessage";
+import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -22,19 +22,9 @@ export default function Team() {
   const [teamInfoContentLoaded, setTeamInfoContentLoaded] = useState<boolean>(false);
   const [teamInformation, setTeamInformation] = useState<FullTeamInfo | undefined>(undefined);
 
-  // setup the filter with three options: Results, Fixtures, Players 
-  const DEFAULT_TEAM_FILTER: FilterOptionKey = "results";
-  const teamFilterOptions: Map<FilterOptionKey, FilterOption> = new Map([
-    [DEFAULT_TEAM_FILTER, { displayName: "RESULTS", isSelected: true }],
-    ["fixtures", { displayName: "FIXTURES", isSelected: false }],
-    ["players", { displayName: "PLAYERS", isSelected: false }],
-  ]);
-  const [selectedTeamInfoOption, setSelectedTeamInfoOption] = useState<string>(DEFAULT_TEAM_FILTER);
-  const filterMenuInfo: FilterMenuInfo = {
-    options: teamFilterOptions,
-    currentlySelected: selectedTeamInfoOption,
-    setCurrentlySelected: setSelectedTeamInfoOption
-  };
+  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
+    createMenuConfig(["RESULTS", "FIXTURES", "PLAYERS"])
+  );
 
   useEffect(() => {
     if (router.query.id === undefined) {
@@ -63,17 +53,17 @@ export default function Team() {
         }
         <div className="mt-12 flex flex-row justify-center">
           <div>
-            <FilterMenu filter={filterMenuInfo} />
+            <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
           </div>
         </div>
         <div className="mt-12 pb-32">
-          {selectedTeamInfoOption === "results" &&
+          {menuConfig.currentlySelected === "RESULTS" &&
             <ResultsSummary team={teamInformation} />
           }
-          {selectedTeamInfoOption === "fixtures" &&
+          {menuConfig.currentlySelected === "FIXTURES" &&
             <FixturesSummary team={teamInformation} />
           }
-          {selectedTeamInfoOption === "players" &&
+          {menuConfig.currentlySelected === "PLAYERS" &&
             <TeamPlayersListing teamId={teamInformation?.id} />
           }
         </div>
