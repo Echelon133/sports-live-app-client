@@ -216,7 +216,7 @@ export default function Match() {
 
   return (
     <div className="mt-10 flex flex-row">
-      <div className="basis-full">
+      <div className="basis-full rounded-md border border-t-0 border-x-c2 border-b-c2">
         {allMatchInformation !== undefined ?
           <MatchInfoContent
             allMatchInformation={allMatchInformation}
@@ -225,7 +225,7 @@ export default function Match() {
           :
           <MatchInfoContentSkeleton />
         }
-        <div className="ml-10 mt-5">
+        <div className="pl-10 mt-5">
           <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
         </div>
         <div className="pb-14">
@@ -263,7 +263,7 @@ function MatchInfoContent(props: {
 
   return (
     <>
-      <div className="pl-4 bg-c2 py-3">
+      <div className="pl-4 bg-c2 py-3 rounded-t-md">
         <Image
           className="bg-white p-1 rounded-sm float-left mr-2"
           width="25"

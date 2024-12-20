@@ -45,7 +45,7 @@ export default function Team() {
 
   return (
     <div className="flex flex-row items-center justify-center">
-      <div className="mt-32 basis-full">
+      <div className="mt-10 pt-12 basis-full rounded-md border border-c2">
         {teamInfoContentLoaded ?
           <TeamInfoContent team={teamInformation} />
           :
@@ -56,7 +56,7 @@ export default function Team() {
             <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
           </div>
         </div>
-        <div className="mt-12 pb-32">
+        <div className="mt-12 pb-8">
           {menuConfig.currentlySelected === "RESULTS" &&
             <ResultsSummary team={teamInformation} />
           }

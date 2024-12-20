@@ -92,13 +92,13 @@ export default function DatePicker(props: {
 
   return (
     <>
-      <div className="flex flex-row h-12 bg-c2 items-center justify-center">
+      <div className="flex flex-row h-12 bg-c2 items-center justify-center rounded-t-md">
         <div className="basis-1/12">
           <button onClick={pickPreviousOption} className="bg-white flex rounded-lg float-right hover:bg-gray hover:bg-opacity-25 hover:text-gray">
             <Image width="30" height="30" src="chevron-left.svg" alt="Previous day" />
           </button>
         </div>
-        <div className="relative basis-4/12 mx-1">
+        <div className="basis-4/12 mx-1">
           <button onClick={togglePickerListVisibility} className="bg-white text-black flex rounded-lg w-full items-center justify-center hover:bg-gray hover:bg-opacity-25 hover:text-white">
             <Image className="float-left" width="30" height="30" src="calendar.svg" alt="Precise date picker" />
             <span className="font-bold mt-1 pl-2">

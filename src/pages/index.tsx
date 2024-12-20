@@ -84,16 +84,18 @@ export default function Home() {
 
   return (
     <>
-      <div className="mt-10">
+      <div className="mt-10 rounded-md border border-x-c2 border-t-0 border-b-c2">
         <DatePicker selectedDateKey={selectedDateKey} setSelectedDateKey={setSelectedDateKey} />
-        {groupedMatchesContentLoaded ?
-          <GroupedMatchesContent
-            competitionGroupedMatches={competitionGroupedMatches}
-            globalUpdatesSocket={globalUpdatesSocket}
-          />
-          :
-          <GroupedMatchInfoSkeleton />
-        }
+        <div className="rounded-b-md">
+          {groupedMatchesContentLoaded ?
+            <GroupedMatchesContent
+              competitionGroupedMatches={competitionGroupedMatches}
+              globalUpdatesSocket={globalUpdatesSocket}
+            />
+            :
+            <GroupedMatchInfoSkeleton />
+          }
+        </div>
       </div>
     </>
   );

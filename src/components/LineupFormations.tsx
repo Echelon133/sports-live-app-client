@@ -25,7 +25,7 @@ export default function LineupFormations(props: {
   return (
     <>
       <div className="justify-items-center">
-        <div className="w-full flex bg-c1 my-3 mx-4 py-2 items-center text-sm text-center font-bold rounded-xl">
+        <div className="w-full flex bg-c1 my-3 mx-4 py-2 items-center text-sm text-center font-bold">
           <div className="basis-1/3">
             {homeFormation}
           </div>

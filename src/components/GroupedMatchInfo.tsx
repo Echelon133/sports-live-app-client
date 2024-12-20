@@ -254,7 +254,7 @@ function SingleMatchInfo(props: {
 
 
   return (
-    <div className={`${anyHighlight ? 'bg-highlight-a' : 'bg-c1 hover:bg-c0'} mb-1 flex flex-row shadow-sm shadow-c0 items-center justify-center hover:cursor-pointer`}>
+    <div className={`${anyHighlight ? 'bg-highlight-a' : 'bg-c1 hover:bg-c0'} mb-1 flex flex-row items-center justify-center hover:cursor-pointer`}>
       <div className="basis-2/12 text-center">
         <MatchStatusBox
           currentStatus={updateableMatchInfo.status}

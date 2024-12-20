@@ -43,7 +43,7 @@ export default function Competition() {
 
   return (
     <div className="flex flex-row items-center justify-center">
-      <div className="mt-32 basis-full">
+      <div className="mt-10 pt-12 basis-full rounded-md border border-c2">
         {competitionInfoContentLoaded ?
           <CompetitionInfoContent competition={competitionInformation} />
           :
@@ -54,7 +54,7 @@ export default function Competition() {
             <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
           </div>
         </div>
-        <div className="mt-12 pb-32">
+        <div className="mt-12 pb-8">
           {menuConfig.currentlySelected === "RESULTS" &&
             <ResultsSummary competition={competitionInformation} />
           }
