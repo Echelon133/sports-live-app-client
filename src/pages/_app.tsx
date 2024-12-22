@@ -14,18 +14,23 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Nav />
-      <div className={`absolute top-20 ${showPinnedCompetitions ? "invisible" : "visible"}`}>
+      { /* button toggling pinned competitions sidebar (available before md breakpoint) */}
+      <div className={`absolute top-20 md:invisible ${showPinnedCompetitions ? "invisible" : "visible"}`}>
         <button
           onClick={togglePinnedCompetitions}
-          className="text-white bg-c0 hover:underline hover:cursor-pointer p-3 border border-white rounded-r-full"
+          className={`text-white bg-c0 hover:underline hover:cursor-pointer p-3 border border-white rounded-r-full`}
           title="Show Pinned Competitions"
         >&gt;</button>
       </div>
-      <PinnedCompetitionListing
-        showPinnedCompetitions={showPinnedCompetitions}
-        togglePinnedCompetitions={togglePinnedCompetitions}
-      />
+      { /* pinned competitions sidebar (dissapears after hitting the md breakpoint) */}
+      <div className={`md:hidden fixed h-full top-0 ${showPinnedCompetitions ? "visible" : "invisible"}`}>
+        <PinnedCompetitionListing togglePinnedCompetitions={togglePinnedCompetitions} />
+      </div>
       <div className="flex justify-center">
+        { /* pinned competitions div (appears after hitting the md breakpoint) */}
+        <div className="hidden md:block">
+          <PinnedCompetitionListing togglePinnedCompetitions={togglePinnedCompetitions} />
+        </div>
         <div className="basis-full md:basis-[768px]">
           <Component {...pageProps} />
         </div>
