@@ -56,10 +56,10 @@ export default function Competition() {
         </div>
         <div className="mt-12 pb-8">
           {menuConfig.currentlySelected === "RESULTS" &&
-            <ResultsSummary competition={competitionInformation} />
+            <ResultsSummary key={competitionInformation?.id} competition={competitionInformation} />
           }
           {menuConfig.currentlySelected === "FIXTURES" &&
-            <FixturesSummary competition={competitionInformation} />
+            <FixturesSummary key={competitionInformation?.id} competition={competitionInformation} />
           }
           {menuConfig.currentlySelected === "STANDINGS" &&
             <StandingsSummary key={competitionInformation?.id} competition={competitionInformation} />
