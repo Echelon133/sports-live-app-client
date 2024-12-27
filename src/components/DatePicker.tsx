@@ -89,38 +89,29 @@ export default function DatePicker(props: {
     }
   }, [])
 
-
   return (
     <>
-      <div className="flex flex-row h-12 bg-c2 items-center justify-center rounded-t-md">
-        <div className="basis-1/12">
-          <button onClick={pickPreviousOption} className="bg-white flex rounded-lg float-right hover:bg-gray hover:bg-opacity-25 hover:text-gray">
-            <Image width="30" height="30" src="chevron-left.svg" alt="Previous day" />
-          </button>
-        </div>
-        <div className="basis-4/12 mx-1">
-          <button onClick={togglePickerListVisibility} className="bg-white text-black flex rounded-lg w-full items-center justify-center hover:bg-gray hover:bg-opacity-25 hover:text-white">
+      <div className="flex flex-row h-12 bg-c2 items-center justify-center">
+        <button onClick={pickPreviousOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&lt;</button>
+        <div className="basis-[240px] mx-1">
+          <button onClick={togglePickerListVisibility} className="bg-white text-black flex rounded-lg w-full items-center justify-center hover:bg-c1 hover:text-white">
             <Image className="float-left" width="30" height="30" src="calendar.svg" alt="Precise date picker" />
             <span className="font-bold mt-1 pl-2">
               {pickerOptions.get(props.selectedDateKey!)?.displayName}
             </span>
-          </button >
-          <ul className={`${pickerListVisible ? "visible" : "invisible"} absolute mt-1 w-full text-center rounded-lg bg-white`}>
+          </button>
+          <ul className={`${pickerListVisible ? "visible" : "invisible"} absolute mt-1 text-center rounded-lg bg-white`}>
             {Array.from(pickerOptions).map(([key, pickerOption]) => {
               return <li
-                className={`${pickerOption.isSelected ? "bg-c3" : ""} text-black m-1 hover:bg-c4 rounded-lg hover:bg-opacity-25 hover:text-gray hover:cursor-pointer`}
+                className={`${pickerOption.isSelected ? "bg-c3" : ""} w-[240px] text-black m-1 hover:bg-c4 rounded-lg hover:bg-opacity-25 hover:text-gray hover:cursor-pointer`}
                 key={key}
                 onClick={() => pickOptionByKey(key)}> {pickerOption.displayName}
               </li>
             })}
           </ul>
         </div>
-        <div className="basis-1/12">
-          <button onClick={pickNextOption} className="bg-white flex rounded-lg float-left hover:bg-gray hover:bg-opacity-25 hover:text-gray">
-            <Image width="30" height="30" src="chevron-right.svg" alt="Next day" />
-          </button>
-        </div>
-      </div >
+        <button onClick={pickNextOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&gt;</button>
+      </div>
     </>
   );
 }
