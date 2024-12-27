@@ -24,15 +24,17 @@ export default function HorizontalMenu(props: {
 
   return (
     <>
-      <div className="flex basis-full text-black">
-        {props.menuConfig.allOptions.map(option => {
-          const isSelected = option === props.menuConfig.currentlySelected;
-          return <button
-            className={`px-4 py-1 mx-1 ${isSelected ? "bg-c4" : "bg-gray hover:bg-c3"} font-mono font-extrabold rounded-xl`}
-            onClick={() => pickOption(option)}
-            key={option}
-          >{option}</button>
-        })}
+      <div className="flex text-black">
+        <div className="basis-full">
+          {props.menuConfig.allOptions.map(option => {
+            const isSelected = option === props.menuConfig.currentlySelected;
+            return <button
+              className={`px-4 py-1 mx-1 ${isSelected ? "bg-c4" : "bg-gray hover:bg-c3"} font-mono font-extrabold rounded-xl`}
+              onClick={() => pickOption(option)}
+              key={option}
+            >{option}</button>
+          })}
+        </div>
       </div>
     </>
   )

@@ -26,7 +26,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <div className={`md:hidden fixed h-full top-0 ${showPinnedCompetitions ? "visible" : "invisible"}`}>
         <PinnedCompetitionListing togglePinnedCompetitions={togglePinnedCompetitions} />
       </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center z-0">
         { /* pinned competitions div (appears after hitting the md breakpoint) */}
         <div className="hidden md:block">
           <PinnedCompetitionListing togglePinnedCompetitions={togglePinnedCompetitions} />
