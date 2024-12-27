@@ -297,12 +297,12 @@ function MatchInfoContent(props: {
           </div>
           <div className="flex flex-col basis-1/3 text-center">
             <div className="basis-full pt-5">
-              <span className={`text-5xl ${props.updateableMatchInfo.fullTimeScore.highlight ? "text-red" : ""}`}>
+              <span className={`text-5xl ${props.updateableMatchInfo.fullTimeScore.highlight ? "text-red-600" : ""}`}>
                 {Score.format(props.updateableMatchInfo.fullTimeScore.value)}
               </span>
             </div>
             <div className="basis-full mt-4">
-              <span className={`font-extrabold text-sm ${props.updateableMatchInfo.status.highlight ? "text-red" : ""}`}>
+              <span className={`font-extrabold text-sm ${props.updateableMatchInfo.status.highlight ? "text-red-600" : ""}`}>
                 <MatchStatusBox
                   currentStatus={props.updateableMatchInfo.status.value}
                   startTimeUTC={props.allMatchInformation.match.startTimeUTC}

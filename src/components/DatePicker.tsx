@@ -103,7 +103,7 @@ export default function DatePicker(props: {
           <ul className={`${pickerListVisible ? "visible" : "invisible"} absolute mt-1 text-center rounded-lg bg-white`}>
             {Array.from(pickerOptions).map(([key, pickerOption]) => {
               return <li
-                className={`${pickerOption.isSelected ? "bg-c3" : ""} w-[240px] text-black m-1 hover:bg-c4 rounded-lg hover:bg-opacity-25 hover:text-gray hover:cursor-pointer`}
+                className={`${pickerOption.isSelected ? "bg-c3" : ""} w-[240px] text-black m-1 hover:bg-c4 rounded-lg hover:bg-opacity-25 hover:text-gray-600 hover:cursor-pointer`}
                 key={key}
                 onClick={() => pickOptionByKey(key)}> {pickerOption.displayName}
               </li>

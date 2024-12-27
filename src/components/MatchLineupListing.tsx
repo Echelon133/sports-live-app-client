@@ -182,7 +182,7 @@ function SubstitutionEventsBox(props: {
                     <span className="ml-2 text-base">{e.minute}'</span>
                     <div className="flex flex-col ml-4">
                       <span className="font-extrabold">{e.playerIn.name}</span>
-                      <span className="text-gray sm:text-sm">{e.playerOut.name}</span>
+                      <span className="text-gray-600 sm:text-sm">{e.playerOut.name}</span>
                     </div>
                   </div>
                 }
@@ -200,7 +200,7 @@ function SubstitutionEventsBox(props: {
                     <span className="mr-2 text-base">{e.minute}'</span>
                     <div className="flex flex-col mr-4 items-end">
                       <span className="font-extrabold">{e.playerIn.name}</span>
-                      <span className="text-gray sm:text-sm">{e.playerOut.name}</span>
+                      <span className="text-gray-600 sm:text-sm">{e.playerOut.name}</span>
                     </div>
                   </div>
                 }

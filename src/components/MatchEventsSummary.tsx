@@ -208,7 +208,7 @@ function GoalEventBox(props: { event: MatchEvents.GoalEvent, leftSided: boolean 
         <div className={`flex ${props.leftSided ? "sm:flex-row" : "sm:flex-row-reverse"} flex-col px-5 items-center`}>
           <span className="font-extrabold">{props.event.scoringPlayer.name}</span>
           {props.event.assistingPlayer &&
-            <span className="font-extralight px-2 text-sm text-gray">({props.event.assistingPlayer.name})</span>
+            <span className="font-extralight px-2 text-sm text-gray-600">({props.event.assistingPlayer.name})</span>
           }
         </div>
       </div>
@@ -226,7 +226,7 @@ function SubstitutionEventBox(props: { event: MatchEvents.SubstitutionEvent, lef
         </div>
         <div className={`flex ${props.leftSided ? "sm:flex-row" : "sm:flex-row-reverse"} flex-col px-5 items-center`}>
           <span className="font-extrabold">{props.event.playerIn.name}</span>
-          <span className="font-extralight px-2 text-sm text-gray">{props.event.playerOut.name}</span>
+          <span className="font-extralight px-2 text-sm text-gray-600">{props.event.playerOut.name}</span>
         </div>
       </div>
     </>
@@ -247,7 +247,7 @@ function PenaltyEventBox(props: { event: MatchEvents.PenaltyEvent, leftSided: bo
         </div>
         <div className={`flex ${props.leftSided ? "sm:flex-row" : "sm:flex-row-reverse"} flex-col px-5 items-center`}>
           <span className="font-extrabold">{props.event.shootingPlayer.name}</span>
-          <span className="font-extralight px-2 text-sm text-gray">(Penalty)</span>
+          <span className="font-extralight px-2 text-sm text-gray-600">(Penalty)</span>
         </div>
       </div>
     </>

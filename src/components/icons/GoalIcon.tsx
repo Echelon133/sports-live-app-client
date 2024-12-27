@@ -7,7 +7,7 @@ export default function GoalIcon(props: { goalCounter?: number }) {
       <Image className="h-4 w-4" width="0" height="0" src="../ball-white.svg" alt="Goal" />
       <div className="absolute">
         {moreThanOneGoal &&
-          <span className="relative bg-gray text-white font-bold rounded-full px-1 bottom-3 right-2">
+          <span className="relative bg-gray-600 text-white font-bold rounded-full px-1 bottom-3 right-2">
             {props.goalCounter}
           </span>
         }

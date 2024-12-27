@@ -388,7 +388,7 @@ function CompetitionGroupBox(props: {
               // therefore we should highlight this team's entry in the table
               const highlightDependendStyles =
                 highlightedTeamsIds.includes(team.teamId) ?
-                  "bg-gray" : "odd:bg-c1 even:bg-c0";
+                  "bg-gray-600" : "odd:bg-c1 even:bg-c0";
 
               return (
                 <tr className={`${highlightDependendStyles} text-center h-10`}>
@@ -547,12 +547,12 @@ function TopScorersListing(props: {
                   <th className="px-4" title="Assists">A</th>
                   <th className="px-4" title="Yellow Cards">
                     <div className="flex justify-center">
-                      <div className="h-4 w-3 bg-yellow"></div>
+                      <div className="h-4 w-3 bg-yellow-400"></div>
                     </div>
                   </th>
                   <th className="px-4" title="Red Cards">
                     <div className="flex justify-center">
-                      <div className="h-4 w-3 bg-red"></div>
+                      <div className="h-4 w-3 bg-red-600"></div>
                     </div>
                   </th>
                 </tr>

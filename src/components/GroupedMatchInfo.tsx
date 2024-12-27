@@ -263,7 +263,7 @@ function SingleMatchInfo(props: {
           matchIsLive={matchIsLive}
         />
         {!matchIsLive &&
-          <span className="text-gray text-xs">
+          <span className="text-gray-600 text-xs">
             {formatFinishedMatchDate(props.matchInfo.startTimeUTC)}
           </span>
         }
@@ -295,7 +295,7 @@ function SingleMatchInfo(props: {
             <span title="Score at fulltime" className={`font-extrabold ${matchIsLive ? 'text-highlight-b' : 'text-c4'} `}>
               {updateableMatchInfo.fullTimeScore.homeGoals}
             </span>
-            <span title="Score at halftime" className='font-extralight ml-5 text-gray'>
+            <span title="Score at halftime" className='font-extralight ml-5 text-gray-600'>
               {updateableMatchInfo.halfTimeScore.homeGoals}
             </span>
           </div>
@@ -326,7 +326,7 @@ function SingleMatchInfo(props: {
             <span title="Score at fulltime" className={`font-extrabold ${matchIsLive ? 'text-highlight-b' : 'text-c4'} `}>
               {updateableMatchInfo.fullTimeScore.awayGoals}
             </span>
-            <span title="Score at halftime" className="ml-5 text-gray font-extralight">
+            <span title="Score at halftime" className="ml-5 text-gray-600 font-extralight">
               {updateableMatchInfo.halfTimeScore.awayGoals}
             </span>
           </div>
@@ -342,7 +342,7 @@ function RedCardBox(props: { redCardCount: number }) {
       {props.redCardCount === 0 ?
         <></>
         :
-        <div className="bg-red w-3 h-4 inline-block text-center rounded-sm">
+        <div className="bg-red-600 w-3 h-4 inline-block text-center rounded-sm">
           <span className="text-sm">
             {props.redCardCount > 1 ? props.redCardCount.toString() : ""}
           </span>
