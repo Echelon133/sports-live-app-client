@@ -315,7 +315,7 @@ function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
                 )}
               </div>
               <div className="">
-                {competitionStandings?.legend.map((legend) => <LegendExplanationBox legend={legend} />)}
+                {competitionStandings?.legend.map((legend, i) => <LegendExplanationBox key={i} legend={legend} />)}
               </div>
             </>
             :
