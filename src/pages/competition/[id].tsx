@@ -367,62 +367,66 @@ function CompetitionGroupBox(props: {
             </div>
           </div>
           <table className="basis-full w-full table-auto">
-            <tr className="text-c3 text-center font-extralight text-sm">
-              <th>#</th>
-              <th>Team</th>
-              <th className="pr-4">MP</th>
-              <th className="pr-4">W</th>
-              <th className="pr-4">D</th>
-              <th className="pr-4">L</th>
-              <th className="pr-4">G</th>
-              <th className="pr-4">GD</th>
-              <th className="pr-4">PTS</th>
-              <th>FORM</th>
-            </tr>
-            {sortedTeams.map((team, i) => {
-              const index = i + 1;
-              const positionColor = positionToColor.get(index);
+            <thead>
+              <tr className="text-c3 text-center font-extralight text-sm">
+                <th>#</th>
+                <th>Team</th>
+                <th className="pr-4">MP</th>
+                <th className="pr-4">W</th>
+                <th className="pr-4">D</th>
+                <th className="pr-4">L</th>
+                <th className="pr-4">G</th>
+                <th className="pr-4">GD</th>
+                <th className="pr-4">PTS</th>
+                <th>FORM</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedTeams.map((team, i) => {
+                const index = i + 1;
+                const positionColor = positionToColor.get(index);
 
-              // if highlightedTeamsIds contains this team's id, the user hovered
-              // over a form entry of a match in which this team had played, 
-              // therefore we should highlight this team's entry in the table
-              const highlightDependendStyles =
-                highlightedTeamsIds.includes(team.teamId) ?
-                  "bg-gray-600" : "odd:bg-c1 even:bg-c0";
+                // if highlightedTeamsIds contains this team's id, the user hovered
+                // over a form entry of a match in which this team had played,
+                // therefore we should highlight this team's entry in the table
+                const highlightDependendStyles =
+                  highlightedTeamsIds.includes(team.teamId) ?
+                    "bg-gray-600" : "odd:bg-c0 even:bg-c1";
 
-              return (
-                <tr className={`${highlightDependendStyles} text-center h-10`}>
-                  <td><span className={`${positionColor} rounded-lg p-1`}>{index}.</span></td>
-                  <td className="font-extralight text-sm">
-                    <div className="flex items-center">
-                      <Image
-                        className="float-left"
-                        width="22"
-                        height="22"
-                        src={team.crestUrl ?? "placeholder-club-logo.svg"}
-                        alt={team.teamName ?? "Team's crest"} />
-                      <Link href={`/team/${team.teamId}`}>
-                        <span className="pl-2 hover:underline">{team.teamName}</span>
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="pr-4">{team.matchesPlayed}</td>
-                  <td className="pr-4">{team.wins}</td>
-                  <td className="pr-4">{team.draws}</td>
-                  <td className="pr-4">{team.losses}</td>
-                  <td className="pr-4">{team.goalsScored}:{team.goalsConceded}</td>
-                  <td className="pr-4">{team.goalsScored - team.goalsConceded}</td>
-                  <td className="pr-4">{team.points}</td>
-                  <td className="py-1">
-                    <FormBox
-                      teamId={team.teamId}
-                      competitionId={props.competitionId}
-                      setHighlightedTeamsIds={setHighlightedTeamsIds}
-                    />
-                  </td>
-                </tr>
-              )
-            })}
+                return (
+                  <tr key={team.teamId} className={`${highlightDependendStyles} text-center h-10`}>
+                    <td><span className={`${positionColor} rounded-lg p-1`}>{index}.</span></td>
+                    <td className="font-extralight text-sm">
+                      <div className="flex items-center">
+                        <Image
+                          className="float-left"
+                          width="22"
+                          height="22"
+                          src={team.crestUrl ?? "placeholder-club-logo.svg"}
+                          alt={team.teamName ?? "Team's crest"} />
+                        <Link href={`/team/${team.teamId}`}>
+                          <span className="pl-2 hover:underline">{team.teamName}</span>
+                        </Link>
+                      </div>
+                    </td>
+                    <td className="pr-4">{team.matchesPlayed}</td>
+                    <td className="pr-4">{team.wins}</td>
+                    <td className="pr-4">{team.draws}</td>
+                    <td className="pr-4">{team.losses}</td>
+                    <td className="pr-4">{team.goalsScored}:{team.goalsConceded}</td>
+                    <td className="pr-4">{team.goalsScored - team.goalsConceded}</td>
+                    <td className="pr-4">{team.points}</td>
+                    <td className="py-1">
+                      <FormBox
+                        teamId={team.teamId}
+                        competitionId={props.competitionId}
+                        setHighlightedTeamsIds={setHighlightedTeamsIds}
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
           </table>
         </div>
       </div>
@@ -539,63 +543,67 @@ function TopScorersListing(props: {
                 </div>
               </div>
               <table className="basis-full w-full table-auto mb-10">
-                <tr className="text-c3 text-center font-extralight text-sm">
-                  <th>#</th>
-                  <th>Player</th>
-                  <th>Team</th>
-                  <th className="px-4" title="Goals">G</th>
-                  <th className="px-4" title="Assists">A</th>
-                  <th className="px-4" title="Yellow Cards">
-                    <div className="flex justify-center">
-                      <div className="h-4 w-3 bg-yellow-400"></div>
-                    </div>
-                  </th>
-                  <th className="px-4" title="Red Cards">
-                    <div className="flex justify-center">
-                      <div className="h-4 w-3 bg-red-600"></div>
-                    </div>
-                  </th>
-                </tr>
-                {playerStats.map((stat, _i) => {
-                  let playerPosition: number = prevPlayerStat.current.position;
-                  if (
-                    (stat.goals !== prevPlayerStat.current.goals) ||
-                    (stat.assists !== prevPlayerStat.current.assists)
-                  ) {
-                    playerPosition += 1;
-                    prevPlayerStat.current.position = playerPosition;
-                    prevPlayerStat.current.goals = stat.goals;
-                    prevPlayerStat.current.assists = stat.assists;
-                  }
+                <thead>
+                  <tr className="text-c3 text-center font-extralight text-sm">
+                    <th>#</th>
+                    <th>Player</th>
+                    <th>Team</th>
+                    <th className="px-4" title="Goals">G</th>
+                    <th className="px-4" title="Assists">A</th>
+                    <th className="px-4" title="Yellow Cards">
+                      <div className="flex justify-center">
+                        <div className="h-4 w-3 bg-yellow-400"></div>
+                      </div>
+                    </th>
+                    <th className="px-4" title="Red Cards">
+                      <div className="flex justify-center">
+                        <div className="h-4 w-3 bg-red-600"></div>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {playerStats.map((stat, _i) => {
+                    let playerPosition: number = prevPlayerStat.current.position;
+                    if (
+                      (stat.goals !== prevPlayerStat.current.goals) ||
+                      (stat.assists !== prevPlayerStat.current.assists)
+                    ) {
+                      playerPosition += 1;
+                      prevPlayerStat.current.position = playerPosition;
+                      prevPlayerStat.current.goals = stat.goals;
+                      prevPlayerStat.current.assists = stat.assists;
+                    }
 
-                  const cachedTeamInfo = props.teamInfoCache.get(stat.teamId);
-                  const teamName = cachedTeamInfo?.teamName;
-                  return (
-                    <tr
-                      key={stat.playerId}
-                      className="odd:bg-c1 even:bg-c0 text-center"
-                    >
-                      <td className="p-1">{playerPosition}</td>
-                      <td className="font-extralight text-sm">{stat.name}</td>
-                      <td className="font-extralight text-sm">
-                        <div className="flex justify-left items-center">
-                          <Image
-                            width="22"
-                            height="22"
-                            src={cachedTeamInfo?.crestUrl ?? "placeholder-club-logo.svg"}
-                            alt={teamName ?? "Team's crest"} />
-                          <Link href={`/team/${cachedTeamInfo?.teamId}`}>
-                            <span className="pl-2 hover:underline">{teamName}</span>
-                          </Link>
-                        </div>
-                      </td>
-                      <td>{stat.goals}</td>
-                      <td>{stat.assists}</td>
-                      <td>{stat.yellowCards}</td>
-                      <td className="py-1">{stat.redCards}</td>
-                    </tr>
-                  )
-                })}
+                    const cachedTeamInfo = props.teamInfoCache.get(stat.teamId);
+                    const teamName = cachedTeamInfo?.teamName;
+                    return (
+                      <tr
+                        key={stat.playerId}
+                        className="odd:bg-c0 even:bg-c1 text-center"
+                      >
+                        <td className="p-1">{playerPosition}</td>
+                        <td className="font-extralight text-sm">{stat.name}</td>
+                        <td className="font-extralight text-sm">
+                          <div className="flex justify-left items-center">
+                            <Image
+                              width="22"
+                              height="22"
+                              src={cachedTeamInfo?.crestUrl ?? "placeholder-club-logo.svg"}
+                              alt={teamName ?? "Team's crest"} />
+                            <Link href={`/team/${cachedTeamInfo?.teamId}`}>
+                              <span className="pl-2 hover:underline">{teamName}</span>
+                            </Link>
+                          </div>
+                        </td>
+                        <td>{stat.goals}</td>
+                        <td>{stat.assists}</td>
+                        <td>{stat.yellowCards}</td>
+                        <td className="py-1">{stat.redCards}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
               </table>
               {playerStats.length !== 0 &&
                 <div className="flex">
