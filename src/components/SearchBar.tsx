@@ -1,11 +1,12 @@
 import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Image from 'next/image'
 import { FullTeamInfo } from "@/types/Team";
 import { CompetitionInfo } from "@/types/Competition";
 import getConfig from "next/config";
 import Link from "next/link";
 import useSearchWithDebounce from "./hooks/useSearchWithDebounce";
+import useHideOnUserEvent from "./hooks/useHideOnUserEvent";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -17,25 +18,11 @@ export default function SearchBar() {
   const [menuConfig, setMenuConfig] = useState<MenuConfig>(
     createMenuConfig(["TEAMS", "COMPETITIONS"])
   );
-  const [showSearchMenu, setShowSearchMenu] = useState<boolean>(false);
-  const searchBarRef = useRef<HTMLDivElement>(null);
+  const [searchBarRef, showSearchMenu, setShowSearchMenu] = useHideOnUserEvent(false);
   const [searchInput, setSearchInput] = useState<string>("");
 
   function handleOnChange(e: React.FormEvent<HTMLInputElement>) {
     setSearchInput(e.currentTarget.value)
-  }
-
-  function displaySearchMenu() {
-    setShowSearchMenu(true)
-    document.addEventListener('click', hideSearchBoxOnOutsideClick, true);
-
-    function hideSearchBoxOnOutsideClick(e: MouseEvent) {
-      if (searchBarRef.current && !searchBarRef.current.contains((e.target as HTMLElement))) {
-        setShowSearchMenu(false)
-        // remove event listener, since the menu is not being displayed anymore
-        document.removeEventListener('click', hideSearchBoxOnOutsideClick, true);
-      }
-    }
   }
 
   return (
@@ -46,7 +33,7 @@ export default function SearchBar() {
         <div ref={searchBarRef} className="basis-[300px] mt-7">
           <input
             className="text-black pl-6 w-full rounded-sm form-input focus:border-indigo-600"
-            onFocus={displaySearchMenu}
+            onFocus={() => setShowSearchMenu(true)}
             onChange={handleOnChange}
             value={searchInput}
             type="text"

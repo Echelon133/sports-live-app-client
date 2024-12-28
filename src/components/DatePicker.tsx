@@ -1,6 +1,7 @@
 import { getCookie, setCookie } from '@/util/cookies';
 import Image from 'next/image'
 import { useState, Dispatch, SetStateAction, useEffect } from 'react';
+import useHideOnUserEvent from './hooks/useHideOnUserEvent';
 
 // Name of the cookie storing the most recent picker key
 const PICKER_COOKIE_NAME = "most-recent-picker-date";
@@ -17,7 +18,7 @@ export default function DatePicker(props: {
   selectedDateKey: string | undefined,
   setSelectedDateKey: Dispatch<SetStateAction<string | undefined>>
 }) {
-  const [pickerListVisible, setPickerListVisible] = useState<boolean>(false);
+  const [pickerRef, pickerListVisible, setPickerListVisible] = useHideOnUserEvent(false);
   const [pickerOptions, setPickerOptions] = useState<Map<string, PickerOption>>(createPickerOptions);
 
   // Avoid creating multiple copies of keys/values arrays by reusing arrays created here. 
@@ -93,7 +94,7 @@ export default function DatePicker(props: {
     <>
       <div className="flex flex-row h-12 bg-c2 items-center justify-center">
         <button onClick={pickPreviousOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&lt;</button>
-        <div className="basis-[240px] mx-1">
+        <div ref={pickerRef} className="basis-[240px] mx-1">
           <button onClick={togglePickerListVisibility} className="bg-white text-black flex rounded-lg w-full items-center justify-center hover:bg-c1 hover:text-white">
             <Image className="float-left" width="30" height="30" src="calendar.svg" alt="Precise date picker" />
             <span className="font-bold mt-1 pl-2">

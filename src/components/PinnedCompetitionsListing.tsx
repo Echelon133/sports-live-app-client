@@ -8,7 +8,7 @@ import PinIcon from "./icons/PinIcon";
 const { publicRuntimeConfig } = getConfig();
 
 export default function PinnedCompetitionListing(props: {
-  togglePinnedCompetitions: () => void
+  togglePinnedCompetitions?: () => void
 }) {
   const [competitions, setCompetitions] = useState<CompetitionInfo[]>([]);
 
@@ -25,11 +25,6 @@ export default function PinnedCompetitionListing(props: {
   return (
     <>
       <div className="z-50 relative flex flex-col bg-c0 items-center text-c4 h-full px-5 pt-5">
-        <button
-          onClick={props.togglePinnedCompetitions}
-          className="md:hidden text-white hover:underline hover:cursor-pointer"
-          title="Close Pinned Competitions"
-        > &lt; Close</button>
         <div className="flex flex-row items-center pt-5 md:pt-12">
           <PinIcon />
           <h2 className="pl-2">Pinned Competitions</h2>
