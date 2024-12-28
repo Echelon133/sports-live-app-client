@@ -11,7 +11,7 @@ export default function GroupedMatchInfoSkeleton() {
                 </div>
               </div>
               <div>
-                {[...Array(4)].map((_e, j) => {
+                {[...Array(2)].map((_e, j) => {
                   return (
                     <div key={j} className="bg-c1 animate-pulse mb-1 h-14 shadow-sm shadow-c0">
                     </div>
