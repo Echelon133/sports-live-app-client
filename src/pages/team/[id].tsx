@@ -58,13 +58,13 @@ export default function Team() {
         </div>
         <div className="mt-12 pb-8">
           {menuConfig.currentlySelected === "RESULTS" &&
-            <ResultsSummary team={teamInformation} />
+            <ResultsSummary key={teamInformation?.id} team={teamInformation} />
           }
           {menuConfig.currentlySelected === "FIXTURES" &&
-            <FixturesSummary team={teamInformation} />
+            <FixturesSummary key={teamInformation?.id} team={teamInformation} />
           }
           {menuConfig.currentlySelected === "PLAYERS" &&
-            <TeamPlayersListing teamId={teamInformation?.id} />
+            <TeamPlayersListing key={teamInformation?.id} teamId={teamInformation?.id} />
           }
         </div>
       </div>
