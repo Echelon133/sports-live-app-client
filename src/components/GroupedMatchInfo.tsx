@@ -41,7 +41,7 @@ export default function GroupedMatchInfo(props: {
               <button onClick={toggleMatchListVisibility} className="font-light text-sm flex float-right">
                 {matchListVisible ?
                   <Image
-                    className="float-left"
+                    className="p-1 rounded-md hover:bg-c1"
                     width="30"
                     height="30"
                     src="/chevron-up.svg"
@@ -49,7 +49,7 @@ export default function GroupedMatchInfo(props: {
                     alt="Hide all grouped" />
                   :
                   <Image
-                    className="float-left"
+                    className="p-1 rounded-md hover:bg-c1"
                     width="30"
                     height="30"
                     src="/chevron-down.svg"
