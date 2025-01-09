@@ -27,22 +27,22 @@ export default function PinnedCompetitionListing(props: {
       <div className="z-50 relative flex flex-col bg-c0 items-center text-c4 h-full px-5 pt-5">
         <div className="flex flex-row items-center pt-5 md:pt-12">
           <PinIcon />
-          <h2 className="pl-2">Pinned Competitions</h2>
+          <h2 className="pl-2 text-sm">Pinned Competitions</h2>
         </div>
         <ul className="flex flex-col mt-5">
           {competitions.map(c => {
             return (
-              <li key={c.id} className="pl-4 mb-4">
-                <Image
-                  className="bg-white p-1 rounded-sm float-left mr-2"
-                  width="25"
-                  height="25"
-                  src={c.logoUrl ?? "placeholder-competition-logo.svg"}
-                  alt={c.name ?? "Competition's logo"} />
-                <Link
-                  href={`/competition/${c.id}`}
-                  onClick={props.togglePinnedCompetitions}>
-                  <span className="font-extrabold hover:underline text-c4">{c.name}</span>
+              <li key={c.id} className="mb-2 hover:bg-c1 px-2 py-1 rounded-md">
+                <Link href={`/competition/${c.id}`} onClick={props.togglePinnedCompetitions}>
+                  <div className="flex flex-row items-center gap-1">
+                    <Image
+                      className="bg-white p-[0.1rem] rounded-sm float-left mr-2"
+                      width="23"
+                      height="23"
+                      src={c.logoUrl ?? "placeholder-competition-logo.svg"}
+                      alt={c.name ?? "Competition's logo"} />
+                    <span className="text-sm hover:underline text-c4">{c.name}</span>
+                  </div>
                 </Link>
               </li>
             );
