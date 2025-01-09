@@ -81,7 +81,6 @@ type CompactUpdateableMatchInfo = {
   status: MatchStatus,
   statusLastModifiedUTC: Date | null,
   fullTimeScore: Score,
-  halfTimeScore: Score,
   redCards: RedCardInfo,
   result: MatchResult,
   highlight: {
@@ -105,7 +104,6 @@ function SingleMatchInfo(props: {
       status: props.matchInfo.status,
       statusLastModifiedUTC: props.matchInfo.statusLastModifiedUTC,
       fullTimeScore: props.matchInfo.scoreInfo,
-      halfTimeScore: props.matchInfo.halfTimeScoreInfo,
       redCards: props.matchInfo.redCardInfo,
       result: props.matchInfo.result,
       highlight: { home: false, away: false },
@@ -160,13 +158,6 @@ function SingleMatchInfo(props: {
         awayGoals: prev.fullTimeScore.awayGoals + awayTeamGoalsDelta,
       };
 
-      let halfTimeScore = prev.halfTimeScore;
-      // increment halftime scoreline if the goal happened during
-      // the first half
-      if (prev.status === MatchStatus.FIRST_HALF) {
-        halfTimeScore = newFullScore;
-      }
-
       const highlight = { home: homeTeamScored, away: !homeTeamScored };
 
       const eventContext = {
@@ -177,7 +168,6 @@ function SingleMatchInfo(props: {
       const updated = {
         ...prev,
         fullTimeScore: newFullScore,
-        halfTimeScore: halfTimeScore,
         highlight: highlight,
         eventContext: eventContext
       };
@@ -270,7 +260,7 @@ function SingleMatchInfo(props: {
       </div>
       <div className="basis-10/12 flex flex-col">
         <div className="flex pt-2 pb-1">
-          <div className="basis-10/12">
+          <div className="basis-11/12">
             <Image
               className="float-left"
               width="20"
@@ -291,17 +281,14 @@ function SingleMatchInfo(props: {
               </span>
             }
           </div>
-          <div className="basis-2/12">
+          <div className="basis-1/12">
             <span title="Score at fulltime" className={`font-extrabold ${matchIsLive ? 'text-highlight-b' : 'text-c4'} `}>
               {updateableMatchInfo.fullTimeScore.homeGoals}
-            </span>
-            <span title="Score at halftime" className='font-extralight ml-5 text-gray-600'>
-              {updateableMatchInfo.halfTimeScore.homeGoals}
             </span>
           </div>
         </div>
         <div className="flex pb-2">
-          <div className="basis-10/12">
+          <div className="basis-11/12">
             <Image
               className="float-left"
               width="20"
@@ -322,12 +309,9 @@ function SingleMatchInfo(props: {
               </span>
             }
           </div>
-          <div className="basis-2/12">
+          <div className="basis-1/12">
             <span title="Score at fulltime" className={`font-extrabold ${matchIsLive ? 'text-highlight-b' : 'text-c4'} `}>
               {updateableMatchInfo.fullTimeScore.awayGoals}
-            </span>
-            <span title="Score at halftime" className="ml-5 text-gray-600 font-extralight">
-              {updateableMatchInfo.halfTimeScore.awayGoals}
             </span>
           </div>
         </div>
