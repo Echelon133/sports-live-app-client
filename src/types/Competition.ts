@@ -4,17 +4,18 @@ export type CompetitionInfo = {
   id: string,
   name: string,
   season: string,
-  logoUrl: string
+  logoUrl: string,
+  leaguePhase: boolean,
+  knockoutPhase: boolean
 }
 
-export type CompetitionIdGroupedMatches = Map<string, CompactMatchInfo[]>
-export type CompetitionGroupedMatches = Map<CompetitionInfo, CompactMatchInfo[]>
+export type GroupedMatches = { competition: CompetitionInfo, matches: CompactMatchInfo[] };
 
-export namespace CompetitionIdGroupedMatches {
-  export function fromJSON(json: any): CompetitionIdGroupedMatches {
+export namespace GroupedMatches {
+  export function fromJSON(json: any): GroupedMatches[] {
     // custom reviver needed to correctly parse the format of dates 
     // received from the backend
-    return new Map(Object.entries(JSON.parse(json, customUtcDateReviver)));
+    return JSON.parse(json, customUtcDateReviver);
   }
 }
 

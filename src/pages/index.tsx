@@ -2,8 +2,7 @@ import DatePicker from "@/components/DatePicker";
 import getConfig from "next/config";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { useEffect, useState } from "react";
-import { CompetitionInfo, CompetitionGroupedMatches, CompetitionIdGroupedMatches } from "@/types/Competition";
-import { CompactMatchInfo } from "@/types/Match";
+import { GroupedMatches } from "@/types/Competition";
 import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
 import { Socket, io } from "socket.io-client";
 import InfoMessage from "@/components/InfoMessage";
@@ -47,7 +46,7 @@ export default function Home() {
   const [groupedMatchesContentLoaded, setGroupedMatchesContentLoaded] = useState<boolean>(false);
   const [selectedDateKey, setSelectedDateKey] = useState<string | undefined>(undefined);
   const [competitionGroupedMatches, setCompetitionGroupedMatches] =
-    useState<CompetitionGroupedMatches>(new Map());
+    useState<GroupedMatches[]>([]);
   const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
 
   useEffect(() => {
@@ -63,11 +62,15 @@ export default function Home() {
       utcOffset: UTC_OFFSET,
     });
 
-    fetchGroupedMatches(httpParams)
-      .then((competitionGroupedMatches) => {
-        setCompetitionGroupedMatches(competitionGroupedMatches);
+    const matchesUrl = `${publicRuntimeConfig.MATCHES_BASE_URL}/grouped?${httpParams.toString()}`;
+    fetch(matchesUrl)
+      .then((res) => res.text())
+      .then((data) => {
+        // rebuild request's body into our custom type
+        const d: GroupedMatches[] = GroupedMatches.fromJSON(data);
+        setCompetitionGroupedMatches(d);
         setGroupedMatchesContentLoaded(true);
-      });
+      })
   }, [selectedDateKey]);
 
   // connect to a websocket which broadcasts global match events
@@ -102,19 +105,19 @@ export default function Home() {
 }
 
 function GroupedMatchesContent(props: {
-  competitionGroupedMatches: CompetitionGroupedMatches,
+  competitionGroupedMatches: GroupedMatches[],
   globalUpdatesSocket: Socket | undefined
 }) {
   return (
     <>
-      {props.competitionGroupedMatches.size > 0 ?
+      {props.competitionGroupedMatches.length > 0 ?
         <div className="h-full">
           {
-            Array.from(props.competitionGroupedMatches).map(([competitionInfo, matches], i) => {
+            props.competitionGroupedMatches.map((groupedMatches, i) => {
               return <GroupedMatchInfo
-                competitionInfo={competitionInfo}
-                key={competitionInfo.id ?? i}
-                matches={matches}
+                competitionInfo={groupedMatches.competition}
+                key={groupedMatches.competition.id ?? i}
+                matches={groupedMatches.matches}
                 globalUpdatesSocket={props.globalUpdatesSocket}
               />
             })
@@ -127,41 +130,4 @@ function GroupedMatchesContent(props: {
       }
     </>
   )
-}
-
-async function fetchGroupedMatches(httpParams: URLSearchParams): Promise<CompetitionGroupedMatches> {
-  return new Promise(async (resolve) => {
-    const matchesUrl = `${publicRuntimeConfig.MATCHES_BASE_URL}?${httpParams.toString()}`;
-    await fetch(matchesUrl)
-      .then((res) => res.text())
-      .then(async (data) => {
-        // rebuild request's body into our custom type
-        const d: CompetitionIdGroupedMatches = CompetitionIdGroupedMatches.fromJSON(data);
-
-        type CompetitionMatchesEntry = { competition: CompetitionInfo, matches: CompactMatchInfo[] };
-        // Asynchronously fetch information about every competition by that competition's id.
-        // The initial request only gives us the id of the competition, which means that the rest
-        // of the information needs to be fetched manually.
-        let promises: Promise<CompetitionMatchesEntry>[] = [];
-        d.forEach((matches, competitionId) => {
-          const competitionUrl = `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${competitionId}`;
-          const promise: Promise<CompetitionMatchesEntry> = fetch(competitionUrl)
-            .then((res) => res.json())
-            .then((data) => {
-              return { competition: data, matches: matches };
-            });
-          promises.push(promise);
-        });
-
-        // wait for all to succeed, then on success set fetched matches to render the data
-        Promise.all(promises)
-          .then((arr) => {
-            let competitionGroupedMatches: CompetitionGroupedMatches = new Map();
-            arr.forEach((pair) => {
-              competitionGroupedMatches.set(pair.competition, pair.matches);
-            })
-            resolve(competitionGroupedMatches);
-          });
-      })
-  });
 }
