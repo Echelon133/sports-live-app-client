@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FullTeamInfo, countryCodeToFlagEmoji } from "@/types/Team";
 import getConfig from "next/config";
 import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
-import { CompetitionInfo, TeamFormEntries, TeamFormEntry } from "@/types/Competition";
-import { CompactMatchInfo } from "@/types/Match";
+import { GroupedMatches, TeamFormEntries, TeamFormEntry } from "@/types/Competition";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { TeamPlayer } from "@/types/Lineup";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
@@ -157,7 +156,7 @@ function TeamGeneralForm(props: { teamId: string }) {
 
 function ResultsSummary(props: { team: FullTeamInfo | undefined }) {
   const [resultsContentLoaded, setResultsContentLoaded] = useState<boolean>(false);
-  const [groupedTeamMatches, setGroupedTeamMatches] = useState<CompetitionGroupedTeamMatches[]>([]);
+  const [groupedTeamMatches, setGroupedTeamMatches] = useState<GroupedMatches[]>([]);
   const pageNumber = useRef<number>(0);
 
   function fetchResultsPage(teamId: string, page: number) {
@@ -208,7 +207,7 @@ function ResultsSummary(props: { team: FullTeamInfo | undefined }) {
 
 function FixturesSummary(props: { team: FullTeamInfo | undefined }) {
   const [fixturesContentLoaded, setFixturesContentLoaded] = useState<boolean>(false);
-  const [groupedTeamMatches, setGroupedTeamMatches] = useState<CompetitionGroupedTeamMatches[]>([]);
+  const [groupedTeamMatches, setGroupedTeamMatches] = useState<GroupedMatches[]>([]);
   const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
   const pageNumber = useRef<number>(0);
 
@@ -302,83 +301,18 @@ function GroupedTeamMatchesContent(props: {
   )
 }
 
-type GroupedTeamMatches = {
-  competitionId: string,
-  matches: CompactMatchInfo[]
-}
-
-type CompetitionGroupedTeamMatches = {
-  competition: CompetitionInfo,
-  matches: CompactMatchInfo[],
-}
-
-// if two or more consecutive matches are in the same competition, group them together - this
-// will make it easier to display team's matches in a more readable way
-function groupConsecutiveMatchesByCompetition(allMatches: CompactMatchInfo[]): GroupedTeamMatches[] {
-  const result: GroupedTeamMatches[] = [];
-
-  if (allMatches.length !== 0) {
-    // initialize the first group
-    let currentGroup = {
-      competitionId: allMatches[0].competitionId,
-      matches: [allMatches[0]]
-    };
-
-    // start from the second match, because the first one is already grouped
-    for (let i = 1; i < allMatches.length; i++) {
-      const currentMatch = allMatches[i];
-      if (currentMatch.competitionId !== currentGroup.competitionId) {
-        // the consecutive streak is over, add a new group to the list of results
-        // and start a new one with the current match
-        result.push(currentGroup);
-        currentGroup = {
-          competitionId: currentMatch.competitionId,
-          matches: [currentMatch],
-        };
-      } else {
-        // the consecutive streak is continuing, simply add the current match
-        // and keep going
-        currentGroup.matches.push(currentMatch);
-      }
-    }
-    result.push(currentGroup);
-  }
-  return result;
-}
-
 async function fetchGroupedTeamMatches(
   teamId: string,
   httpParams: URLSearchParams
-): Promise<CompetitionGroupedTeamMatches[]> {
+): Promise<GroupedMatches[]> {
   const teamMatchesUrl =
     `${publicRuntimeConfig.TEAMS_BASE_URL}/${teamId}/matches?${httpParams.toString()}`;
-  return new Promise(async (resolve) => {
-    await fetch(teamMatchesUrl)
-      .then((res) => res.text())
-      .then((data) => {
-        const d: CompactMatchInfo[] = CompactMatchInfo.fromJSON(data);
-        const groupedMatches: GroupedTeamMatches[] = groupConsecutiveMatchesByCompetition(d);
-
-        // Asynchronously fetch information about every competition.
-        let promises: Promise<CompetitionGroupedTeamMatches>[] = [];
-        groupedMatches.forEach((groupedItem) => {
-          const competitionUrl =
-            `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${groupedItem.competitionId}`;
-          const promise: Promise<CompetitionGroupedTeamMatches> = fetch(competitionUrl)
-            .then((res) => res.json())
-            .then((data) => {
-              return { competition: data, matches: groupedItem.matches };
-            });
-          promises.push(promise);
-        });
-
-        // wait for all promises
-        Promise.all(promises)
-          .then((arr) => {
-            resolve(arr)
-          })
-      })
-  });
+  return await fetch(teamMatchesUrl)
+    .then((res) => res.text())
+    .then((data) => {
+      const d: GroupedMatches[] = GroupedMatches.fromJSON(data);
+      return d;
+    })
 }
 
 function TeamPlayersListing(props: { teamId: string | undefined }) {
