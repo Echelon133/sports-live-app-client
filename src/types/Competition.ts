@@ -9,6 +9,7 @@ export type CompetitionInfo = {
   knockoutPhase: boolean
 }
 
+export type LabeledMatches = Map<string, CompactMatchInfo[]>;
 export type GroupedMatches = { competition: CompetitionInfo, matches: CompactMatchInfo[] };
 
 export namespace GroupedMatches {
@@ -16,6 +17,40 @@ export namespace GroupedMatches {
     // custom reviver needed to correctly parse the format of dates 
     // received from the backend
     return JSON.parse(json, customUtcDateReviver);
+  }
+}
+
+export namespace LabeledMatches {
+  export function fromJSON(json: any): LabeledMatches {
+    // custom reviver needed to correctly parse the format of dates 
+    // received from the backend
+    return new Map(Object.entries(JSON.parse(json, customUtcDateReviver)));
+  }
+}
+
+export enum KnockoutStage {
+  ROUND_OF_128 = "ROUND_OF_128",
+  ROUND_OF_64 = "ROUND_OF_64",
+  ROUND_OF_32 = "ROUND_OF_32",
+  ROUND_OF_16 = "ROUND_OF_16",
+  QUARTER_FINAL = "QUARTER_FINAL",
+  SEMI_FINAL = "SEMI_FINAL",
+  FINAL = "FINAL",
+}
+
+export namespace KnockoutStage {
+  const stringMapping: Map<string, string> = new Map([
+    ["ROUND_OF_128", "Round of 128"],
+    ["ROUND_OF_64", "Round of 64"],
+    ["ROUND_OF_32", "Round of 32"],
+    ["ROUND_OF_16", "Round of 16"],
+    ["QUARTER_FINAL", "Quarter-final"],
+    ["SEMI_FINAL", "Semi-final"],
+    ["FINAL", "Final"],
+  ]);
+  export function format(stage: string): string | undefined {
+    if (stage === undefined) return ""
+    return stringMapping.get(stage);
   }
 }
 

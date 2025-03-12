@@ -2,15 +2,16 @@ import { useRouter } from "next/router"
 import Image from 'next/image'
 import getConfig from "next/config";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { CompetitionInfo, CompetitionGroupEntry, CompetitionIdGroupedMatches, CompetitionStandings, LegendEntry, LegendSentiment, PlayerStatsEntry, TeamFormEntries, TeamFormEntry, TeamStanding } from "@/types/Competition";
+import { CompetitionInfo, CompetitionGroupEntry, CompetitionStandings, LegendEntry, LegendSentiment, PlayerStatsEntry, TeamFormEntries, TeamFormEntry, TeamStanding, LabeledMatches } from "@/types/Competition";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
-import { CompactMatchInfo } from "@/types/Match";
 import Link from "next/link";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
 import LoadMoreButton from "@/components/LoadMoreButton";
 import { Socket, io } from "socket.io-client";
 import InfoMessage from "@/components/InfoMessage";
 import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
+import LabeledMatchInfo from "@/components/LabeledMatchInfo";
+import { CompactMatchInfo } from "@/types/Match";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -55,15 +56,24 @@ export default function Competition() {
           </div>
         </div>
         <div className="mt-12 pb-8">
-          {menuConfig.currentlySelected === "RESULTS" &&
-            <ResultsSummary key={competitionInformation?.id} competition={competitionInformation} />
-          }
-          {menuConfig.currentlySelected === "FIXTURES" &&
-            <FixturesSummary key={competitionInformation?.id} competition={competitionInformation} />
-          }
-          {menuConfig.currentlySelected === "STANDINGS" &&
-            <StandingsSummary key={competitionInformation?.id} competition={competitionInformation} />
-          }
+          <>
+            {competitionInfoContentLoaded ?
+              <>
+                {menuConfig.currentlySelected === "RESULTS" &&
+                  <ResultsSummary key={competitionInformation?.id} competition={competitionInformation} />
+                }
+                {menuConfig.currentlySelected === "FIXTURES" &&
+                  <FixturesSummary key={competitionInformation?.id} competition={competitionInformation} />
+                }
+                {menuConfig.currentlySelected === "STANDINGS" &&
+                  <StandingsSummary key={competitionInformation?.id} competition={competitionInformation} />
+                }
+              </>
+              :
+              <>
+              </>
+            }
+          </>
         </div>
       </div>
     </div>
@@ -118,29 +128,32 @@ function CompetitionInfoContentSkeleton() {
 
 function ResultsSummary(props: { competition: CompetitionInfo | undefined }) {
   const [resultsContentLoaded, setResultsContentLoaded] = useState<boolean>(false);
-  const [matches, setMatches] = useState<CompactMatchInfo[]>([]);
+  const [matches, setMatches] = useState<LabeledMatches>(new Map());
   const pageNumber = useRef<number>(0);
 
   function fetchResultsPage(competitionId: string, page: number) {
     const httpParams = new URLSearchParams({
-      competitionId: competitionId,
-      type: "results",
+      finished: "true",
       page: page.toString(),
       size: "10",
     });
 
-    const finishedMatchesUrl = `${publicRuntimeConfig.MATCHES_BASE_URL}?${httpParams.toString()}`;
+    const finishedMatchesUrl = `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${competitionId}/matches?${httpParams.toString()}`;
     fetch(finishedMatchesUrl)
       .then((res) => res.text())
       .then((data) => {
         // rebuild request's body into our custom type
-        const d: CompetitionIdGroupedMatches = CompetitionIdGroupedMatches.fromJSON(data);
-        // the server responds with a competitionId => CompactMatchInfo[] mapping, where the
-        // competitionId is always the same as the one we are asking for in the request
-        const matches: CompactMatchInfo[] | undefined = d.get(competitionId);
-        if (matches !== undefined) {
-          setMatches((prev) => [...prev, ...matches]);
-        }
+        const d: LabeledMatches = LabeledMatches.fromJSON(data);
+        setMatches((prev) => {
+          let updatedMap = new Map(prev);
+          // we have to merge arrays instead of replacing them
+          d.forEach((value, key) => {
+            const prevValue: CompactMatchInfo[] = updatedMap.get(key) ?? [];
+            const updatedValue = [...prevValue, ...value];
+            updatedMap.set(key, updatedValue);
+          });
+          return updatedMap;
+        });
         setResultsContentLoaded(true);
       });
   }
@@ -163,11 +176,22 @@ function ResultsSummary(props: { competition: CompetitionInfo | undefined }) {
     <>
       {resultsContentLoaded && (props.competition !== undefined) ?
         <>
-          <GroupedMatchInfo competitionInfo={props.competition} matches={matches} />
-          {matches.length !== 0 &&
+          {Array.from(matches).map(([label, matches]) => {
+            return <LabeledMatchInfo
+              key={label}
+              label={label}
+              matches={matches}
+              globalUpdatesSocket={undefined}
+            />
+          })}
+          {matches.size !== 0 ?
             <div className="flex">
               <LoadMoreButton onClick={() => fetchMoreResults(props.competition!.id)} />
             </div>
+            :
+            <div className="mt-8">
+              <InfoMessage message="No results" />
+            </div >
           }
         </>
         :
@@ -179,7 +203,7 @@ function ResultsSummary(props: { competition: CompetitionInfo | undefined }) {
 
 function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
   const [fixturesContentLoaded, setFixturesContentLoaded] = useState<boolean>(false);
-  const [matches, setMatches] = useState<CompactMatchInfo[]>([]);
+  const [matches, setMatches] = useState<LabeledMatches>(new Map());
   const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
   const pageNumber = useRef<number>(0);
 
@@ -198,24 +222,27 @@ function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
 
   function fetchFixturesPage(competitionId: string, page: number) {
     const httpParams = new URLSearchParams({
-      competitionId: competitionId,
-      type: "fixtures",
+      finished: "false",
       page: page.toString(),
       size: "10",
     });
 
-    const nonFinishedMatchesUrl = `${publicRuntimeConfig.MATCHES_BASE_URL}?${httpParams.toString()}`;
+    const nonFinishedMatchesUrl = `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${competitionId}/matches?${httpParams.toString()}`;
     fetch(nonFinishedMatchesUrl)
       .then((res) => res.text())
       .then((data) => {
         // rebuild request's body into out custom type
-        const d: CompetitionIdGroupedMatches = CompetitionIdGroupedMatches.fromJSON(data);
-        // the server responds with a competitionId => CompactMatchInfo[] mapping, where the
-        // competitionId is always the same as the one we are asking for in the request
-        const matches: CompactMatchInfo[] | undefined = d.get(competitionId);
-        if (matches !== undefined) {
-          setMatches((prev) => [...prev, ...matches]);
-        }
+        const d: LabeledMatches = LabeledMatches.fromJSON(data);
+        setMatches((prev) => {
+          let updatedMap = new Map(prev);
+          // we have to merge arrays instead of replacing them
+          d.forEach((value, key) => {
+            const prevValue: CompactMatchInfo[] = updatedMap.get(key) ?? [];
+            const updatedValue = [...prevValue, ...value];
+            updatedMap.set(key, updatedValue);
+          });
+          return updatedMap;
+        });
         setFixturesContentLoaded(true);
       });
   }
@@ -238,15 +265,22 @@ function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
     <>
       {fixturesContentLoaded && (props.competition !== undefined) ?
         <>
-          <GroupedMatchInfo
-            competitionInfo={props.competition}
-            matches={matches}
-            globalUpdatesSocket={globalUpdatesSocket}
-          />
-          {matches.length !== 0 &&
+          {Array.from(matches).map(([label, matches]) => {
+            return <LabeledMatchInfo
+              key={label}
+              label={label}
+              matches={matches}
+              globalUpdatesSocket={globalUpdatesSocket}
+            />
+          })}
+          {matches.size !== 0 ?
             <div className="flex">
               <LoadMoreButton onClick={() => fetchMoreFixtures(props.competition!.id)} />
             </div>
+            :
+            <div className="mt-8">
+              <InfoMessage message="No results" />
+            </div >
           }
         </>
         :
