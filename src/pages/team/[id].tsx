@@ -274,7 +274,7 @@ function FixturesSummary(props: { team: FullTeamInfo | undefined }) {
 }
 
 function GroupedTeamMatchesContent(props: {
-  competitionGroupedTeamMatches: CompetitionGroupedTeamMatches[],
+  competitionGroupedTeamMatches: GroupedMatches[],
   globalUpdatesSocket?: Socket | undefined
 }) {
   return (
