@@ -339,6 +339,8 @@ function LeaguePhase(props: {
   setTeamInfoCache: Dispatch<SetStateAction<Map<string, TeamStanding>>>,
   globalUpdatesSocket: Socket | undefined
 }) {
+  const [currentRound, setCurrentRound] = useState<number>(1);
+
   const menuOptions = ["GROUPS", "BY ROUND"];
   const [menuConfig, setMenuConfig] = useState<MenuConfig>(
     createMenuConfig(menuOptions)
@@ -359,6 +361,9 @@ function LeaguePhase(props: {
       }
       {menuConfig.currentlySelected === "BY ROUND" &&
         <MatchesByRound
+          competition={props.competition}
+          defaultRound={currentRound}
+          globalUpdatesSocket={props.globalUpdatesSocket}
         />
       }
     </>
@@ -368,6 +373,7 @@ function LeaguePhase(props: {
 function CompetitionGroups(props: {
   competition: CompetitionInfo | undefined,
   setTeamInfoCache: Dispatch<SetStateAction<Map<string, TeamStanding>>>,
+  setCurrentRound: Dispatch<SetStateAction<number>>
 }) {
   const [standingsContentLoaded, setStandingsContentLoaded] = useState<boolean>(false);
   const [competitionStandings, setCompetitionStandings] =
@@ -394,6 +400,19 @@ function CompetitionGroups(props: {
             teamCache.set(team.teamId, team);
           }
         }
+
+        // iterate over the 'Matches Played' column and find the max number, so
+        // that we know how many rounds of the competition have been played
+        // at this point, since we want to display the round that's currently 
+        // being played as the default round in the view which shows matches 
+        // filtered by round
+        let currentRound = 0;
+        for (let group of d.groups) {
+          for (let team of group.teams) {
+            currentRound = Math.max(currentRound, team.matchesPlayed);
+          }
+        }
+        props.setCurrentRound(currentRound);
 
         props.setTeamInfoCache(teamCache);
         setCompetitionStandings(d);
@@ -428,11 +447,142 @@ function CompetitionGroups(props: {
 }
 
 function MatchesByRound(props: {
+  competition: CompetitionInfo,
+  defaultRound: number,
+  globalUpdatesSocket?: Socket | undefined
 }) {
+  const [selectedRound, setSelectedRound] =
+    useState<number>(props.defaultRound === 0 ? 1 : props.defaultRound);
+  const [roundMatches, setRoundMatches] = useState<CompactMatchInfo[]>([]);
+
+  useEffect(() => {
+    if (props.competition?.id === undefined) {
+      return;
+    }
+
+    const competitionId = props.competition.id!;
+
+    const roundMatchesUrl = `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${competitionId}/league/rounds/${selectedRound}`;
+    fetch(roundMatchesUrl)
+      .then((res) => res.text())
+      .then((data) => {
+        const d: CompactMatchInfo[] = CompactMatchInfo.fromJSON(data);
+        setRoundMatches(d);
+      })
+  }, [selectedRound])
+
   return (
     <>
-      {
+      <RoundPicker
+        selectedRound={selectedRound}
+        setSelectedRound={setSelectedRound}
+        maxRounds={props.competition?.maxRounds ?? 1}
+      />
+      <GroupedMatchInfo
+        competitionInfo={props.competition}
+        matches={roundMatches}
+        globalUpdatesSocket={props.globalUpdatesSocket}
+      />
+    </>
+  )
+}
+
+type PickerOption = {
+  displayName: string,
+  isSelected: boolean,
+}
+
+function RoundPicker(props: {
+  selectedRound: number,
+  setSelectedRound: Dispatch<SetStateAction<number>>,
+  maxRounds: number
+}) {
+  const [pickerRef, pickerListVisible, setPickerListVisible] = useHideOnUserEvent(false);
+  const [pickerOptions, setPickerOptions] = useState<Map<number, PickerOption>>(createPickerOptions());
+
+  const pickerKeys = Array.from(pickerOptions.keys());
+  const pickerValues = Array.from(pickerOptions.values());
+
+  function createPickerOptions(): Map<number, PickerOption> {
+    let map: Map<number, PickerOption> = new Map();
+    for (let round = 1; round <= props.maxRounds; round++) {
+      const pOption: PickerOption =
+        { displayName: `Round ${round}`, isSelected: round === props.selectedRound };
+      map.set(round, pOption);
+    }
+    return map;
+  }
+
+  function togglePickerListVisibility() {
+    setPickerListVisible(prev => !prev);
+  }
+
+  function pickOptionByKey(selectedKey: number) {
+    setPickerOptions((prev) => {
+      const updatedMap = new Map(prev);
+      updatedMap.forEach((v, k) => {
+        if (k === selectedKey) {
+          v.isSelected = true;
+        } else {
+          v.isSelected = false;
+        }
+      });
+      return updatedMap;
+    });
+    props.setSelectedRound(selectedKey);
+    setPickerListVisible(false);
+  }
+
+  function pickOptionByIndex(index: number) {
+    const keyToSelect = pickerKeys[index];
+    pickOptionByKey(keyToSelect)
+  }
+
+  function findIndexOfCurrentOption(): number {
+    for (let i = 0; i < pickerValues.length; i++) {
+      if (pickerValues[i].isSelected) {
+        return i;
       }
+    }
+    return -1;
+  }
+
+  function pickNextOption() {
+    const indexToSelect = findIndexOfCurrentOption() + 1;
+    if (indexToSelect < pickerOptions.size) {
+      pickOptionByIndex(indexToSelect)
+    }
+  }
+
+  function pickPreviousOption() {
+    const indexToSelect = findIndexOfCurrentOption() - 1;
+    if (indexToSelect >= 0) {
+      pickOptionByIndex(indexToSelect);
+    }
+  }
+
+  return (
+    <>
+      <div className="flex flex-row h-12 bg-c2 items-center justify-center">
+        <button onClick={pickPreviousOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&lt;</button>
+        <div ref={pickerRef} className="basis-[240px] mx-1">
+          <button onClick={togglePickerListVisibility} className="bg-white text-black flex rounded-lg w-full items-center justify-center hover:bg-c1 hover:text-white">
+            <span className="font-bold mt-1 pl-2">
+              {pickerOptions.get(props.selectedRound!)?.displayName}
+            </span>
+          </button>
+          <ul className={`${pickerListVisible ? "visible" : "invisible"} absolute mt-1 text-center rounded-lg bg-white`}>
+            {Array.from(pickerOptions).map(([key, pickerOption]) => {
+              return <li
+                className={`${pickerOption.isSelected ? "bg-c3" : ""} w-[240px] text-black m-1 hover:bg-c4 rounded-lg hover:bg-opacity-25 hover:text-gray-600 hover:cursor-pointer`}
+                key={key}
+                onClick={() => pickOptionByKey(key)}> {pickerOption.displayName}
+              </li>
+            })}
+          </ul>
+        </div>
+        <button onClick={pickNextOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&gt;</button>
+      </div>
     </>
   )
 }

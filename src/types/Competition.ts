@@ -6,6 +6,7 @@ export type CompetitionInfo = {
   season: string,
   logoUrl: string,
   leaguePhase: boolean,
+  maxRounds: number,
   knockoutPhase: boolean
 }
 
