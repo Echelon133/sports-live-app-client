@@ -3,7 +3,6 @@ import Image from 'next/image'
 import getConfig from "next/config";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { CompetitionInfo, CompetitionGroupEntry, CompetitionStandings, LegendEntry, LegendSentiment, PlayerStatsEntry, TeamFormEntries, TeamFormEntry, TeamStanding, LabeledMatches } from "@/types/Competition";
-import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import Link from "next/link";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
 import LoadMoreButton from "@/components/LoadMoreButton";
@@ -12,11 +11,15 @@ import InfoMessage from "@/components/InfoMessage";
 import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
 import LabeledMatchInfo from "@/components/LabeledMatchInfo";
 import { CompactMatchInfo } from "@/types/Match";
+import useHideOnUserEvent from "@/components/hooks/useHideOnUserEvent";
+import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 
 const { publicRuntimeConfig } = getConfig();
 
 export default function Competition() {
   const router = useRouter();
+
+  const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
 
   const [competitionInfoContentLoaded, setCompetitionInfoContentLoaded] = useState<boolean>(false);
   const [competitionInformation, setCompetitionInformation] =
@@ -25,6 +28,18 @@ export default function Competition() {
   const [menuConfig, setMenuConfig] = useState<MenuConfig>(
     createMenuConfig(["RESULTS", "FIXTURES", "STANDINGS"])
   );
+
+  // connect to a websocket which broadcasts global match events
+  useEffect(() => {
+    const connectionUrl = `${publicRuntimeConfig.GLOBAL_MATCH_EVENTS_WS_URL}`;
+    // only connectionUrl is required, since these events are global, and not match specific
+    const socket = io(connectionUrl);
+    setGlobalUpdatesSocket(socket);
+
+    return () => {
+      socket.disconnect();
+    }
+  }, []);
 
   useEffect(() => {
     if (router.query.id === undefined) {
@@ -56,24 +71,27 @@ export default function Competition() {
           </div>
         </div>
         <div className="mt-12 pb-8">
-          <>
-            {competitionInfoContentLoaded ?
-              <>
-                {menuConfig.currentlySelected === "RESULTS" &&
-                  <ResultsSummary key={competitionInformation?.id} competition={competitionInformation} />
-                }
-                {menuConfig.currentlySelected === "FIXTURES" &&
-                  <FixturesSummary key={competitionInformation?.id} competition={competitionInformation} />
-                }
-                {menuConfig.currentlySelected === "STANDINGS" &&
-                  <StandingsSummary key={competitionInformation?.id} competition={competitionInformation} />
-                }
-              </>
-              :
-              <>
-              </>
-            }
-          </>
+          {competitionInfoContentLoaded &&
+            <>
+              {menuConfig.currentlySelected === "RESULTS" &&
+                <ResultsSummary key={competitionInformation?.id} competition={competitionInformation} />
+              }
+              {menuConfig.currentlySelected === "FIXTURES" &&
+                <FixturesSummary
+                  key={competitionInformation?.id}
+                  competition={competitionInformation}
+                  globalUpdatesSocket={globalUpdatesSocket}
+                />
+              }
+              {menuConfig.currentlySelected === "STANDINGS" &&
+                <StandingsSummary
+                  key={competitionInformation?.id}
+                  competition={competitionInformation}
+                  globalUpdatesSocket={globalUpdatesSocket}
+                />
+              }
+            </>
+          }
         </div>
       </div>
     </div>
@@ -201,24 +219,13 @@ function ResultsSummary(props: { competition: CompetitionInfo | undefined }) {
   )
 }
 
-function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
+function FixturesSummary(props: {
+  competition: CompetitionInfo | undefined,
+  globalUpdatesSocket: Socket | undefined
+}) {
   const [fixturesContentLoaded, setFixturesContentLoaded] = useState<boolean>(false);
   const [matches, setMatches] = useState<LabeledMatches>(new Map());
-  const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
   const pageNumber = useRef<number>(0);
-
-  // connect to a websocket which broadcasts global match events
-  useEffect(() => {
-    const connectionUrl = `${publicRuntimeConfig.GLOBAL_MATCH_EVENTS_WS_URL}`;
-    // only connectionUrl is required, since these events are global, and not match specific
-    const socket = io(connectionUrl);
-    setGlobalUpdatesSocket(socket);
-
-    return () => {
-      socket.disconnect();
-    }
-  }, []);
-
 
   function fetchFixturesPage(competitionId: string, page: number) {
     const httpParams = new URLSearchParams({
@@ -270,7 +277,7 @@ function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
               key={label}
               label={label}
               matches={matches}
-              globalUpdatesSocket={globalUpdatesSocket}
+              globalUpdatesSocket={props.globalUpdatesSocket}
             />
           })}
           {matches.size !== 0 ?
@@ -290,15 +297,81 @@ function FixturesSummary(props: { competition: CompetitionInfo | undefined }) {
   )
 }
 
-function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
-  const [standingsContentLoaded, setStandingsContentLoaded] = useState<boolean>(false);
+function StandingsSummary(props: {
+  competition: CompetitionInfo,
+  globalUpdatesSocket: Socket | undefined
+}) {
   const [teamInfoCache, setTeamInfoCache] = useState<Map<string, TeamStanding>>(new Map());
+
+  let menuOptions = [];
+  if (props.competition?.leaguePhase) {
+    menuOptions.push("LEAGUE PHASE");
+  }
+  if (props.competition?.knockoutPhase) {
+    menuOptions.push("KNOCKOUT PHASE");
+  }
+  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
+    createMenuConfig(menuOptions.concat(["TOP SCORERS"]))
+  );
+
+
+  return (
+    <>
+      <div className="ml-12 mb-6">
+        <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
+      </div>
+      {menuConfig.currentlySelected === "LEAGUE PHASE" &&
+        <LeaguePhase
+          competition={props.competition}
+          setTeamInfoCache={setTeamInfoCache}
+          globalUpdatesSocket={props.globalUpdatesSocket}
+        />
+      }
+      {menuConfig.currentlySelected === "TOP SCORERS" &&
+        <TopScorersListing competitionId={props.competition!.id} teamInfoCache={teamInfoCache} />
+      }
+    </>
+  )
+}
+
+function LeaguePhase(props: {
+  competition: CompetitionInfo,
+  setTeamInfoCache: Dispatch<SetStateAction<Map<string, TeamStanding>>>,
+  globalUpdatesSocket: Socket | undefined
+}) {
+  const menuOptions = ["GROUPS", "BY ROUND"];
+  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
+    createMenuConfig(menuOptions)
+  );
+
+
+  return (
+    <>
+      <div className="ml-12 mb-6">
+        <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
+      </div>
+      {menuConfig.currentlySelected === "GROUPS" &&
+        <CompetitionGroups
+          competition={props.competition}
+          setTeamInfoCache={props.setTeamInfoCache}
+          setCurrentRound={setCurrentRound}
+        />
+      }
+      {menuConfig.currentlySelected === "BY ROUND" &&
+        <MatchesByRound
+        />
+      }
+    </>
+  )
+}
+
+function CompetitionGroups(props: {
+  competition: CompetitionInfo | undefined,
+  setTeamInfoCache: Dispatch<SetStateAction<Map<string, TeamStanding>>>,
+}) {
+  const [standingsContentLoaded, setStandingsContentLoaded] = useState<boolean>(false);
   const [competitionStandings, setCompetitionStandings] =
     useState<CompetitionStandings | undefined>(undefined);
-
-  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
-    createMenuConfig(["STANDINGS", "TOP SCORERS"])
-  );
 
   useEffect(() => {
     if (props.competition === undefined) {
@@ -322,7 +395,7 @@ function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
           }
         }
 
-        setTeamInfoCache(teamCache);
+        props.setTeamInfoCache(teamCache);
         setCompetitionStandings(d);
         setStandingsContentLoaded(true);
       });
@@ -331,34 +404,34 @@ function StandingsSummary(props: { competition: CompetitionInfo | undefined }) {
 
   return (
     <>
-      <div className="ml-12 mb-6">
-        <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
-      </div>
-      {menuConfig.currentlySelected === "STANDINGS" &&
+      {standingsContentLoaded ?
         <>
-          {standingsContentLoaded ?
-            <>
-              <div className="">
-                {competitionStandings?.groups.map((group) =>
-                  <CompetitionGroupBox
-                    key={group.name}
-                    competitionId={props.competition!.id}
-                    group={group}
-                    legendEntries={competitionStandings.legend}
-                  />
-                )}
-              </div>
-              <div className="">
-                {competitionStandings?.legend.map((legend, i) => <LegendExplanationBox key={i} legend={legend} />)}
-              </div>
-            </>
-            :
-            <SummarySkeleton />
-          }
+          <div className="">
+            {competitionStandings?.groups.map((group) =>
+              <CompetitionGroupBox
+                key={group.name}
+                competitionId={props.competition!.id}
+                group={group}
+                legendEntries={competitionStandings.legend}
+              />
+            )}
+          </div>
+          <div className="">
+            {competitionStandings?.legend.map((legend, i) => <LegendExplanationBox key={i} legend={legend} />)}
+          </div>
         </>
+        :
+        <SummarySkeleton />
       }
-      {menuConfig.currentlySelected === "TOP SCORERS" &&
-        <TopScorersListing competitionId={props.competition!.id} teamInfoCache={teamInfoCache} />
+    </>
+  )
+}
+
+function MatchesByRound(props: {
+}) {
+  return (
+    <>
+      {
       }
     </>
   )
