@@ -2,7 +2,7 @@ import { useRouter } from "next/router"
 import Image from 'next/image'
 import getConfig from "next/config";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { CompetitionInfo, CompetitionGroupEntry, CompetitionStandings, LegendEntry, LegendSentiment, PlayerStatsEntry, TeamFormEntries, TeamFormEntry, TeamStanding, LabeledMatches } from "@/types/Competition";
+import { CompetitionInfo, CompetitionGroupEntry, CompetitionStandings, LegendEntry, LegendSentiment, PlayerStatsEntry, TeamFormEntries, TeamFormEntry, TeamStanding, LabeledMatches, KnockoutTree, KnockoutStage, KnockoutStageSlot, ByeSlot, TakenSlot } from "@/types/Competition";
 import Link from "next/link";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
 import LoadMoreButton from "@/components/LoadMoreButton";
@@ -10,7 +10,7 @@ import { Socket, io } from "socket.io-client";
 import InfoMessage from "@/components/InfoMessage";
 import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
 import LabeledMatchInfo from "@/components/LabeledMatchInfo";
-import { CompactMatchInfo } from "@/types/Match";
+import { CompactMatchInfo, Score } from "@/types/Match";
 import useHideOnUserEvent from "@/components/hooks/useHideOnUserEvent";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 
@@ -327,6 +327,9 @@ function StandingsSummary(props: {
           globalUpdatesSocket={props.globalUpdatesSocket}
         />
       }
+      {menuConfig.currentlySelected === "KNOCKOUT PHASE" &&
+        <KnockoutPhase competition={props.competition} />
+      }
       {menuConfig.currentlySelected === "TOP SCORERS" &&
         <TopScorersListing competitionId={props.competition!.id} teamInfoCache={teamInfoCache} />
       }
@@ -586,6 +589,382 @@ function RoundPicker(props: {
     </>
   )
 }
+
+function KnockoutPhase(props: { competition: CompetitionInfo }) {
+  const [knockoutTree, setKnockoutTree] = useState<KnockoutTree | undefined>(undefined);
+  const [knockoutContentLoaded, setKnockoutContentLoaded] = useState<boolean>(false);
+  const [selectedStage, setSelectedStage] = useState<string>("");
+
+  const stageKeys: string[] =
+    knockoutTree === undefined ? [] : knockoutTree.stages.map((stage) => stage.stage);
+  const competitionId = props.competition.id;
+
+  function getSlotsOfStage(stage: string): KnockoutStageSlot[] {
+    for (let stageEntry of knockoutTree!.stages) {
+      if (stageEntry.stage === stage) {
+        return stageEntry.slots;
+      }
+    }
+    return [];
+  }
+
+  useEffect(() => {
+    const treeUrl = `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${competitionId}/knockout`;
+    fetch(treeUrl)
+      .then((res) => res.text())
+      .then((data) => {
+        const d: KnockoutTree = KnockoutTree.fromJSON(data);
+        setKnockoutTree(d);
+        setSelectedStage(d.stages[0].stage);
+        setKnockoutContentLoaded(true);
+      })
+  }, []);
+
+  return (
+    <>
+      {knockoutContentLoaded ?
+        <div className="min-h-[500px] bg-c1">
+          <KnockoutStagePicker
+            stageKeys={stageKeys}
+            selectedStage={selectedStage}
+            setSelectedStage={setSelectedStage}
+          />
+          <KnockoutStageSlotGrouping slots={getSlotsOfStage(selectedStage)} />
+        </div>
+        :
+        <>
+        </>
+      }
+    </>
+  );
+}
+
+function KnockoutStagePicker(props: {
+  stageKeys: string[],
+  selectedStage: string,
+  setSelectedStage: Dispatch<SetStateAction<string>>
+}) {
+  const [pickerRef, pickerListVisible, setPickerListVisible] = useHideOnUserEvent(false);
+  const [pickerOptions, setPickerOptions] =
+    useState<Map<string, PickerOption>>(createPickerOptions());
+
+  const pickerKeys = Array.from(pickerOptions.keys());
+  const pickerValues = Array.from(pickerOptions.values());
+
+  function createPickerOptions(): Map<string, PickerOption> {
+    let map: Map<string, PickerOption> = new Map();
+    props.stageKeys.forEach((key, index) => {
+      let isSelected = false;
+      if (index === 0) {
+        isSelected = true;
+      }
+      const pOption: PickerOption =
+        { displayName: KnockoutStage.format(key)!, isSelected: isSelected };
+      map.set(key, pOption);
+    })
+    return map;
+  }
+
+  function togglePickerListVisibility() {
+    setPickerListVisible(prev => !prev);
+  }
+
+  function pickOptionByKey(selectedKey: string) {
+    setPickerOptions((prev) => {
+      const updatedMap = new Map(prev);
+      updatedMap.forEach((v, k) => {
+        if (k === selectedKey) {
+          v.isSelected = true;
+        } else {
+          v.isSelected = false;
+        }
+      });
+      return updatedMap;
+    });
+    props.setSelectedStage(selectedKey);
+    setPickerListVisible(false);
+  }
+
+  function pickOptionByIndex(index: number) {
+    const keyToSelect = pickerKeys[index];
+    pickOptionByKey(keyToSelect)
+  }
+
+  function findIndexOfCurrentOption(): number {
+    for (let i = 0; i < pickerValues.length; i++) {
+      if (pickerValues[i].isSelected) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  function pickNextOption() {
+    const indexToSelect = findIndexOfCurrentOption() + 1;
+    if (indexToSelect < pickerOptions.size) {
+      pickOptionByIndex(indexToSelect)
+    }
+  }
+
+  function pickPreviousOption() {
+    const indexToSelect = findIndexOfCurrentOption() - 1;
+    if (indexToSelect >= 0) {
+      pickOptionByIndex(indexToSelect);
+    }
+  }
+
+  return (
+    <>
+      <div className="flex flex-row h-12 bg-c2 items-center justify-center">
+        <button onClick={pickPreviousOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&lt;</button>
+        <div ref={pickerRef} className="basis-[240px] mx-1">
+          <button onClick={togglePickerListVisibility} className="bg-white text-black flex rounded-lg w-full items-center justify-center hover:bg-c1 hover:text-white">
+            <span className="font-bold mt-1 pl-2">
+              {pickerOptions.get(props.selectedStage!)?.displayName}
+            </span>
+          </button>
+          <ul className={`${pickerListVisible ? "visible" : "invisible"} absolute mt-1 text-center rounded-lg bg-white`}>
+            {Array.from(pickerOptions).map(([key, pickerOption]) => {
+              return <li
+                className={`${pickerOption.isSelected ? "bg-c3" : ""} w-[240px] text-black m-1 hover:bg-c4 rounded-lg hover:bg-opacity-25 hover:text-gray-600 hover:cursor-pointer`}
+                key={key}
+                onClick={() => pickOptionByKey(key)}> {pickerOption.displayName}
+              </li>
+            })}
+          </ul>
+        </div>
+        <button onClick={pickNextOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&gt;</button>
+      </div>
+    </>
+  )
+}
+
+function KnockoutStageSlotGrouping(props: { slots: KnockoutStageSlot[] }) {
+  // the backend guarantees all stages (apart from the final stage) must have
+  // a number of slots that's divisible by 2
+  // we need to group slots that are next to each other, because two slots
+  // from one stage converge into a single slot in the next stage, etc.
+  const groupings: KnockoutStageSlot[][] = [];
+
+  // we are dealing with the final stage, which only has a single slot
+  if (props.slots.length === 1) {
+    groupings.push([props.slots[0]]);
+  } else {
+    // we are dealing with any other stage, where the backend guarantees an 
+    // even number of slots
+    for (let i = 0; i < props.slots.length; i += 2) {
+      groupings.push([props.slots[i], props.slots[i + 1]]);
+    }
+  }
+
+  return (
+    <>
+      <div className="flex flex-col items-center justify-evenly mt-10 mb-10">
+        {groupings.length === 1 ?
+          <>
+            <KnockoutStageSlotGroupingEntry entrySlots={groupings[0]} />
+          </>
+          :
+          <>
+            {groupings.map((grouping) => {
+              return <KnockoutStageSlotGroupingEntry entrySlots={grouping} />
+            })}
+          </>
+        }
+      </div>
+    </>
+  )
+}
+
+function KnockoutStageSlotGroupingEntry(props: {
+  entrySlots: KnockoutStageSlot[]
+}) {
+  return (
+    <>
+      <div className="flex flex-col items-center justify-center my-4">
+        {props.entrySlots.length === 1 ?
+          <KnockoutStageSlotBox slot={props.entrySlots[0]} />
+          :
+          <>
+            <KnockoutStageSlotBox slot={props.entrySlots[0]} />
+            <KnockoutStageSlotBox slot={props.entrySlots[1]} />
+          </>
+        }
+      </div>
+    </>
+  )
+}
+
+function KnockoutStageSlotBox(props: { slot: KnockoutStageSlot }) {
+  let slotBox: JSX.Element;
+  switch (props.slot.type) {
+    case "EMPTY":
+      slotBox = <EmptySlotBox />
+      break;
+    case "BYE":
+      slotBox = <ByeSlotBox slot={props.slot} />
+      break;
+    case "TAKEN":
+      slotBox = <TakenSlotBox slot={props.slot} />
+      break;
+  }
+  return (
+    <>
+      <div className="my-1">
+        {
+          slotBox
+        }
+      </div>
+    </>
+  );
+}
+
+function EmptySlotBox() {
+  return (
+    <>
+      <div className="w-[350px] h-[80px] bg-c2 hover:bg-c0 hover:cursor-pointer rounded-lg">
+      </div>
+    </>
+  )
+}
+
+function ByeSlotBox(props: { slot: ByeSlot }) {
+  const team = props.slot.team;
+
+  return (
+    <>
+      <Link href={`/team/${team.id}`}>
+        <div className="w-[350px] h-[80px] bg-c2 hover:bg-c0 hover:cursor-pointer rounded-lg">
+          <div className="flex flex-col">
+            <div className="flex pt-2 pb-1">
+              <div className="basis-10/12 pl-5">
+                <Image
+                  className="float-left"
+                  width="20"
+                  height="20"
+                  src={team.crestUrl ?? "placeholder-club-logo.svg"}
+                  alt="Bye team's crest" />
+                <span className="font-mono ml-2">{team.name}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Link>
+    </>
+  )
+}
+
+function TakenSlotBox(props: { slot: TakenSlot }) {
+  const [matchListRef, showMatchList, setShowMatchList] = useHideOnUserEvent(false);
+
+  function shortenTeamName(name: string): string {
+    return name.split(" ")[0];
+  }
+
+  const firstLeg = props.slot.firstLeg;
+  const secondLeg = props.slot.secondLeg;
+
+  // whether the slot represents a single legged match or a two-legged one,
+  // always display the first leg's ordering of teams 
+  const homeCrestUrl = firstLeg.homeTeam?.crestUrl;
+  const awayCrestUrl = firstLeg.awayTeam?.crestUrl;
+
+  const firstLegScore = firstLeg.scoreInfo;
+  // not every knockout match is two-legged, but since we display the teams
+  // in the ordering from the first leg, it's important to remember that the
+  // score from the second leg has to be flipped, since the home team from the
+  // first game becomes the away team in the second leg
+  const secondLegScore = secondLeg?.scoreInfo;
+
+  return (
+    <>
+      <div
+        className="w-[350px] h-[80px] bg-c2 hover:bg-c0 hover:cursor-pointer rounded-lg"
+        onClick={() => setShowMatchList(true)}
+      >
+        <div className="flex flex-col">
+          <div className="flex pt-2 pb-1">
+            <div className="basis-10/12 pl-5">
+              <Image
+                className="float-left"
+                width="20"
+                height="20"
+                src={homeCrestUrl ?? "placeholder-club-logo.svg"}
+                alt="Home team's crest" />
+              <span className="font-mono ml-2"> {firstLeg.homeTeam?.name} </span>
+            </div>
+            <div className="basis-1/12">
+              <span title="First leg home goals" className="font-extrabold text-c4">
+                {firstLegScore.homeGoals}
+              </span>
+            </div>
+            {secondLegScore !== undefined &&
+              <div className="basis-1/12">
+                <span title="Second leg away goals" className="font-extrabold text-c4">
+                  {secondLegScore.awayGoals}
+                </span>
+              </div>
+            }
+          </div>
+          <div className="flex pt-2 pb-1">
+            <div className="basis-10/12 pl-5">
+              <Image
+                className="float-left"
+                width="20"
+                height="20"
+                src={awayCrestUrl ?? "placeholder-club-logo.svg"}
+                alt="Away team's crest" />
+              <span className="font-mono ml-2"> {firstLeg.awayTeam?.name} </span>
+            </div>
+            <div className="basis-1/12">
+              <span title="First leg away goals" className="font-extrabold text-c4">
+                {firstLegScore.awayGoals}
+              </span>
+            </div>
+            {secondLegScore !== undefined &&
+              <div className="basis-1/12">
+                <span title="Second leg home goals" className="font-extrabold text-c4">
+                  {secondLegScore.homeGoals}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+        <div ref={matchListRef} className={`flex flex-col absolute bg-c0 w-[350px] rounded-b-lg ${showMatchList ? "visible" : "invisible"}`}>
+          <Link href={`/match/${firstLeg.id}`}>
+            <div className="basis-full hover:underline">
+              <div className="flex flex-row h-10 items-center">
+                <div className="basis-2/6 text-center">
+                  {formatMatchDate(firstLeg.startTimeUTC)}
+                </div>
+                <div className="basis-4/6">
+                  {shortenTeamName(firstLeg.homeTeam!.name)} - {shortenTeamName(firstLeg.awayTeam!.name)}
+                </div>
+              </div>
+            </div>
+          </Link>
+          {secondLeg !== undefined &&
+            <Link href={`/match/${secondLeg!.id}`}>
+              <hr />
+              <div className="basis-full hover:underline">
+                <div className="flex flex-row h-10 items-center">
+                  <div className="basis-2/6 text-center">
+                    {formatMatchDate(secondLeg!.startTimeUTC)}
+                  </div>
+                  <div className="basis-4/6">
+                    {shortenTeamName(secondLeg!.homeTeam!.name)} - {shortenTeamName(secondLeg!.awayTeam!.name)}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          }
+        </div>
+      </div>
+    </>
+  )
+}
+
+
 
 function CompetitionGroupBox(props: {
   competitionId: string,
@@ -885,4 +1264,13 @@ function SummarySkeleton() {
       <div className="animate-pulse mb-1 basis-full bg-c1 h-14 shadow-sm shadow-gray-400"></div>
     </>
   )
+}
+
+function formatMatchDate(d: Date): string {
+  if (d === undefined) return ""
+  const options: Intl.DateTimeFormatOptions = {
+    month: "2-digit",
+    day: "2-digit",
+  }
+  return d.toLocaleDateString(undefined, options);
 }

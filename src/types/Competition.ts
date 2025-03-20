@@ -1,4 +1,5 @@
 import { CompactMatchInfo, CompactTeamInfoOrNull, MatchResult, Score, customUtcDateReviver } from "./Match"
+import { FullTeamInfo } from "./Team";
 
 export type CompetitionInfo = {
   id: string,
@@ -29,31 +30,6 @@ export namespace LabeledMatches {
   }
 }
 
-export enum KnockoutStage {
-  ROUND_OF_128 = "ROUND_OF_128",
-  ROUND_OF_64 = "ROUND_OF_64",
-  ROUND_OF_32 = "ROUND_OF_32",
-  ROUND_OF_16 = "ROUND_OF_16",
-  QUARTER_FINAL = "QUARTER_FINAL",
-  SEMI_FINAL = "SEMI_FINAL",
-  FINAL = "FINAL",
-}
-
-export namespace KnockoutStage {
-  const stringMapping: Map<string, string> = new Map([
-    ["ROUND_OF_128", "Round of 128"],
-    ["ROUND_OF_64", "Round of 64"],
-    ["ROUND_OF_32", "Round of 32"],
-    ["ROUND_OF_16", "Round of 16"],
-    ["QUARTER_FINAL", "Quarter-final"],
-    ["SEMI_FINAL", "Semi-final"],
-    ["FINAL", "Final"],
-  ]);
-  export function format(stage: string): string | undefined {
-    if (stage === undefined) return ""
-    return stringMapping.get(stage);
-  }
-}
 
 export type TeamStanding = {
   teamId: string,
@@ -148,4 +124,64 @@ export type PlayerStatsEntry = {
   assists: number,
   yellowCards: number,
   redCards: number,
+}
+
+export enum KnockoutStage {
+  ROUND_OF_128 = "ROUND_OF_128",
+  ROUND_OF_64 = "ROUND_OF_64",
+  ROUND_OF_32 = "ROUND_OF_32",
+  ROUND_OF_16 = "ROUND_OF_16",
+  QUARTER_FINAL = "QUARTER_FINAL",
+  SEMI_FINAL = "SEMI_FINAL",
+  FINAL = "FINAL",
+}
+
+export namespace KnockoutStage {
+  const stringMapping: Map<string, string> = new Map([
+    ["ROUND_OF_128", "1/64-finals"],
+    ["ROUND_OF_64", "1/32-finals"],
+    ["ROUND_OF_32", "1/16-finals"],
+    ["ROUND_OF_16", "1/8-finals"],
+    ["QUARTER_FINAL", "Quarter-final"],
+    ["SEMI_FINAL", "Semi-final"],
+    ["FINAL", "Final"],
+  ]);
+  export function format(stage: string): string | undefined {
+    if (stage === undefined) return ""
+    return stringMapping.get(stage);
+  }
+}
+
+export interface EmptySlot {
+  type: "EMPTY"
+}
+
+export interface ByeSlot {
+  type: "BYE",
+  team: FullTeamInfo
+}
+
+export interface TakenSlot {
+  type: "TAKEN",
+  firstLeg: CompactMatchInfo,
+  secondLeg: CompactMatchInfo | null
+}
+
+export type KnockoutStageSlot = EmptySlot | ByeSlot | TakenSlot;
+
+export type StageEntry = {
+  stage: KnockoutStage,
+  slots: KnockoutStageSlot[]
+}
+
+export type KnockoutTree = {
+  stages: StageEntry[]
+}
+
+export namespace KnockoutTree {
+  export function fromJSON(json: any): KnockoutTree {
+    // custom reviver needed to correctly parse the format of dates 
+    // received from the backend
+    return JSON.parse(json, customUtcDateReviver);
+  }
 }
