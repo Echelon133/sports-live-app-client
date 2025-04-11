@@ -283,15 +283,17 @@ function MatchInfoContent(props: {
           <div className="basis-1/3">
             <div className="flex flex-col items-end">
               <div className="basis-full text-center">
-                <Image
-                  className="bg-white p-2 rounded-xl h-24 w-24"
-                  width="100"
-                  height="100"
-                  src={homeCrestUrl ?? "../../placeholder-club-logo.svg"}
-                  alt="Home team's crest" />
-                <Link href={`/team/${matchInformation.homeTeam?.id}`}>
-                  <span className="font-extrabold hover:underline">{matchInformation?.homeTeam?.name}</span>
-                </Link>
+                <div className="flex flex-col items-center">
+                  <Image
+                    className="bg-white p-2 rounded-xl h-24 w-24"
+                    width="100"
+                    height="100"
+                    src={homeCrestUrl ?? "../../placeholder-club-logo.svg"}
+                    alt="Home team's crest" />
+                  <Link href={`/team/${matchInformation.homeTeam?.id}`}>
+                    <span className="font-extrabold hover:underline">{matchInformation?.homeTeam?.name}</span>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -343,15 +345,17 @@ function MatchInfoContent(props: {
           <div className="basis-1/3">
             <div className="flex flex-col items-start">
               <div className="basis-full text-center">
-                <Image
-                  className="bg-white p-2 rounded-xl h-24 w-24"
-                  width="100"
-                  height="100"
-                  src={awayCrestUrl ?? "../../placeholder-club-logo.svg"}
-                  alt="Away team's crest" />
-                <Link href={`/team/${matchInformation.awayTeam?.id}`}>
-                  <span className="font-extrabold hover:underline">{matchInformation?.awayTeam?.name}</span>
-                </Link>
+                <div className="flex flex-col items-center">
+                  <Image
+                    className="bg-white p-2 rounded-xl h-24 w-24"
+                    width="100"
+                    height="100"
+                    src={awayCrestUrl ?? "../../placeholder-club-logo.svg"}
+                    alt="Away team's crest" />
+                  <Link href={`/team/${matchInformation.awayTeam?.id}`}>
+                    <span className="font-extrabold hover:underline">{matchInformation?.awayTeam?.name}</span>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
