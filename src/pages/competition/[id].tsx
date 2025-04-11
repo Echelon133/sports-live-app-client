@@ -10,7 +10,7 @@ import { Socket, io } from "socket.io-client";
 import InfoMessage from "@/components/InfoMessage";
 import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
 import LabeledMatchInfo from "@/components/LabeledMatchInfo";
-import { CompactMatchInfo } from "@/types/Match";
+import { CompactMatchInfo, MatchStatus } from "@/types/Match";
 import useHideOnUserEvent from "@/components/hooks/useHideOnUserEvent";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { PickerOption } from "@/components/DatePicker";
@@ -997,6 +997,9 @@ function TakenSlotBox(props: { slot: TakenSlot }) {
   // first game becomes the away team in the second leg
   const secondLegScore = secondLeg?.scoreInfo;
 
+  const showFirstLegScore = firstLeg.status !== MatchStatus.NOT_STARTED;
+  const showSecondLegScore = secondLeg?.status !== MatchStatus.NOT_STARTED;
+
   return (
     <>
       <div
@@ -1015,15 +1018,19 @@ function TakenSlotBox(props: { slot: TakenSlot }) {
               <span className="font-mono ml-2"> {firstLeg.homeTeam?.name} </span>
             </div>
             <div className="basis-1/12">
-              <span title="First leg home goals" className="font-extrabold text-c4">
-                {firstLegScore.homeGoals}
-              </span>
+              {showFirstLegScore &&
+                <span title="First leg home goals" className="font-extrabold text-c4">
+                  {firstLegScore.homeGoals}
+                </span>
+              }
             </div>
             {secondLegScore !== undefined &&
               <div className="basis-1/12">
-                <span title="Second leg away goals" className="font-extrabold text-c4">
-                  {secondLegScore.awayGoals}
-                </span>
+                {showSecondLegScore &&
+                  <span title="Second leg away goals" className="font-extrabold text-c4">
+                    {secondLegScore.awayGoals}
+                  </span>
+                }
               </div>
             }
           </div>
@@ -1038,15 +1045,19 @@ function TakenSlotBox(props: { slot: TakenSlot }) {
               <span className="font-mono ml-2"> {firstLeg.awayTeam?.name} </span>
             </div>
             <div className="basis-1/12">
-              <span title="First leg away goals" className="font-extrabold text-c4">
-                {firstLegScore.awayGoals}
-              </span>
+              {showFirstLegScore &&
+                <span title="First leg away goals" className="font-extrabold text-c4">
+                  {firstLegScore.awayGoals}
+                </span>
+              }
             </div>
             {secondLegScore !== undefined &&
               <div className="basis-1/12">
-                <span title="Second leg home goals" className="font-extrabold text-c4">
-                  {secondLegScore.homeGoals}
-                </span>
+                {showSecondLegScore &&
+                  <span title="Second leg home goals" className="font-extrabold text-c4">
+                    {secondLegScore.homeGoals}
+                  </span>
+                }
               </div>
             }
           </div>

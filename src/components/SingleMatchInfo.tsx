@@ -46,6 +46,7 @@ export default function SingleMatchInfo(props: {
   const awayCrestUrl: string | undefined = props.matchInfo.awayTeam?.crestUrl;
   const anyHighlight = updateableMatchInfo.highlight.home || updateableMatchInfo.highlight.away;
   const matchIsLive = MatchStatus.isLive(updateableMatchInfo.status);
+  const showScore = updateableMatchInfo.status !== MatchStatus.NOT_STARTED;
 
   const homeTeamWon = updateableMatchInfo.result === MatchResult.HOME_WIN;
   const awayTeamWon = updateableMatchInfo.result === MatchResult.AWAY_WIN;
@@ -213,9 +214,11 @@ export default function SingleMatchInfo(props: {
             }
           </div>
           <div className="basis-1/12">
-            <span title="Score at fulltime" className={`font-extrabold ${matchIsLive ? 'text-highlight-b' : 'text-c4'} `}>
-              {updateableMatchInfo.fullTimeScore.homeGoals}
-            </span>
+            {showScore &&
+              <span title="Score at fulltime" className={`font-extrabold ${matchIsLive ? 'text-highlight-b' : 'text-c4'} `}>
+                {updateableMatchInfo.fullTimeScore.homeGoals}
+              </span>
+            }
           </div>
         </div>
         <div className="flex pb-2">
@@ -241,9 +244,11 @@ export default function SingleMatchInfo(props: {
             }
           </div>
           <div className="basis-1/12">
-            <span title="Score at fulltime" className={`font-extrabold ${matchIsLive ? 'text-highlight-b' : 'text-c4'} `}>
-              {updateableMatchInfo.fullTimeScore.awayGoals}
-            </span>
+            {showScore &&
+              <span title="Score at fulltime" className={`font-extrabold ${matchIsLive ? 'text-highlight-b' : 'text-c4'} `}>
+                {updateableMatchInfo.fullTimeScore.awayGoals}
+              </span>
+            }
           </div>
         </div>
       </div>
