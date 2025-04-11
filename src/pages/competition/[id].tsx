@@ -10,9 +10,10 @@ import { Socket, io } from "socket.io-client";
 import InfoMessage from "@/components/InfoMessage";
 import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
 import LabeledMatchInfo from "@/components/LabeledMatchInfo";
-import { CompactMatchInfo, Score } from "@/types/Match";
+import { CompactMatchInfo } from "@/types/Match";
 import useHideOnUserEvent from "@/components/hooks/useHideOnUserEvent";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
+import { PickerOption } from "@/components/DatePicker";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -86,7 +87,7 @@ export default function Competition() {
               {menuConfig.currentlySelected === "STANDINGS" &&
                 <StandingsSummary
                   key={competitionInformation?.id}
-                  competition={competitionInformation}
+                  competition={competitionInformation!}
                   globalUpdatesSocket={globalUpdatesSocket}
                 />
               }
@@ -490,11 +491,6 @@ function MatchesByRound(props: {
   )
 }
 
-type PickerOption = {
-  displayName: string,
-  isSelected: boolean,
-}
-
 function RoundPicker(props: {
   selectedRound: number,
   setSelectedRound: Dispatch<SetStateAction<number>>,
@@ -590,10 +586,23 @@ function RoundPicker(props: {
   )
 }
 
+// props needed to display prev/next buttons next to knockout slots, 
+// to enable quick navigation between the stages (with highlighting
+// of the slot/slots which are related to each other)
+type SelectedStageProps = {
+  isFirst: boolean,
+  isLast: boolean,
+  prevStageWithHighlight: (currentSlotIndex: number) => void,
+  nextStageWithHighlight: (currentSlotIndex: number) => void,
+  highlightedSlotIndexes: number[]
+}
+
 function KnockoutPhase(props: { competition: CompetitionInfo }) {
   const [knockoutTree, setKnockoutTree] = useState<KnockoutTree | undefined>(undefined);
   const [knockoutContentLoaded, setKnockoutContentLoaded] = useState<boolean>(false);
   const [selectedStage, setSelectedStage] = useState<string>("");
+  const [highlightedSlotIndexes, setHighlightedSlotIndexes] = useState<number[]>([]);
+  const highlightTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const stageKeys: string[] =
     knockoutTree === undefined ? [] : knockoutTree.stages.map((stage) => stage.stage);
@@ -606,6 +615,64 @@ function KnockoutPhase(props: { competition: CompetitionInfo }) {
       }
     }
     return [];
+  }
+
+  function getIndexOfCurrentStage(): number {
+    return stageKeys.indexOf(selectedStage);
+  }
+
+  function prevStageWithHighlight(currentSlotIndex: number) {
+    // i.e. going from slot2 to the previous stage should highlight both slot0
+    //      and slot1
+    //
+    //   S0       S1
+    // -------|--------
+    // slot0 \
+    //          slot2
+    // slot1 /
+    setHighlightedSlotIndexes([currentSlotIndex * 2, currentSlotIndex * 2 + 1]);
+    resetHighlightedSlotIndexes();
+    setSelectedStage(stageKeys[getIndexOfCurrentStage() - 1]);
+  }
+
+  function nextStageWithHighlight(currentSlotIndex: number) {
+    // i.e. going from slot0 and slot1 to the next stage should only highlight
+    //      slot2
+    //
+    //   S0       S1
+    // -------|--------
+    // slot0 \
+    //          slot2
+    // slot1 /
+    setHighlightedSlotIndexes([currentSlotIndex / 2]);
+    resetHighlightedSlotIndexes();
+    setSelectedStage(stageKeys[getIndexOfCurrentStage() + 1]);
+  }
+
+  function resetHighlightedSlotIndexes() {
+    // if a highlight timeout already exists, clear it and replace it with
+    // a new one, because only the latest timeout should be active
+    if (highlightTimeoutRef.current !== undefined) {
+      clearTimeout(highlightTimeoutRef.current);
+      highlightTimeoutRef.current = undefined;
+    }
+    highlightTimeoutRef.current = setTimeout(() => {
+      setHighlightedSlotIndexes([])
+    }, 5000);
+  }
+
+  // this is used for conditional rendering of previous/next buttons which let
+  // users highlight the previous/next match which is related to a particular
+  // slot grouping (i.e. pressing the "previous" button of the final match
+  // will switch the current stage to the previous (semi-final) stage, and
+  // highlight both semifinals, since these semi-finals decide who is going
+  // to play in the final)
+  const selectedStageProps: SelectedStageProps = {
+    isFirst: stageKeys.indexOf(selectedStage) === 0,
+    isLast: stageKeys.indexOf(selectedStage) === stageKeys.length - 1,
+    prevStageWithHighlight: prevStageWithHighlight,
+    nextStageWithHighlight: nextStageWithHighlight,
+    highlightedSlotIndexes: highlightedSlotIndexes
   }
 
   useEffect(() => {
@@ -629,7 +696,10 @@ function KnockoutPhase(props: { competition: CompetitionInfo }) {
             selectedStage={selectedStage}
             setSelectedStage={setSelectedStage}
           />
-          <KnockoutStageSlotGrouping slots={getSlotsOfStage(selectedStage)} />
+          <KnockoutStageSlotGrouping
+            selectedStageProps={selectedStageProps}
+            slots={getSlotsOfStage(selectedStage)}
+          />
         </div>
         :
         <>
@@ -739,7 +809,10 @@ function KnockoutStagePicker(props: {
   )
 }
 
-function KnockoutStageSlotGrouping(props: { slots: KnockoutStageSlot[] }) {
+function KnockoutStageSlotGrouping(props: {
+  selectedStageProps: SelectedStageProps,
+  slots: KnockoutStageSlot[]
+}) {
   // the backend guarantees all stages (apart from the final stage) must have
   // a number of slots that's divisible by 2
   // we need to group slots that are next to each other, because two slots
@@ -762,12 +835,23 @@ function KnockoutStageSlotGrouping(props: { slots: KnockoutStageSlot[] }) {
       <div className="flex flex-col items-center justify-evenly mt-10 mb-10">
         {groupings.length === 1 ?
           <>
-            <KnockoutStageSlotGroupingEntry entrySlots={groupings[0]} />
+            <KnockoutStageSlotGroupingEntry
+              groupingIndex={0}
+              selectedStageProps={props.selectedStageProps}
+              entrySlots={groupings[0]}
+            />
           </>
           :
           <>
-            {groupings.map((grouping) => {
-              return <KnockoutStageSlotGroupingEntry entrySlots={grouping} />
+            {groupings.map((grouping, groupingIndex) => {
+              return <KnockoutStageSlotGroupingEntry
+                // multiply groupingIndex by 2, so that internally slots can
+                // be numbered sequentially (i.e. grouping 0 has slots 0 and 1,
+                // grouping 1 has slots 2 and 3, etc.)
+                groupingIndex={groupingIndex * 2}
+                selectedStageProps={props.selectedStageProps}
+                entrySlots={grouping}
+              />
             })}
           </>
         }
@@ -777,25 +861,62 @@ function KnockoutStageSlotGrouping(props: { slots: KnockoutStageSlot[] }) {
 }
 
 function KnockoutStageSlotGroupingEntry(props: {
+  groupingIndex: number,
+  selectedStageProps: SelectedStageProps,
   entrySlots: KnockoutStageSlot[]
 }) {
+  const firstSlotHighlight =
+    props.selectedStageProps.highlightedSlotIndexes.includes(props.groupingIndex);
+  const secondSlotHighlight =
+    props.selectedStageProps.highlightedSlotIndexes.includes(props.groupingIndex + 1);
+
   return (
     <>
       <div className="flex flex-col items-center justify-center my-4">
-        {props.entrySlots.length === 1 ?
-          <KnockoutStageSlotBox slot={props.entrySlots[0]} />
-          :
-          <>
-            <KnockoutStageSlotBox slot={props.entrySlots[0]} />
-            <KnockoutStageSlotBox slot={props.entrySlots[1]} />
-          </>
-        }
+        <div className="flex flex-row">
+          <div className="flex flex-col justify-around mr-1">
+            <button
+              disabled={props.selectedStageProps.isFirst}
+              onClick={() => props.selectedStageProps.prevStageWithHighlight(props.groupingIndex)}
+              className={`${props.selectedStageProps.isFirst ? "bg-gray-700" : "bg-c0 hover:bg-c4 hover:text-black"} h-8 w-8 text-2xl text-white rounded-lg`}>&lt;
+            </button>
+            {props.entrySlots.length > 1 &&
+              <button
+                disabled={props.selectedStageProps.isFirst}
+                onClick={() => props.selectedStageProps.prevStageWithHighlight(props.groupingIndex + 1)}
+                className={`${props.selectedStageProps.isFirst ? "bg-gray-700" : "bg-c0 hover:bg-c4 hover:text-black"} h-8 w-8 text-2xl text-white rounded-lg`}>&lt;
+              </button>
+            }
+          </div>
+          <div className="flex flex-col">
+            <KnockoutStageSlotBox
+              highlight={firstSlotHighlight}
+              slot={props.entrySlots[0]}
+            />
+            {props.entrySlots.length > 1 &&
+              <KnockoutStageSlotBox
+                highlight={secondSlotHighlight}
+                slot={props.entrySlots[1]}
+              />
+            }
+          </div>
+          <div className="flex flex-col justify-around ml-1">
+            <button
+              disabled={props.selectedStageProps.isLast}
+              onClick={() => props.selectedStageProps.nextStageWithHighlight(props.groupingIndex)}
+              className={`${props.selectedStageProps.isLast ? "bg-gray-700" : "bg-c0 hover:bg-c4 hover:text-black"} h-8 w-8 text-2xl text-white rounded-lg`}>&gt;
+            </button>
+          </div>
+        </div>
       </div>
     </>
   )
 }
 
-function KnockoutStageSlotBox(props: { slot: KnockoutStageSlot }) {
+function KnockoutStageSlotBox(props: {
+  highlight: boolean,
+  slot: KnockoutStageSlot
+}) {
   let slotBox: JSX.Element;
   switch (props.slot.type) {
     case "EMPTY":
@@ -810,7 +931,7 @@ function KnockoutStageSlotBox(props: { slot: KnockoutStageSlot }) {
   }
   return (
     <>
-      <div className="my-1">
+      <div className={`my-1 border-4 rounded-lg ${props.highlight ? "border-c4" : "border-c1"} `}>
         {
           slotBox
         }

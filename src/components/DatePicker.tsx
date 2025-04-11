@@ -117,7 +117,7 @@ export default function DatePicker(props: {
   );
 }
 
-type PickerOption = {
+export type PickerOption = {
   displayName: string,
   isSelected: boolean,
 }
