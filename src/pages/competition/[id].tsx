@@ -848,6 +848,7 @@ function KnockoutStageSlotGrouping(props: {
                 // multiply groupingIndex by 2, so that internally slots can
                 // be numbered sequentially (i.e. grouping 0 has slots 0 and 1,
                 // grouping 1 has slots 2 and 3, etc.)
+                key={groupingIndex}
                 groupingIndex={groupingIndex * 2}
                 selectedStageProps={props.selectedStageProps}
                 entrySlots={grouping}
