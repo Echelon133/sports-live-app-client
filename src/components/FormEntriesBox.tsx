@@ -57,10 +57,10 @@ function FormEntry(props: {
           onMouseLeave={() => entryMouseLeave()}
         >
           <Link key={props.entry.matchDetails.id} href={`/match/${encodeURIComponent(props.entry.matchDetails.id)}`}>
-            <span
+            <div
               key={props.entry.matchDetails.id}
-              className={`${color} px-2 py-1 font-extrabold rounded-lg text-white hover:underline hover:cursor-pointer`}
-            >{props.entry.form}</span>
+              className={`${color} h-6 w-6 font-extrabold rounded-lg text-center text-white hover:underline hover:cursor-pointer`}
+            >{props.entry.form}</div>
           </Link>
         </div>
         <div className="relative">
