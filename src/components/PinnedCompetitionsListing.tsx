@@ -33,7 +33,7 @@ export default function PinnedCompetitionListing(props: {
           {competitions.map(c => {
             return (
               <li key={c.id} className="mb-2 hover:bg-c1 px-2 py-1 rounded-md">
-                <Link href={`/competition/${c.id}`} onClick={props.togglePinnedCompetitions}>
+                <Link href={`/competition/${encodeURIComponent(c.id)}`} onClick={props.togglePinnedCompetitions}>
                   <div className="flex flex-row items-center gap-1">
                     <Image
                       className="bg-white p-[0.1rem] rounded-sm float-left mr-2"

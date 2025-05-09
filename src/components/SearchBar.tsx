@@ -77,7 +77,7 @@ function TeamSearchResults(props: { searchQuery: string }) {
 function TeamSearchResultEntry(props: { info: FullTeamInfo }) {
   return (
     <>
-      <Link href={`/team/${props.info.id}`}>
+      <Link href={`/team/${encodeURIComponent(props.info.id)}`}>
         <div className="flex py-1 items-center justify-evenly hover:bg-c0 hover:cursor-pointer">
           <div className="basis-1/4">
             <Image
@@ -116,7 +116,7 @@ function CompetitionSearchResults(props: { searchQuery: string }) {
 function CompetitionSearchResultEntry(props: { info: CompetitionInfo }) {
   return (
     <>
-      <Link href={`/competition/${props.info.id}`}>
+      <Link href={`/competition/${encodeURIComponent(props.info.id)}`}>
         <div key={props.info.id} className="flex py-1 items-center justify-evenly hover:bg-c0 hover:cursor-pointer">
           <div className="basis-1/4">
             <Image

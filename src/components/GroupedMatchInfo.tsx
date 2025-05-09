@@ -31,7 +31,7 @@ export default function GroupedMatchInfo(props: {
                 height="25"
                 src={competitionLogoUrl ?? "placeholder-competition-logo.svg"}
                 alt={props.competitionInfo.name ?? "Competition's logo"} />
-              <Link href={`/competition/${props.competitionInfo.id}`}>
+              <Link href={`/competition/${encodeURIComponent(props.competitionInfo.id)}`}>
                 <span className="font-extrabold hover:underline text-c4">{props.competitionInfo.name}</span>
               </Link>
               <span className="font-extralight text-sm text-c3 ml-2">({props.competitionInfo.season})</span>

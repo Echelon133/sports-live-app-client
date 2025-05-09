@@ -8,27 +8,54 @@ import { FormEntriesBox } from "@/components/FormEntriesBox";
 import LoadMoreButton from "@/components/LoadMoreButton";
 import { Socket, io } from "socket.io-client";
 import InfoMessage from "@/components/InfoMessage";
-import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
 import LabeledMatchInfo from "@/components/LabeledMatchInfo";
 import { CompactMatchInfo, MatchStatus } from "@/types/Match";
 import useHideOnUserEvent from "@/components/hooks/useHideOnUserEvent";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { PickerOption } from "@/components/DatePicker";
+import RoutingHorizontalMenu, { RoutingMenuConfig, createMenuConfig } from "@/components/RoutingHorizontalMenu";
+import { FullTeamInfo } from "@/types/Team";
 
 const { publicRuntimeConfig } = getConfig();
 
 export default function Competition() {
   const router = useRouter();
-
   const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
-
-  const [competitionInfoContentLoaded, setCompetitionInfoContentLoaded] = useState<boolean>(false);
   const [competitionInformation, setCompetitionInformation] =
     useState<CompetitionInfo | undefined>(undefined);
-
-  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
-    createMenuConfig(["RESULTS", "FIXTURES", "STANDINGS"])
+  const [menuConfig, setMenuConfig] = useState<RoutingMenuConfig | undefined>(
+    undefined
   );
+
+  // we expect the path to be /competition/[0]/[1]
+  // where [0] is competition's id, and [1] is the subpage (i.e. results/fixtures/standings)
+  const competitionId = router.query.path?.[0];
+  const competitionSubPage = router.query.path?.[1];
+
+  // wait until competition's id is available, so that the base route required by
+  // the menu can be constructed
+  useEffect(() => {
+    if (competitionId === undefined) {
+      return;
+    }
+    setMenuConfig(() => {
+      const baseRoute = `/competition/${encodeURIComponent(competitionId)}`;
+      const menuOptions = [
+        { name: "results", displayedName: "RESULTS", path: `${baseRoute}/results` },
+        { name: "fixtures", displayedName: "FIXTURES", path: `${baseRoute}/fixtures` },
+        { name: "standings", displayedName: "STANDINGS", path: `${baseRoute}/standings` },
+      ];
+
+      const currentlySelectedOption = competitionSubPage?.toLowerCase() ?? "";
+      // if currently selected subpage does not exist among possibilities, 
+      // redirect to the first option from the menu
+      if (!menuOptions.map(o => o.name).includes(currentlySelectedOption)) {
+        router.push(menuOptions[0].path);
+      }
+
+      return createMenuConfig(currentlySelectedOption, menuOptions);
+    })
+  }, [router.query.path])
 
   // connect to a websocket which broadcasts global match events
   useEffect(() => {
@@ -43,51 +70,51 @@ export default function Competition() {
   }, []);
 
   useEffect(() => {
-    if (router.query.id === undefined) {
+    if (competitionId === undefined) {
       return;
     }
 
-    const competitionUrl = `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${router.query.id}`;
+    const competitionUrl = `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${competitionId}`;
     fetch(competitionUrl)
       .then((res) => res.json())
       .then((data) => {
         const d: CompetitionInfo = data;
         setCompetitionInformation(d);
-        setCompetitionInfoContentLoaded(true);
       });
-
-  }, [router.query.id]);
+  }, [competitionId]);
 
   return (
     <div className="flex flex-row items-center justify-center">
       <div className="mt-10 pt-12 basis-full rounded-md border border-c2">
-        {competitionInfoContentLoaded ?
+        {competitionInformation !== undefined ?
           <CompetitionInfoContent competition={competitionInformation} />
           :
           <CompetitionInfoContentSkeleton />
         }
         <div className="mt-12 flex flex-row justify-center">
           <div>
-            <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
+            {menuConfig !== undefined &&
+              <RoutingHorizontalMenu menuConfig={menuConfig} />
+            }
           </div>
         </div>
         <div className="mt-12 pb-8">
-          {competitionInfoContentLoaded &&
+          {competitionInformation !== undefined &&
             <>
-              {menuConfig.currentlySelected === "RESULTS" &&
-                <ResultsSummary key={competitionInformation?.id} competition={competitionInformation} />
+              {competitionSubPage === "results" &&
+                <ResultsSummary key={competitionInformation.id} competition={competitionInformation} />
               }
-              {menuConfig.currentlySelected === "FIXTURES" &&
+              {competitionSubPage === "fixtures" &&
                 <FixturesSummary
-                  key={competitionInformation?.id}
+                  key={competitionInformation.id}
                   competition={competitionInformation}
                   globalUpdatesSocket={globalUpdatesSocket}
                 />
               }
-              {menuConfig.currentlySelected === "STANDINGS" &&
+              {competitionSubPage === "standings" &&
                 <StandingsSummary
-                  key={competitionInformation?.id}
-                  competition={competitionInformation!}
+                  key={competitionInformation.id}
+                  competition={competitionInformation}
                   globalUpdatesSocket={globalUpdatesSocket}
                 />
               }
@@ -302,37 +329,61 @@ function StandingsSummary(props: {
   competition: CompetitionInfo,
   globalUpdatesSocket: Socket | undefined
 }) {
-  const [teamInfoCache, setTeamInfoCache] = useState<Map<string, TeamStanding>>(new Map());
-
-  let menuOptions = [];
-  if (props.competition?.leaguePhase) {
-    menuOptions.push("LEAGUE PHASE");
-  }
-  if (props.competition?.knockoutPhase) {
-    menuOptions.push("KNOCKOUT PHASE");
-  }
-  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
-    createMenuConfig(menuOptions.concat(["TOP SCORERS"]))
+  const router = useRouter();
+  const [menuConfig, setMenuConfig] = useState<RoutingMenuConfig | undefined>(
+    undefined
   );
 
+  // we expect the path to be /competition/[0]/standings/[2]
+  // where [0] is the competition's id, [1] is always set to 'standings', and
+  // [2] is the subpage of standings (i.e. league-phase, knockout-phase, top scorers)
+  const competitionId = router.query.path?.[0];
+  const standingsSubPage = router.query.path?.[2];
+
+  // wait until competition's id is available, so that the base route required by
+  // the menu can be constructed
+  useEffect(() => {
+    if (competitionId === undefined) {
+      return;
+    }
+    setMenuConfig(() => {
+      const baseRoute = `/competition/${encodeURIComponent(competitionId)}/standings`;
+      let menuOptions = [];
+      if (props.competition?.leaguePhase) {
+        menuOptions.push({ name: "league-phase", displayedName: "LEAGUE PHASE", path: `${baseRoute}/league-phase` });
+      }
+      if (props.competition?.knockoutPhase) {
+        menuOptions.push({ name: "knockout-phase", displayedName: "KNOCKOUT PHASE", path: `${baseRoute}/knockout-phase` });
+      }
+
+      menuOptions.push({ name: "top-scorers", displayedName: "TOP SCORERS", path: `${baseRoute}/top-scorers` });
+
+      const currentlySelectedOption = standingsSubPage?.toLowerCase() ?? "";
+      // if currently selected subpage does not exist among possibilities, 
+      // redirect to the first option from the menu
+      if (!menuOptions.map(o => o.name).includes(currentlySelectedOption)) {
+        router.push(menuOptions[0].path);
+      }
+
+      return createMenuConfig(currentlySelectedOption, menuOptions);
+    })
+  }, [router.query.path])
 
   return (
     <>
       <div className="ml-12 mb-6">
-        <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
+        {menuConfig !== undefined &&
+          <RoutingHorizontalMenu menuConfig={menuConfig} />
+        }
       </div>
-      {menuConfig.currentlySelected === "LEAGUE PHASE" &&
-        <LeaguePhase
-          competition={props.competition}
-          setTeamInfoCache={setTeamInfoCache}
-          globalUpdatesSocket={props.globalUpdatesSocket}
-        />
+      {standingsSubPage === "league-phase" &&
+        <LeaguePhase competition={props.competition} globalUpdatesSocket={props.globalUpdatesSocket} />
       }
-      {menuConfig.currentlySelected === "KNOCKOUT PHASE" &&
+      {standingsSubPage === "knockout-phase" &&
         <KnockoutPhase competition={props.competition} />
       }
-      {menuConfig.currentlySelected === "TOP SCORERS" &&
-        <TopScorersListing competitionId={props.competition!.id} teamInfoCache={teamInfoCache} />
+      {standingsSubPage === "top-scorers" &&
+        <TopScorersListing competitionId={props.competition!.id} />
       }
     </>
   )
@@ -340,30 +391,60 @@ function StandingsSummary(props: {
 
 function LeaguePhase(props: {
   competition: CompetitionInfo,
-  setTeamInfoCache: Dispatch<SetStateAction<Map<string, TeamStanding>>>,
   globalUpdatesSocket: Socket | undefined
 }) {
+  const router = useRouter();
   const [currentRound, setCurrentRound] = useState<number>(1);
-
-  const menuOptions = ["GROUPS", "BY ROUND"];
-  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
-    createMenuConfig(menuOptions)
+  const [menuConfig, setMenuConfig] = useState<RoutingMenuConfig | undefined>(
+    undefined
   );
 
+  // we expect the path to be /competition/[0]/standings/league-phase/[3]
+  // where [0] is competition's id, [1] is always 'standings', 
+  // [2] is always 'league-phase', and [3] is the subpage of the league phase
+  // (i.e. groups, by-round)
+  const competitionId = router.query.path?.[0];
+  const leaguePhaseSubPage = router.query.path?.[3];
+
+  // wait until competition's id is available, so that the base route required by
+  // the menu can be constructed
+  useEffect(() => {
+    if (competitionId === undefined) {
+      return;
+    }
+
+    setMenuConfig(() => {
+      const baseRoute = `/competition/${encodeURIComponent(competitionId)}/standings/league-phase`;
+      const menuOptions = [
+        { name: "groups", displayedName: "GROUPS", path: `${baseRoute}/groups` },
+        { name: "by-round", displayedName: "BY ROUND", path: `${baseRoute}/by-round` }
+      ];
+
+      const currentlySelectedOption = leaguePhaseSubPage?.toLowerCase() ?? "";
+      // if currently selected subpage does not exist among possibilities, 
+      // redirect to the first option from the menu
+      if (!menuOptions.map(o => o.name).includes(currentlySelectedOption)) {
+        router.push(menuOptions[0].path);
+      }
+
+      return createMenuConfig(currentlySelectedOption, menuOptions);
+    })
+  }, [router.query.path])
 
   return (
     <>
       <div className="ml-12 mb-6">
-        <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
+        {menuConfig !== undefined &&
+          <RoutingHorizontalMenu menuConfig={menuConfig} />
+        }
       </div>
-      {menuConfig.currentlySelected === "GROUPS" &&
+      {leaguePhaseSubPage === "groups" &&
         <CompetitionGroups
           competition={props.competition}
-          setTeamInfoCache={props.setTeamInfoCache}
           setCurrentRound={setCurrentRound}
         />
       }
-      {menuConfig.currentlySelected === "BY ROUND" &&
+      {leaguePhaseSubPage === "by-round" &&
         <MatchesByRound
           competition={props.competition}
           defaultRound={currentRound}
@@ -376,7 +457,6 @@ function LeaguePhase(props: {
 
 function CompetitionGroups(props: {
   competition: CompetitionInfo | undefined,
-  setTeamInfoCache: Dispatch<SetStateAction<Map<string, TeamStanding>>>,
   setCurrentRound: Dispatch<SetStateAction<number>>
 }) {
   const [standingsContentLoaded, setStandingsContentLoaded] = useState<boolean>(false);
@@ -395,16 +475,6 @@ function CompetitionGroups(props: {
       .then((data) => {
         const d: CompetitionStandings = data;
 
-        // create a mapping between teamIds and team names/crests to 
-        // potentially reuse that information in the TOP SCORERS
-        // tab
-        const teamCache: Map<string, TeamStanding> = new Map();
-        for (let group of d.groups) {
-          for (let team of group.teams) {
-            teamCache.set(team.teamId, team);
-          }
-        }
-
         // iterate over the 'Matches Played' column and find the max number, so
         // that we know how many rounds of the competition have been played
         // at this point, since we want to display the round that's currently 
@@ -417,8 +487,6 @@ function CompetitionGroups(props: {
           }
         }
         props.setCurrentRound(currentRound);
-
-        props.setTeamInfoCache(teamCache);
         setCompetitionStandings(d);
         setStandingsContentLoaded(true);
       });
@@ -955,7 +1023,7 @@ function ByeSlotBox(props: { slot: ByeSlot }) {
 
   return (
     <>
-      <Link href={`/team/${team.id}`}>
+      <Link href={`/team/${encodeURIComponent(team.id)}`}>
         <div className="w-[350px] h-[80px] bg-c2 hover:bg-c0 hover:cursor-pointer rounded-lg">
           <div className="flex flex-col">
             <div className="flex pt-2 pb-1">
@@ -1064,7 +1132,7 @@ function TakenSlotBox(props: { slot: TakenSlot }) {
           </div>
         </div>
         <div ref={matchListRef} className={`flex flex-col absolute bg-c0 w-[350px] rounded-b-lg ${showMatchList ? "visible" : "invisible"}`}>
-          <Link href={`/match/${firstLeg.id}`}>
+          <Link href={`/match/${encodeURIComponent(firstLeg.id)}`}>
             <div className="basis-full hover:underline">
               <div className="flex flex-row h-10 items-center">
                 <div className="basis-2/6 text-center">
@@ -1077,7 +1145,7 @@ function TakenSlotBox(props: { slot: TakenSlot }) {
             </div>
           </Link>
           {secondLeg !== undefined &&
-            <Link href={`/match/${secondLeg!.id}`}>
+            <Link href={`/match/${encodeURIComponent(secondLeg!.id)}`}>
               <hr />
               <div className="basis-full hover:underline">
                 <div className="flex flex-row h-10 items-center">
@@ -1173,7 +1241,7 @@ function CompetitionGroupBox(props: {
                           height="22"
                           src={team.crestUrl ?? "placeholder-club-logo.svg"}
                           alt={team.teamName ?? "Team's crest"} />
-                        <Link href={`/team/${team.teamId}`}>
+                        <Link href={`/team/${encodeURIComponent(team.teamId)}`}>
                           <span className="pl-2 hover:underline">{team.teamName}</span>
                         </Link>
                       </div>
@@ -1257,15 +1325,12 @@ function FormBox(props: {
 
 function TopScorersListing(props: {
   competitionId: string,
-  teamInfoCache: Map<string, TeamStanding>,
 }) {
-  const [playerStats, setPlayerStats] = useState<PlayerStatsEntry[]>([]);
-  const pageNumber = useRef(0);
+  type PlayerWithPosition = { position: number, playerStats: PlayerStatsEntry };
 
-  // two players are ex-aequo if their goals and assists are identical, therefore
-  // we need to calculate player's position by checking the previous player's stats
-  type PlayerGoalsAssists = { goals: number, assists: number, position: number };
-  const prevPlayerStat = useRef<PlayerGoalsAssists>({ goals: 0, assists: 0, position: 0 });
+  const [playerStats, setPlayerStats] = useState<PlayerWithPosition[]>([]);
+  const [teamInfoCache, setTeamInfoCache] = useState<Map<string, FullTeamInfo>>(new Map());
+  const pageNumber = useRef(0);
 
   function fetchTopScorersPage(competitionId: string, page: number) {
     const httpParams = new URLSearchParams({
@@ -1278,13 +1343,61 @@ function TopScorersListing(props: {
     fetch(topScorersUrl)
       .then((res) => res.json())
       .then((data) => {
-        const d: PlayerStatsEntry[] = data.content;
-        // clear data which is needed to calculate positions, since
-        // updating player stats rerenders the entire table and calculations
-        // have to start from 0
-        prevPlayerStat.current = { goals: 0, assists: 0, position: 0 };
-        setPlayerStats((prev) => [...prev, ...d]);
-      });
+        const players: PlayerStatsEntry[] = data.content;
+        let teamInfoPromises: Promise<FullTeamInfo>[] = [];
+
+        // iterate over teamIds of all fetched top scorers and fetch information
+        // about these teams
+        players.forEach((player) => {
+          // if a particular team's info is already cached, do not fetch it again
+          if (!teamInfoCache.has(player.teamId)) {
+            const teamInfoUrl = `${publicRuntimeConfig.TEAMS_BASE_URL}/${player.teamId}`;
+            const promise: Promise<FullTeamInfo> = fetch(teamInfoUrl)
+              .then((res) => res.json());
+            teamInfoPromises.push(promise);
+          }
+        });
+
+        // construct a map between each teamId and its FullTeamInfo
+        Promise.all(teamInfoPromises)
+          .then((arr) => {
+            let m: Map<string, FullTeamInfo> = new Map(teamInfoCache);
+            arr.forEach((teamInfo) => {
+              m.set(teamInfo.id, teamInfo);
+            });
+            return m;
+          })
+          .then((m) => {
+            setTeamInfoCache(m);
+          })
+        return players;
+      })
+      .then((data) => {
+        const players: PlayerStatsEntry[] = data;
+        type PrevPlayerStat = { goals: number, assists: number, position: number };
+
+        // iterate over all players and calculate the position of each player,
+        // bearing in mind that players are ex aequo if they have the same number
+        // of goals and assists
+        setPlayerStats((prev) => {
+          let prevStat: PrevPlayerStat = { goals: 0, assists: 0, position: 0 };
+          const allPlayers: PlayerStatsEntry[] = [
+            ...prev.map((i) => i.playerStats),
+            ...players
+          ];
+          let result: PlayerWithPosition[] = [];
+          allPlayers.forEach((player) => {
+            // check if they are ex aequo
+            if ((player.goals !== prevStat.goals) || (player.assists !== prevStat.assists)) {
+              prevStat.position += 1;
+            }
+            prevStat.goals = player.goals;
+            prevStat.assists = player.assists;
+            result.push({ position: prevStat.position, playerStats: player });
+          })
+          return result;
+        });
+      })
   }
 
   function fetchMoreTopScorers(competitionId: string) {
@@ -1333,42 +1446,33 @@ function TopScorersListing(props: {
                 </thead>
                 <tbody>
                   {playerStats.map((stat, _i) => {
-                    let playerPosition: number = prevPlayerStat.current.position;
-                    if (
-                      (stat.goals !== prevPlayerStat.current.goals) ||
-                      (stat.assists !== prevPlayerStat.current.assists)
-                    ) {
-                      playerPosition += 1;
-                      prevPlayerStat.current.position = playerPosition;
-                      prevPlayerStat.current.goals = stat.goals;
-                      prevPlayerStat.current.assists = stat.assists;
-                    }
-
-                    const cachedTeamInfo = props.teamInfoCache.get(stat.teamId);
-                    const teamName = cachedTeamInfo?.teamName;
+                    const teamId = stat.playerStats.teamId;
+                    const playerStats = stat.playerStats;
+                    const cachedTeamInfo = teamInfoCache.get(teamId);
+                    const teamName = cachedTeamInfo?.name;
                     return (
                       <tr
-                        key={stat.playerId}
+                        key={stat.playerStats.playerId}
                         className="odd:bg-c0 even:bg-c1 text-center"
                       >
-                        <td className="p-1">{playerPosition}</td>
-                        <td className="font-extralight text-sm">{stat.name}</td>
+                        <td className="p-1">{stat.position}</td>
+                        <td className="font-extralight text-sm">{playerStats.name}</td>
                         <td className="font-extralight text-sm">
-                          <div className="flex justify-left items-center">
+                          <div className="flex justify-center items-center">
                             <Image
                               width="22"
                               height="22"
                               src={cachedTeamInfo?.crestUrl ?? "placeholder-club-logo.svg"}
                               alt={teamName ?? "Team's crest"} />
-                            <Link href={`/team/${cachedTeamInfo?.teamId}`}>
+                            <Link href={`/team/${encodeURIComponent(teamId)}`}>
                               <span className="pl-2 hover:underline">{teamName}</span>
                             </Link>
                           </div>
                         </td>
-                        <td>{stat.goals}</td>
-                        <td>{stat.assists}</td>
-                        <td>{stat.yellowCards}</td>
-                        <td className="py-1">{stat.redCards}</td>
+                        <td>{playerStats.goals}</td>
+                        <td>{playerStats.assists}</td>
+                        <td>{playerStats.yellowCards}</td>
+                        <td className="py-1">{playerStats.redCards}</td>
                       </tr>
                     )
                   })}

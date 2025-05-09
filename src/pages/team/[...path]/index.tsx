@@ -3,66 +3,91 @@ import Image from 'next/image'
 import { useEffect, useRef, useState } from "react";
 import { FullTeamInfo, countryCodeToFlagEmoji } from "@/types/Team";
 import getConfig from "next/config";
-import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
 import { GroupedMatches, TeamFormEntries, TeamFormEntry } from "@/types/Competition";
-import GroupedMatchInfo from "@/components/GroupedMatchInfo";
-import { TeamPlayer } from "@/types/Lineup";
 import { FormEntriesBox } from "@/components/FormEntriesBox";
+import RoutingHorizontalMenu, { RoutingMenuConfig, createMenuConfig } from "@/components/RoutingHorizontalMenu";
+import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
 import LoadMoreButton from "@/components/LoadMoreButton";
 import { Socket, io } from "socket.io-client";
+import GroupedMatchInfo from "@/components/GroupedMatchInfo";
+import { TeamPlayer } from "@/types/Lineup";
 import InfoMessage from "@/components/InfoMessage";
-import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
 
 const { publicRuntimeConfig } = getConfig();
 
 export default function Team() {
   const router = useRouter();
-
-  const [teamInfoContentLoaded, setTeamInfoContentLoaded] = useState<boolean>(false);
   const [teamInformation, setTeamInformation] = useState<FullTeamInfo | undefined>(undefined);
-
-  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
-    createMenuConfig(["RESULTS", "FIXTURES", "PLAYERS"])
+  const [menuConfig, setMenuConfig] = useState<RoutingMenuConfig | undefined>(
+    undefined
   );
 
+  const teamId = router.query.path?.[0];
+  const teamSubPage = router.query.path?.[1];
+
+  // wait until team's id is available, so that the base route required by
+  // the menu can be constructed
   useEffect(() => {
-    if (router.query.id === undefined) {
+    if (teamId === undefined) {
+      return;
+    }
+    setMenuConfig(() => {
+      const baseRoute = `/team/${encodeURIComponent(teamId)}`;
+      const menuOptions = [
+        { name: "results", displayedName: "RESULTS", path: `${baseRoute}/results` },
+        { name: "fixtures", displayedName: "FIXTURES", path: `${baseRoute}/fixtures` },
+        { name: "players", displayedName: "PLAYERS", path: `${baseRoute}/players` },
+      ];
+
+      const currentlySelectedOption = teamSubPage?.toLowerCase() ?? "";
+      // if currently selected subpage does not exist among possibilities, 
+      // redirect to the first option from the menu
+      if (!menuOptions.map(o => o.name).includes(currentlySelectedOption)) {
+        router.push(menuOptions[0].path)
+      }
+
+      return createMenuConfig(currentlySelectedOption, menuOptions);
+    })
+  }, [router.query.path])
+
+  useEffect(() => {
+    if (teamId === undefined) {
       return;
     }
 
-    const teamUrl = `${publicRuntimeConfig.TEAMS_BASE_URL}/${router.query.id}`;
+    const teamUrl = `${publicRuntimeConfig.TEAMS_BASE_URL}/${teamId}`;
     fetch(teamUrl)
       .then((res) => res.json())
       .then((data) => {
         const d: FullTeamInfo = data;
         setTeamInformation(d);
-        setTeamInfoContentLoaded(true);
       });
 
-  }, [router.query.id]);
-
+  }, [teamId]);
 
   return (
     <div className="flex flex-row items-center justify-center">
       <div className="mt-10 pt-12 basis-full rounded-md border border-c2">
-        {teamInfoContentLoaded ?
+        {teamInformation !== undefined ?
           <TeamInfoContent team={teamInformation} />
           :
           <TeamInfoContentSkeleton />
         }
         <div className="mt-12 flex flex-row justify-center">
           <div>
-            <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
+            {menuConfig !== undefined &&
+              <RoutingHorizontalMenu menuConfig={menuConfig} />
+            }
           </div>
         </div>
         <div className="mt-12 pb-8">
-          {menuConfig.currentlySelected === "RESULTS" &&
+          {teamSubPage === "results" &&
             <ResultsSummary key={teamInformation?.id} team={teamInformation} />
           }
-          {menuConfig.currentlySelected === "FIXTURES" &&
+          {teamSubPage === "fixtures" &&
             <FixturesSummary key={teamInformation?.id} team={teamInformation} />
           }
-          {menuConfig.currentlySelected === "PLAYERS" &&
+          {teamSubPage === "players" &&
             <TeamPlayersListing key={teamInformation?.id} teamId={teamInformation?.id} />
           }
         </div>

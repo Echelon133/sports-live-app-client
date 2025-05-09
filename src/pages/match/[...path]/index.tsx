@@ -10,7 +10,7 @@ import Link from "next/link";
 import MatchStatusBox from "@/components/MatchStatusBox";
 import { MatchEvent, MatchEventType } from "@/types/MatchEvents";
 import { io } from "socket.io-client";
-import HorizontalMenu, { MenuConfig, createMenuConfig } from "@/components/HorizontalMenu";
+import RoutingHorizontalMenu, { RoutingMenuConfig, createMenuConfig } from "@/components/RoutingHorizontalMenu";
 
 const HIGHLIGHT_TIME = 3000;
 
@@ -50,9 +50,8 @@ export default function Match() {
   const [allMatchInformation, setAllMatchInformation] =
     useState<AllMatchInfo | undefined>(undefined);
   const [matchEvents, setMatchEvents] = useState<MatchEvent[]>([]);
-
-  const [menuConfig, setMenuConfig] = useState<MenuConfig>(
-    createMenuConfig(["SUMMARY", "LINEUPS"])
+  const [menuConfig, setMenuConfig] = useState<RoutingMenuConfig | undefined>(
+    undefined
   );
 
   // match events received via websocket should be able to update the scoreline, the status
@@ -60,11 +59,37 @@ export default function Match() {
   const [updateableMatchInfo, setUpdateableMatchInfo] =
     useState<UpdateableMatchInfo>(INITIAL_MATCH_INFO);
 
+  const matchId = router.query.path?.[0];
+  const matchSubPage = router.query.path?.[1];
+
   useEffect(() => {
-    if (router.query.id === undefined) {
+    if (matchId === undefined) {
       return;
     }
-    const matchUrl = `${publicRuntimeConfig.MATCHES_BASE_URL}/${router.query.id}`;
+
+    setMenuConfig(() => {
+      const baseRoute = `/match/${encodeURIComponent(matchId)}`;
+      const menuOptions = [
+        { name: "summary", displayedName: "SUMMARY", path: `${baseRoute}/summary` },
+        { name: "lineups", displayedName: "LINEUPS", path: `${baseRoute}/lineups` }
+      ];
+
+      const currentlySelectedOption = matchSubPage?.toLowerCase() ?? "";
+      // if currently selected subpage does not exist among possibilities, 
+      // redirect to the first option from the menu
+      if (!menuOptions.map(o => o.name).includes(currentlySelectedOption)) {
+        router.push(menuOptions[0].path)
+      }
+
+      return createMenuConfig(currentlySelectedOption, menuOptions);
+    })
+  }, [router.query.path])
+
+  useEffect(() => {
+    if (matchId === undefined) {
+      return;
+    }
+    const matchUrl = `${publicRuntimeConfig.MATCHES_BASE_URL}/${matchId}`;
     fetchFullMatchInfo(matchUrl)
       .then(async (matchInfo) => {
         const competitionUrl = `${publicRuntimeConfig.COMPETITIONS_BASE_URL}/${matchInfo.competitionId}`;
@@ -93,7 +118,7 @@ export default function Match() {
           setAllMatchInformation(undefined)
         }
       });
-  }, [router.query.id]);
+  }, [matchId]);
 
   function incrementFullTimeScore(homeTeamScored: boolean) {
     const [homeTeamGoalsDelta, awayTeamGoalsDelta] =
@@ -226,20 +251,22 @@ export default function Match() {
           <MatchInfoContentSkeleton />
         }
         <div className="pl-10 mt-5">
-          <HorizontalMenu menuConfig={menuConfig} setMenuConfig={setMenuConfig} />
+          {menuConfig !== undefined &&
+            <RoutingHorizontalMenu menuConfig={menuConfig} />
+          }
         </div>
         <div className="pb-14">
-          {menuConfig.currentlySelected === "SUMMARY" &&
+          {matchSubPage === "summary" &&
             <MatchEventsSummary
-              matchId={router.query.id?.toString()}
+              matchId={matchId}
               homeTeamId={allMatchInformation?.match.homeTeam?.id}
               matchEvents={matchEvents}
               setMatchEvents={setMatchEvents}
             />
           }
-          {menuConfig.currentlySelected === "LINEUPS" &&
+          {matchSubPage === "lineups" &&
             <MatchLineupListing
-              matchId={router.query.id?.toString()}
+              matchId={matchId}
               homeTeamId={allMatchInformation?.match.homeTeam?.id}
               matchEvents={matchEvents}
             />
@@ -270,7 +297,7 @@ function MatchInfoContent(props: {
           height="25"
           src={competitionLogoUrl ?? "../../placeholder-competition-logo.svg"}
           alt="Competition's name" />
-        <Link href={`/competition/${props.allMatchInformation.competition.id}`}>
+        <Link href={`/competition/${encodeURIComponent(props.allMatchInformation.competition.id)}`}>
           <span className="font-extrabold hover:underline text-c4">{props.allMatchInformation?.competition.name}</span>
         </Link>
         <span className="font-extralight text-sm text-c3 ml-2">({props.allMatchInformation?.competition.season})</span>
@@ -290,7 +317,7 @@ function MatchInfoContent(props: {
                     height="100"
                     src={homeCrestUrl ?? "../../placeholder-club-logo.svg"}
                     alt="Home team's crest" />
-                  <Link href={`/team/${matchInformation.homeTeam?.id}`}>
+                  <Link href={`/team/${encodeURIComponent(matchInformation.homeTeam!.id)}`}>
                     <span className="font-extrabold hover:underline">{matchInformation?.homeTeam?.name}</span>
                   </Link>
                 </div>
@@ -352,7 +379,7 @@ function MatchInfoContent(props: {
                     height="100"
                     src={awayCrestUrl ?? "../../placeholder-club-logo.svg"}
                     alt="Away team's crest" />
-                  <Link href={`/team/${matchInformation.awayTeam?.id}`}>
+                  <Link href={`/team/${encodeURIComponent(matchInformation.awayTeam!.id)}`}>
                     <span className="font-extrabold hover:underline">{matchInformation?.awayTeam?.name}</span>
                   </Link>
                 </div>
