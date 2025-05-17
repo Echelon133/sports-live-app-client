@@ -157,7 +157,7 @@ function PlayerPoint(props: { player: PlayerInFormation }) {
     <>
       <div className="flex flex-col items-center m-auto z-40">
         <div className={`${sideColor} w-9 h-9 rounded-full border border-1 border-c4 text-center`}>
-          <p className="font-bold text-2xl py-1">{props.player.number}</p>
+          <p className="font-bold text-xl py-1">{props.player.number}</p>
         </div>
         <div className="absolute">
           <span className="relative top-8 font-bold text-sm px-1 bg-c0 rounded-xl text-center text-wrap">
