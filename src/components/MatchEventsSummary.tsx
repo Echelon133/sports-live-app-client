@@ -8,31 +8,11 @@ import GoalIcon from "./icons/GoalIcon";
 import SubstitutionIcon from "./icons/SubstitutionIcon";
 import InfoMessage from "./InfoMessage";
 
-const { publicRuntimeConfig } = getConfig();
-
 export default function MatchEventsSummary(props: {
   matchId: string | undefined,
   homeTeamId: string | undefined,
   matchEvents: MatchEvents.MatchEvent[],
-  setMatchEvents: Dispatch<SetStateAction<MatchEvents.MatchEvent[]>>,
 }) {
-
-  // fetch already existing match events
-  useEffect(() => {
-    if (props.matchId === undefined) {
-      return;
-    }
-
-    const eventsUrl = `${publicRuntimeConfig.MATCHES_BASE_URL}/${props.matchId}/events`;
-    fetch(eventsUrl)
-      .then((res) => res.json())
-      .then((data) => {
-        const matchEvents: MatchEvents.MatchEvent[] = data;
-        props.setMatchEvents(matchEvents);
-      });
-
-  }, [props.matchId]);
-
   return (
     <>
       <div className="mt-6 flex flex-row bg-c1 items-center justify-center">

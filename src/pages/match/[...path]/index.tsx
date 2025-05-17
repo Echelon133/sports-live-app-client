@@ -183,6 +183,21 @@ export default function Match() {
     }, HIGHLIGHT_TIME);
   }
 
+  useEffect(() => {
+    if (matchId === undefined) {
+      return;
+    }
+
+    const eventsUrl = `${publicRuntimeConfig.MATCHES_BASE_URL}/${matchId}/events`;
+    fetch(eventsUrl)
+      .then((res) => res.json())
+      .then((data) => {
+        const matchEvents: MatchEvent[] = data;
+        setMatchEvents(matchEvents);
+      });
+
+  }, [matchId]);
+
   // websocket connection which updates matchEvents is placed in this parent component instead 
   // of being placed directly in MatchEventsSummary, because two mutually exclusive 
   // child components (MatchEventsSummary and MatchLineupListing) of this component 
@@ -191,7 +206,6 @@ export default function Match() {
   useEffect(() => {
     const matchFinished = allMatchInformation?.match.status === MatchStatus.FINISHED;
     const homeTeamId = allMatchInformation?.match.homeTeam?.id;
-    const matchId = router.query.id;
     // connect to the websocket only if:
     //    * homeTeamId is set (needed to determine if an event should be placed on
     //    the left or the right side on the summary)
@@ -237,7 +251,7 @@ export default function Match() {
     return () => {
       socket.disconnect();
     };
-  }, [router.query.id, allMatchInformation?.match.homeTeam?.id])
+  }, [router.query.path, allMatchInformation?.match.homeTeam?.id])
 
   return (
     <div className="mt-10 flex flex-row">
@@ -261,7 +275,6 @@ export default function Match() {
               matchId={matchId}
               homeTeamId={allMatchInformation?.match.homeTeam?.id}
               matchEvents={matchEvents}
-              setMatchEvents={setMatchEvents}
             />
           }
           {matchSubPage === "lineups" &&
