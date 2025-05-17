@@ -6,13 +6,13 @@ export default function CardIcon(props: { card: CardType }) {
 
   switch (props.card) {
     case CardType.YELLOW:
-      cardImageSrc = "../yellow.svg"
+      cardImageSrc = "/../yellow.svg"
       break;
     case CardType.SECOND_YELLOW:
-      cardImageSrc = "../second-yellow.svg"
+      cardImageSrc = "/../second-yellow.svg"
       break;
     case CardType.DIRECT_RED:
-      cardImageSrc = "../red.svg"
+      cardImageSrc = "/../red.svg"
       break;
   }
 
