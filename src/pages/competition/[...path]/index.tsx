@@ -134,7 +134,7 @@ function CompetitionInfoContent(props: { competition: CompetitionInfo | undefine
       <div className="flex flex-row">
         <div className="basis-1/3">
           <Image
-            className="bg-white p-2 rounded-xl float-right"
+            className="bg-white p-2 h-[150px] w-[150px] rounded-xl float-right"
             width="120"
             height="120"
             src={competitionLogoUrl ?? "../../placeholder-competition-logo.svg"}

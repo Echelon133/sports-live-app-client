@@ -36,7 +36,7 @@ export default function PinnedCompetitionListing(props: {
                 <Link href={`/competition/${encodeURIComponent(c.id)}`} onClick={props.togglePinnedCompetitions}>
                   <div className="flex flex-row items-center gap-1">
                     <Image
-                      className="bg-white p-[0.1rem] rounded-sm float-left mr-2"
+                      className="bg-white p-[0.1rem] h-[23px] w-[23px] rounded-sm float-left mr-2"
                       width="23"
                       height="23"
                       src={c.logoUrl ?? "placeholder-competition-logo.svg"}
