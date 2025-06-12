@@ -81,15 +81,15 @@ function TeamSearchResultEntry(props: { info: FullTeamInfo }) {
         <div className="flex py-1 items-center justify-evenly hover:bg-c0 hover:cursor-pointer">
           <div className="basis-1/4">
             <Image
-              className="bg-white p-1 w-12 h-12 rounded-xl float-right"
+              className="bg-white p-1 w-9 h-9 rounded-xl float-right"
               width="100"
               height="100"
               src={`${props.info.crestUrl ?? "../../placeholder-club-logo.svg"}`}
               priority={true}
               alt="Team's name" />
           </div>
-          <div className="basis-2/4">
-            <p className="font-extrabold text-md">{props.info.name}</p>
+          <div className="basis-3/4">
+            <p className="text-md pl-2">{props.info.name}</p>
           </div>
         </div>
       </Link>
@@ -120,15 +120,15 @@ function CompetitionSearchResultEntry(props: { info: CompetitionInfo }) {
         <div key={props.info.id} className="flex py-1 items-center justify-evenly hover:bg-c0 hover:cursor-pointer">
           <div className="basis-1/4">
             <Image
-              className="bg-white p-1 w-12 h-12 rounded-xl float-right"
-              width="0"
-              height="0"
+              className="bg-white p-1 w-9 h-9 rounded-xl float-right"
+              width="100"
+              height="100"
               src={`${props.info.logoUrl ?? "../../placeholder-competition-logo.svg"}`}
               priority={true}
               alt="Competition's name" />
           </div>
-          <div className="basis-2/4">
-            <p className="font-extrabold text-md">{props.info.name}</p>
+          <div className="basis-3/4">
+            <p className="text-md pl-2">{props.info.name}</p>
           </div>
         </div>
       </Link>
