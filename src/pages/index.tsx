@@ -1,4 +1,3 @@
-import DatePicker from "@/components/DatePicker";
 import getConfig from "next/config";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
 import { useEffect, useState } from "react";
@@ -6,6 +5,7 @@ import { GroupedMatches } from "@/types/Competition";
 import GroupedMatchInfoSkeleton from "@/components/GroupedMatchInfoSkeleton";
 import { Socket, io } from "socket.io-client";
 import InfoMessage from "@/components/InfoMessage";
+import ListPicker, { PickerOptionMap, getCurrentlySelectedPickerOption } from "@/components/ListPicker";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -43,11 +43,24 @@ function calculateClientUTCOffset(): string {
 const UTC_OFFSET = calculateClientUTCOffset();
 
 export default function Home() {
+  const [datePickerOptionMap, setDatePickerOptionMap] =
+    useState<PickerOptionMap>(createPickerOptions);
   const [groupedMatchesContentLoaded, setGroupedMatchesContentLoaded] = useState<boolean>(false);
-  const [selectedDateKey, setSelectedDateKey] = useState<string | undefined>(undefined);
   const [competitionGroupedMatches, setCompetitionGroupedMatches] =
     useState<GroupedMatches[]>([]);
   const [globalUpdatesSocket, setGlobalUpdatesSocket] = useState<Socket | undefined>(undefined);
+
+  const selectedDateKey = getCurrentlySelectedPickerOption(datePickerOptionMap)?.name;
+
+  useEffect(() => {
+    const mostRecentPickerDate = sessionStorage.getItem(MOST_RECENT_PICKER_DATE);
+    const initialDateKey = mostRecentPickerDate ?? DEFAULT_DATE_PICKER_KEY;
+    if (initialDateKey !== selectedDateKey) {
+      datePickerOptionMap.forEach((v, k) => {
+        v.isSelected = k === initialDateKey;
+      })
+    }
+  }, [])
 
   useEffect(() => {
     // do not fetch any data until the picker initializes
@@ -88,7 +101,14 @@ export default function Home() {
   return (
     <>
       <div className="mt-10 rounded-md border border-x-c2 border-t-0 border-b-c2">
-        <DatePicker selectedDateKey={selectedDateKey} setSelectedDateKey={setSelectedDateKey} />
+        <ListPicker
+          pickerOptionMap={datePickerOptionMap}
+          setPickerOptionMap={setDatePickerOptionMap}
+          icon="calendar.svg"
+          onSelectedOptionChange={
+            (key) => sessionStorage.setItem(MOST_RECENT_PICKER_DATE, key)
+          }
+        />
         <div className="rounded-b-md">
           {groupedMatchesContentLoaded ?
             <GroupedMatchesContent
@@ -130,4 +150,66 @@ function GroupedMatchesContent(props: {
       }
     </>
   )
+}
+
+// Name of the local storage item storing the most recent picker key
+const MOST_RECENT_PICKER_DATE = "most-recent-picker-date";
+// How many days before today's date should appear in the picker
+const DAYS_BEFORE_TODAY: number = 7;
+// How many days after today's date should appear in the picker
+const DAYS_AFTER_TODAY: number = 7;
+const TODAY: Date = new Date();
+// Default key value
+const DEFAULT_DATE_PICKER_KEY: string = formatPickerOptionKey(TODAY);
+
+function formatPickerOptionKey(d: Date): string {
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }
+  return d.toLocaleDateString("zh-Hans-CN", options);
+}
+
+function formatPickerOptionValue(d: Date): string {
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    month: "2-digit",
+    day: "2-digit",
+  }
+  return d.toLocaleDateString("gb-En", options);
+}
+
+function createPickerOptions(): PickerOptionMap {
+  var dateOptions: PickerOptionMap = new Map();
+
+  const dayMillis = 24 * 60 * 60 * 1000;
+
+  // calculate options for days before today
+  for (let i = DAYS_BEFORE_TODAY; i > 0; i--) {
+    const day = new Date(TODAY.getTime() - (i * dayMillis));
+    const key = formatPickerOptionKey(day);
+    dateOptions.set(
+      key,
+      { name: key, displayName: formatPickerOptionValue(day), isSelected: false }
+    );
+  }
+
+  // calculate one option for today
+  dateOptions.set(
+    DEFAULT_DATE_PICKER_KEY,
+    { name: DEFAULT_DATE_PICKER_KEY, displayName: "Today", isSelected: true }
+  )
+
+  // calculate options for days after today
+  for (let i = 1; i <= DAYS_AFTER_TODAY; i++) {
+    const day = new Date(TODAY.getTime() + (i * dayMillis));
+    const key = formatPickerOptionKey(day);
+    dateOptions.set(
+      key,
+      { name: key, displayName: formatPickerOptionValue(day), isSelected: false }
+    );
+  }
+
+  return dateOptions;
 }

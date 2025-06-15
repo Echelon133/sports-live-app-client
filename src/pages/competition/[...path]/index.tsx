@@ -12,9 +12,9 @@ import LabeledMatchInfo from "@/components/LabeledMatchInfo";
 import { CompactMatchInfo, MatchStatus } from "@/types/Match";
 import useHideOnUserEvent from "@/components/hooks/useHideOnUserEvent";
 import GroupedMatchInfo from "@/components/GroupedMatchInfo";
-import { PickerOption } from "@/components/DatePicker";
 import RoutingHorizontalMenu, { RoutingMenuConfig, createMenuConfig } from "@/components/RoutingHorizontalMenu";
 import { FullTeamInfo } from "@/types/Team";
+import ListPicker, { PickerOptionMap, getCurrentlySelectedPickerOption } from "@/components/ListPicker";
 
 const { publicRuntimeConfig } = getConfig();
 
@@ -523,9 +523,26 @@ function MatchesByRound(props: {
   defaultRound: number,
   globalUpdatesSocket?: Socket | undefined
 }) {
-  const [selectedRound, setSelectedRound] =
-    useState<number>(props.defaultRound === 0 ? 1 : props.defaultRound);
+  const [roundPickerOptionMap, setRoundPickerOptionMap] =
+    useState<PickerOptionMap>(createPickerOptions);
   const [roundMatches, setRoundMatches] = useState<CompactMatchInfo[]>([]);
+
+  const selectedRound = getCurrentlySelectedPickerOption(roundPickerOptionMap)?.name;
+
+  function createPickerOptions(): PickerOptionMap {
+    var roundOptions: PickerOptionMap = new Map();
+    const maxRounds = props.competition.maxRounds ?? 1;
+
+    for (let roundIndex = 1; roundIndex <= maxRounds; roundIndex++) {
+      const key = roundIndex.toString();
+      roundOptions.set(key, {
+        name: key,
+        displayName: `Round ${roundIndex}`,
+        isSelected: roundIndex === props.defaultRound
+      })
+    }
+    return roundOptions;
+  }
 
   useEffect(() => {
     if (props.competition?.id === undefined) {
@@ -545,111 +562,15 @@ function MatchesByRound(props: {
 
   return (
     <>
-      <RoundPicker
-        selectedRound={selectedRound}
-        setSelectedRound={setSelectedRound}
-        maxRounds={props.competition?.maxRounds ?? 1}
+      <ListPicker
+        pickerOptionMap={roundPickerOptionMap}
+        setPickerOptionMap={setRoundPickerOptionMap}
       />
       <GroupedMatchInfo
         competitionInfo={props.competition}
         matches={roundMatches}
         globalUpdatesSocket={props.globalUpdatesSocket}
       />
-    </>
-  )
-}
-
-function RoundPicker(props: {
-  selectedRound: number,
-  setSelectedRound: Dispatch<SetStateAction<number>>,
-  maxRounds: number
-}) {
-  const [pickerRef, pickerListVisible, setPickerListVisible] = useHideOnUserEvent(false);
-  const [pickerOptions, setPickerOptions] = useState<Map<number, PickerOption>>(createPickerOptions());
-
-  const pickerKeys = Array.from(pickerOptions.keys());
-  const pickerValues = Array.from(pickerOptions.values());
-
-  function createPickerOptions(): Map<number, PickerOption> {
-    let map: Map<number, PickerOption> = new Map();
-    for (let round = 1; round <= props.maxRounds; round++) {
-      const pOption: PickerOption =
-        { displayName: `Round ${round}`, isSelected: round === props.selectedRound };
-      map.set(round, pOption);
-    }
-    return map;
-  }
-
-  function togglePickerListVisibility() {
-    setPickerListVisible(prev => !prev);
-  }
-
-  function pickOptionByKey(selectedKey: number) {
-    setPickerOptions((prev) => {
-      const updatedMap = new Map(prev);
-      updatedMap.forEach((v, k) => {
-        if (k === selectedKey) {
-          v.isSelected = true;
-        } else {
-          v.isSelected = false;
-        }
-      });
-      return updatedMap;
-    });
-    props.setSelectedRound(selectedKey);
-    setPickerListVisible(false);
-  }
-
-  function pickOptionByIndex(index: number) {
-    const keyToSelect = pickerKeys[index];
-    pickOptionByKey(keyToSelect)
-  }
-
-  function findIndexOfCurrentOption(): number {
-    for (let i = 0; i < pickerValues.length; i++) {
-      if (pickerValues[i].isSelected) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  function pickNextOption() {
-    const indexToSelect = findIndexOfCurrentOption() + 1;
-    if (indexToSelect < pickerOptions.size) {
-      pickOptionByIndex(indexToSelect)
-    }
-  }
-
-  function pickPreviousOption() {
-    const indexToSelect = findIndexOfCurrentOption() - 1;
-    if (indexToSelect >= 0) {
-      pickOptionByIndex(indexToSelect);
-    }
-  }
-
-  return (
-    <>
-      <div className="flex flex-row h-12 bg-c2 items-center justify-center">
-        <button onClick={pickPreviousOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&lt;</button>
-        <div ref={pickerRef} className="basis-[240px] mx-1">
-          <button onClick={togglePickerListVisibility} className="bg-white text-black flex rounded-lg w-full items-center justify-center hover:bg-c1 hover:text-white">
-            <span className="font-bold mt-1 pl-2">
-              {pickerOptions.get(props.selectedRound!)?.displayName}
-            </span>
-          </button>
-          <ul className={`${pickerListVisible ? "visible" : "invisible"} absolute mt-1 text-center rounded-lg bg-white`}>
-            {Array.from(pickerOptions).map(([key, pickerOption]) => {
-              return <li
-                className={`${pickerOption.isSelected ? "bg-c3" : ""} w-[240px] text-black m-1 hover:bg-c4 rounded-lg hover:bg-opacity-25 hover:text-gray-600 hover:cursor-pointer`}
-                key={key}
-                onClick={() => pickOptionByKey(key)}> {pickerOption.displayName}
-              </li>
-            })}
-          </ul>
-        </div>
-        <button onClick={pickNextOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&gt;</button>
-      </div>
     </>
   )
 }
@@ -666,15 +587,41 @@ type SelectedStageProps = {
 }
 
 function KnockoutPhase(props: { competition: CompetitionInfo }) {
+  const [stagePickerOptionMap, setStagePickerOptionMap] =
+    useState<PickerOptionMap>(new Map());
   const [knockoutTree, setKnockoutTree] = useState<KnockoutTree | undefined>(undefined);
   const [knockoutContentLoaded, setKnockoutContentLoaded] = useState<boolean>(false);
-  const [selectedStage, setSelectedStage] = useState<string>("");
   const [highlightedSlotIndexes, setHighlightedSlotIndexes] = useState<number[]>([]);
   const highlightTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const stageKeys: string[] =
     knockoutTree === undefined ? [] : knockoutTree.stages.map((stage) => stage.stage);
   const competitionId = props.competition.id;
+
+  const selectedStage = stagePickerOptionMap.size === 0 ?
+    "" : getCurrentlySelectedPickerOption(stagePickerOptionMap)?.name;
+
+  // We can only initialize the list of picker options after loading the information
+  // about available stages from the backend. Different competitions have
+  // different numbers of stages.
+  useEffect(() => {
+    if (knockoutTree === undefined) {
+      return;
+    }
+
+    setStagePickerOptionMap(() => {
+      var stageOptions: PickerOptionMap = new Map();
+      // if knockoutTree is not undefined, then stageKeys is initialized
+      stageKeys.forEach((key, index) => {
+        stageOptions.set(key, {
+          name: key,
+          displayName: KnockoutStage.format(key)!,
+          isSelected: index === 0
+        });
+      })
+      return stageOptions;
+    })
+  }, [knockoutTree])
 
   function getSlotsOfStage(stage: string): KnockoutStageSlot[] {
     for (let stageEntry of knockoutTree!.stages) {
@@ -689,6 +636,19 @@ function KnockoutPhase(props: { competition: CompetitionInfo }) {
     return stageKeys.indexOf(selectedStage);
   }
 
+  function pickStageWithIndex(index: number) {
+    if (index >= 0 && index < stageKeys.length) {
+      const stageToSelect = stageKeys[index];
+      setStagePickerOptionMap((prev) => {
+        const updatedMap = new Map(prev);
+        updatedMap.forEach((v, k) => {
+          v.isSelected = k === stageToSelect;
+        })
+        return updatedMap;
+      })
+    }
+  }
+
   function prevStageWithHighlight(currentSlotIndex: number) {
     // i.e. going from slot2 to the previous stage should highlight both slot0
     //      and slot1
@@ -700,7 +660,7 @@ function KnockoutPhase(props: { competition: CompetitionInfo }) {
     // slot1 /
     setHighlightedSlotIndexes([currentSlotIndex * 2, currentSlotIndex * 2 + 1]);
     resetHighlightedSlotIndexes();
-    setSelectedStage(stageKeys[getIndexOfCurrentStage() - 1]);
+    pickStageWithIndex(getIndexOfCurrentStage() - 1);
   }
 
   function nextStageWithHighlight(currentSlotIndex: number) {
@@ -714,7 +674,7 @@ function KnockoutPhase(props: { competition: CompetitionInfo }) {
     // slot1 /
     setHighlightedSlotIndexes([currentSlotIndex / 2]);
     resetHighlightedSlotIndexes();
-    setSelectedStage(stageKeys[getIndexOfCurrentStage() + 1]);
+    pickStageWithIndex(getIndexOfCurrentStage() + 1);
   }
 
   function resetHighlightedSlotIndexes() {
@@ -750,7 +710,6 @@ function KnockoutPhase(props: { competition: CompetitionInfo }) {
       .then((data) => {
         const d: KnockoutTree = KnockoutTree.fromJSON(data);
         setKnockoutTree(d);
-        setSelectedStage(d.stages[0].stage);
         setKnockoutContentLoaded(true);
       })
   }, []);
@@ -759,11 +718,12 @@ function KnockoutPhase(props: { competition: CompetitionInfo }) {
     <>
       {knockoutContentLoaded ?
         <div className="min-h-[500px] bg-c1">
-          <KnockoutStagePicker
-            stageKeys={stageKeys}
-            selectedStage={selectedStage}
-            setSelectedStage={setSelectedStage}
-          />
+          {stagePickerOptionMap.size !== 0 &&
+            <ListPicker
+              pickerOptionMap={stagePickerOptionMap}
+              setPickerOptionMap={setStagePickerOptionMap}
+            />
+          }
           <KnockoutStageSlotGrouping
             selectedStageProps={selectedStageProps}
             slots={getSlotsOfStage(selectedStage)}
@@ -777,105 +737,6 @@ function KnockoutPhase(props: { competition: CompetitionInfo }) {
   );
 }
 
-function KnockoutStagePicker(props: {
-  stageKeys: string[],
-  selectedStage: string,
-  setSelectedStage: Dispatch<SetStateAction<string>>
-}) {
-  const [pickerRef, pickerListVisible, setPickerListVisible] = useHideOnUserEvent(false);
-  const [pickerOptions, setPickerOptions] =
-    useState<Map<string, PickerOption>>(createPickerOptions());
-
-  const pickerKeys = Array.from(pickerOptions.keys());
-  const pickerValues = Array.from(pickerOptions.values());
-
-  function createPickerOptions(): Map<string, PickerOption> {
-    let map: Map<string, PickerOption> = new Map();
-    props.stageKeys.forEach((key, index) => {
-      let isSelected = false;
-      if (index === 0) {
-        isSelected = true;
-      }
-      const pOption: PickerOption =
-        { displayName: KnockoutStage.format(key)!, isSelected: isSelected };
-      map.set(key, pOption);
-    })
-    return map;
-  }
-
-  function togglePickerListVisibility() {
-    setPickerListVisible(prev => !prev);
-  }
-
-  function pickOptionByKey(selectedKey: string) {
-    setPickerOptions((prev) => {
-      const updatedMap = new Map(prev);
-      updatedMap.forEach((v, k) => {
-        if (k === selectedKey) {
-          v.isSelected = true;
-        } else {
-          v.isSelected = false;
-        }
-      });
-      return updatedMap;
-    });
-    props.setSelectedStage(selectedKey);
-    setPickerListVisible(false);
-  }
-
-  function pickOptionByIndex(index: number) {
-    const keyToSelect = pickerKeys[index];
-    pickOptionByKey(keyToSelect)
-  }
-
-  function findIndexOfCurrentOption(): number {
-    for (let i = 0; i < pickerValues.length; i++) {
-      if (pickerValues[i].isSelected) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  function pickNextOption() {
-    const indexToSelect = findIndexOfCurrentOption() + 1;
-    if (indexToSelect < pickerOptions.size) {
-      pickOptionByIndex(indexToSelect)
-    }
-  }
-
-  function pickPreviousOption() {
-    const indexToSelect = findIndexOfCurrentOption() - 1;
-    if (indexToSelect >= 0) {
-      pickOptionByIndex(indexToSelect);
-    }
-  }
-
-  return (
-    <>
-      <div className="flex flex-row h-12 bg-c2 items-center justify-center">
-        <button onClick={pickPreviousOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&lt;</button>
-        <div ref={pickerRef} className="basis-[240px] mx-1">
-          <button onClick={togglePickerListVisibility} className="bg-white text-black flex rounded-lg w-full items-center justify-center hover:bg-c1 hover:text-white">
-            <span className="font-bold mt-1 pl-2">
-              {pickerOptions.get(props.selectedStage!)?.displayName}
-            </span>
-          </button>
-          <ul className={`${pickerListVisible ? "visible" : "invisible"} absolute mt-1 text-center rounded-lg bg-white`}>
-            {Array.from(pickerOptions).map(([key, pickerOption]) => {
-              return <li
-                className={`${pickerOption.isSelected ? "bg-c3" : ""} w-[240px] text-black m-1 hover:bg-c4 rounded-lg hover:bg-opacity-25 hover:text-gray-600 hover:cursor-pointer`}
-                key={key}
-                onClick={() => pickOptionByKey(key)}> {pickerOption.displayName}
-              </li>
-            })}
-          </ul>
-        </div>
-        <button onClick={pickNextOption} className="bg-white h-8 w-8 text-2xl text-black rounded-lg hover:bg-c1 hover:text-white">&gt;</button>
-      </div>
-    </>
-  )
-}
 
 function KnockoutStageSlotGrouping(props: {
   selectedStageProps: SelectedStageProps,
